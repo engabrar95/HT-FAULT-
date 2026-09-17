@@ -569,6 +569,26 @@
   .risk-filter-tab.active.filter-medium{background:#a16a10;border-color:#a16a10;}
   .risk-filter-tab.active.filter-low{background:#1f8a4c;border-color:#1f8a4c;}
 
+  /* Risk forecast — dedicated KPI grid (independent of the station-risk one) */
+  .risk-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:16px;}
+
+  /* Risk forecast — priority (probability x expected impact) chips */
+  .ai-chip.priority-critical{background:rgba(255,60,60,0.18);color:#ff5c5c;border-color:rgba(255,60,60,0.4);font-weight:800;}
+  .ai-chip.priority-high{background:rgba(255,176,32,0.16);color:var(--amber);border-color:rgba(255,176,32,0.35);font-weight:800;}
+  .ai-chip.priority-medium{background:rgba(0,174,239,0.12);color:var(--e-blue);}
+  .ai-chip.priority-low{background:rgba(55,214,122,0.12);color:var(--green);}
+
+  /* Risk forecast — prediction accuracy strip */
+  .risk-accuracy-strip{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    font-size:12px;color:var(--mute);background:var(--panel2);border:1px solid var(--line);
+    border-radius:8px;padding:9px 14px;margin-bottom:16px;
+  }
+  .risk-accuracy-strip b{color:var(--text);font-family:'Inter',sans-serif;font-weight:800;}
+  .risk-accuracy-strip .acc-good{color:var(--green);}
+  .risk-accuracy-strip .acc-mid{color:var(--amber);}
+  .risk-accuracy-strip .acc-bad{color:#ff5c5c;}
+
   /* AI INSIGHTS — impressive dashboard card grid */
   .ai-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;}
   .ai-card{
@@ -1152,7 +1172,8 @@
         <button class="sld-modal-close" id="riskForecastCloseBtn" aria-label="Close">✕</button>
       </div>
       <div class="sld-modal-body" style="flex-direction:column;align-items:stretch;padding:18px;gap:0;overflow:auto;">
-        <div id="riskForecastKpis" class="risk-dash-summary"></div>
+        <div id="riskAccuracyBadge"></div>
+        <div id="riskForecastKpis" class="risk-kpis"></div>
         <div id="riskSpotlight"></div>
         <div id="riskFilterTabs" class="risk-filter-tabs"></div>
         <div id="riskForecastList" class="gov-stats-grid"></div>
@@ -3924,16 +3945,34 @@ function computeRiskFeeders(){
     ));
     const risk = score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low';
 
+    // Expected impact — average MW lost per historical fault on this feeder.
+    // Used to turn "likely to fail" into "worth prioritizing" (a high-probability
+    // feeder that barely loses load matters less than a medium one that blacks
+    // out a large chunk of MW every time).
+    const mwValues = faults.map(f => parseFloat(f.mw)).filter(v => !isNaN(v) && v > 0);
+    const avgMW = mwValues.length ? mwValues.reduce((a,b) => a+b, 0) / mwValues.length : 0;
+
     return {
       sstn: g.sstn, feeder: g.feeder, score, risk,
       totalCount, recent90, avgInterval, daysSinceLast, seasonalMatch,
       dominantCause: dominant[0], dominantCauseCount: dominant[1],
-      lastDate: lastFaultDate,
+      lastDate: lastFaultDate, avgMW,
+      faultDates: faults.map(f => f.date),
       predictedDate: predictedDate ? predictedDate.toISOString() : null
     };
   }).filter(Boolean);
 
-  return results.sort((a,b) => b.score - a.score);
+  // Priority score — combines failure probability (score) with expected impact
+  // (avgMW, normalized against the riskiest feeder in this batch) so the list
+  // can be ordered by "worth acting on first", not just "most likely to fail".
+  const maxAvgMW = Math.max(1, ...results.map(r => r.avgMW));
+  results.forEach(r => {
+    r.impactScore = Math.round((r.avgMW / maxAvgMW) * 100);
+    r.priorityScore = Math.round(r.score * 0.6 + r.impactScore * 0.4);
+    r.priorityLevel = r.priorityScore >= 80 ? 'critical' : r.priorityScore >= 60 ? 'high' : r.priorityScore >= 35 ? 'medium' : 'low';
+  });
+
+  return results.sort((a,b) => b.priorityScore - a.priorityScore);
 }
 
 let riskCountdownTimer = null;
@@ -3971,6 +4010,8 @@ function stopRiskCountdownTicker(){
   riskCountdownTimer = null;
 }
 
+const PRIORITY_LABEL_AR = {critical:'قصوى', high:'عالية', medium:'متوسطة', low:'منخفضة'};
+
 function renderRiskKpis(allRisks){
   const kpiEl = document.getElementById('riskForecastKpis');
   if(!kpiEl) return;
@@ -3978,14 +4019,18 @@ function renderRiskKpis(allRisks){
   const high = allRisks.filter(g => g.risk === 'high').length;
   const overdue = allRisks.filter(g => g.predictedDate && new Date(g.predictedDate) < new Date()).length;
   const avgScore = Math.round(allRisks.reduce((s,g) => s + g.score, 0) / allRisks.length);
+  const totalExpectedMW = allRisks.reduce((s,g) => s + g.avgMW, 0);
   kpiEl.innerHTML = `
     <div class="kpi"><div class="val" data-target="${allRisks.length}">0</div><div class="lbl">📡 مغذيات تحت المراقبة</div></div>
     <div class="kpi danger"><div class="val" data-target="${high}">0</div><div class="lbl">🔥 خطورة مرتفعة</div></div>
     <div class="kpi warn"><div class="val" data-target="${overdue}">0</div><div class="lbl">⏰ تجاوزت الموعد المتوقع</div></div>
-    <div class="kpi ok"><div class="val"><span class="num-part" data-target="${avgScore}">0</span><small>%</small></div><div class="lbl">متوسط درجة الخطورة</div></div>`;
+    <div class="kpi ok"><div class="val"><span class="num-part" data-target="${avgScore}">0</span><small>%</small></div><div class="lbl">متوسط درجة الخطورة</div></div>
+    <div class="kpi danger"><div class="val"><span class="num-part-mw">0.0</span><small> MW</small></div><div class="lbl">⚡ الفاقد المتوقع الإجمالي</div></div>`;
   kpiEl.querySelectorAll('.val[data-target], .num-part[data-target]').forEach(el => {
     animateCountUp(el, parseInt(el.dataset.target, 10) || 0);
   });
+  const mwEl = kpiEl.querySelector('.num-part-mw');
+  if(mwEl) animateNumber(mwEl, totalExpectedMW, 1);
 }
 
 function renderRiskSpotlight(top){
@@ -3996,11 +4041,11 @@ function renderRiskSpotlight(top){
   const overdue = top.predictedDate ? (new Date(top.predictedDate) < new Date()) : false;
   el.innerHTML = `
     <div class="risk-spotlight spotlight-${top.risk}">
-      <div class="risk-spotlight-eyebrow"><span class="risk-spotlight-bolt">⚡</span> الأعلى خطورة الآن</div>
+      <div class="risk-spotlight-eyebrow"><span class="risk-spotlight-bolt">⚡</span> الأعلى أولوية للتدخل الآن</div>
       <div class="risk-spotlight-body">
         <div class="risk-spotlight-titles">
           <h3>${esc(top.feeder)}</h3>
-          <div>${esc(top.sstn || '—')} · درجة الخطورة ${top.score}% (${riskLabel[top.risk]})${top.seasonalMatch ? ' · 🌞 نمط موسمي' : ''}</div>
+          <div>${esc(top.sstn || '—')} · احتمال العطل ${top.score}% (${riskLabel[top.risk]}) · فاقد متوقع ${top.avgMW.toFixed(1)} MW${top.seasonalMatch ? ' · 🌞 نمط موسمي' : ''}</div>
         </div>
         ${top.predictedDate ? `
         <div class="risk-spotlight-clock risk-countdown${overdue ? ' overdue' : ''}" data-target="${top.predictedDate}">
@@ -4039,11 +4084,84 @@ function renderRiskFilterTabs(allRisks){
   });
 }
 
+/* =====================================================================
+   PREDICTION ACCURACY — logs each predicted date the model produces for
+   a feeder, then checks it against what actually happens: a hit if a new
+   fault lands within a tolerance window of the prediction, a miss if the
+   window passes with nothing (or the next fault lands far outside it).
+   Persisted in localStorage (per governorate) so accuracy builds up over
+   real usage instead of resetting on every reload.
+   ===================================================================== */
+const PREDICTION_LOG_TOLERANCE_DAYS = 7;
+const PREDICTION_LOG_GRACE_DAYS = 21;
+
+function predictionLogKeyFor(gov){ return 'htFaultPredictionLog_' + gov; }
+
+function loadPredictionLog(){
+  try{ return JSON.parse(localStorage.getItem(predictionLogKeyFor(currentGov))) || []; }catch(e){ return []; }
+}
+function savePredictionLog(log){
+  try{ localStorage.setItem(predictionLogKeyFor(currentGov), JSON.stringify(log)); }catch(e){}
+}
+
+function updatePredictionLog(riskGroups){
+  const log = loadPredictionLog();
+  const now = new Date();
+
+  riskGroups.forEach(g => {
+    const key = g.sstn + ' — ' + g.feeder;
+
+    log.filter(e => e.key === key && e.outcome === 'pending').forEach(entry => {
+      const nextFault = g.faultDates.find(d => new Date(d) > new Date(entry.loggedAt));
+      if(nextFault){
+        const diffDays = Math.abs((new Date(nextFault) - new Date(entry.predictedDate)) / 86400000);
+        entry.outcome = diffDays <= PREDICTION_LOG_TOLERANCE_DAYS ? 'hit' : 'miss';
+        entry.resolvedAt = now.toISOString();
+        entry.actualDate = nextFault;
+      } else if(entry.predictedDate && (now - new Date(entry.predictedDate)) / 86400000 > PREDICTION_LOG_GRACE_DAYS){
+        entry.outcome = 'miss';
+        entry.resolvedAt = now.toISOString();
+      }
+    });
+
+    if(g.predictedDate && !log.some(e => e.key === key && e.predictedDate === g.predictedDate)){
+      log.push({key, sstn: g.sstn, feeder: g.feeder, predictedDate: g.predictedDate, loggedAt: now.toISOString(), outcome: 'pending'});
+    }
+  });
+
+  const trimmed = log.slice(-300);
+  savePredictionLog(trimmed);
+  return trimmed;
+}
+
+function computePredictionAccuracy(log){
+  const resolved = log.filter(e => e.outcome === 'hit' || e.outcome === 'miss');
+  const hits = resolved.filter(e => e.outcome === 'hit').length;
+  return {
+    total: resolved.length, hits, misses: resolved.length - hits,
+    pct: resolved.length ? Math.round((hits / resolved.length) * 100) : null,
+    pending: log.filter(e => e.outcome === 'pending').length
+  };
+}
+
+function renderPredictionAccuracy(log){
+  const el = document.getElementById('riskAccuracyBadge');
+  if(!el) return;
+  const stats = computePredictionAccuracy(log);
+  if(stats.total < 3){
+    el.innerHTML = `<div class="risk-accuracy-strip">📊 دقة النموذج قيد القياس — تحتاج توقعات أكثر تُحسم مع الوقت (${stats.total} محسومة حتى الآن، ${stats.pending} قيد الانتظار).</div>`;
+    return;
+  }
+  const cls = stats.pct >= 70 ? 'acc-good' : stats.pct >= 45 ? 'acc-mid' : 'acc-bad';
+  el.innerHTML = `<div class="risk-accuracy-strip">🎯 دقة توقعات النظام حتى الآن: <b class="${cls}">${stats.pct}%</b> (${stats.hits} من ${stats.total} توقع تحقق ضمن ±${PREDICTION_LOG_TOLERANCE_DAYS} أيام) · ${stats.pending} توقع قيد الانتظار</div>`;
+}
+
 function renderRiskForecast(){
   const container = document.getElementById('riskForecastList');
   if(!container) return;
   stopRiskCountdownTicker();
   const allRisks = computeRiskFeeders();
+  renderPredictionAccuracy(updatePredictionLog(allRisks));
 
   renderRiskKpis(allRisks);
   renderRiskSpotlight(allRisks[0] || null);
@@ -4091,6 +4209,7 @@ function renderRiskForecast(){
         <span class="risk-countdown-clock">—</span>
       </div>` : ''}
       <div class="ai-chip-row" style="margin:12px 0;">
+        <span class="ai-chip priority-${g.priorityLevel}">🎯 أولوية ${PRIORITY_LABEL_AR[g.priorityLevel]}</span>
         ${g.seasonalMatch ? '<span class="ai-chip">🌞 نمط موسمي</span>' : ''}
         <span class="ai-chip">${esc(g.dominantCause)}</span>
       </div>
@@ -4099,6 +4218,7 @@ function renderRiskForecast(){
         <div><span>الفاصل المعتاد</span><b>${g.avgInterval ? g.avgInterval + ' يوم' : '—'}</b></div>
         <div><span>مرّ منذ آخر عطل</span><b>${g.daysSinceLast} يوم</b></div>
         <div><span>آخر عطل مسجل</span><b>${esc(g.lastDate || '—')}</b></div>
+        <div><span>الفاقد المتوقع بالعطلة</span><b>${g.avgMW.toFixed(1)} MW</b></div>
       </div>
     </div>`;
   }).join('');
