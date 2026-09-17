@@ -522,6 +522,53 @@
   @keyframes riskCountdownBlink{0%,100%{opacity:1;}50%{opacity:.5;}}
   .risk-countdown.overdue .risk-countdown-clock{color:var(--red);animation:riskCountdownBlink 1s ease-in-out infinite;}
 
+  /* Risk forecast — spotlight hero card for the single riskiest feeder */
+  .risk-spotlight{
+    position:relative;overflow:hidden;border-radius:14px;padding:18px 20px;margin-bottom:16px;
+    background:linear-gradient(135deg,rgba(255,92,92,0.16),rgba(255,176,32,0.06) 65%,var(--panel) 100%);
+    border:1px solid rgba(255,92,92,0.35);
+    animation:riskSpotlightGlow 2.4s ease-in-out infinite, riskCardIn .45s cubic-bezier(.16,1,.3,1) both;
+  }
+  .risk-spotlight.spotlight-medium{
+    background:linear-gradient(135deg,rgba(255,176,32,0.14),var(--panel) 100%);
+    border-color:rgba(255,176,32,0.32);animation:riskCardIn .45s cubic-bezier(.16,1,.3,1) both;
+  }
+  .risk-spotlight.spotlight-low{
+    background:linear-gradient(135deg,rgba(55,214,122,0.12),var(--panel) 100%);
+    border-color:rgba(55,214,122,0.3);animation:riskCardIn .45s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes riskSpotlightGlow{
+    0%,100%{box-shadow:0 0 0 0 rgba(255,92,92,0);}
+    50%{box-shadow:0 0 26px 2px rgba(255,92,92,0.20);}
+  }
+  .risk-spotlight-eyebrow{
+    display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;
+    letter-spacing:.05em;text-transform:uppercase;color:#ff8a8a;margin-bottom:10px;font-family:'IBM Plex Mono',monospace;
+  }
+  .spotlight-medium .risk-spotlight-eyebrow{color:var(--amber);}
+  .spotlight-low .risk-spotlight-eyebrow{color:var(--green);}
+  .risk-spotlight-bolt{display:inline-block;animation:riskBoltFlash 1.2s ease-in-out infinite;}
+  @keyframes riskBoltFlash{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.85);}}
+  .risk-spotlight-body{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .risk-spotlight-titles{flex:1;min-width:200px;}
+  .risk-spotlight-titles h3{margin:0 0 4px;font-size:17px;font-weight:800;color:var(--text);}
+  .risk-spotlight-titles div{font-size:12px;color:var(--mute);}
+  .risk-spotlight-clock{margin-right:0;text-align:center;background:rgba(0,0,0,0.18);border-radius:10px;padding:10px 20px;min-width:150px;}
+  .risk-spotlight-clock .risk-countdown-clock{font-size:21px;}
+
+  /* Risk forecast — filter tabs */
+  .risk-filter-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .risk-filter-tab{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;
+    padding:6px 14px;border-radius:20px;border:1px solid var(--line);background:var(--panel2);
+    color:var(--mute);cursor:pointer;transition:all .15s ease;
+  }
+  .risk-filter-tab:hover{color:var(--text);border-color:var(--e-blue);}
+  .risk-filter-tab.active{background:var(--e-blue);color:#fff;border-color:var(--e-blue);}
+  .risk-filter-tab.active.filter-high{background:#c23a3a;border-color:#c23a3a;}
+  .risk-filter-tab.active.filter-medium{background:#a16a10;border-color:#a16a10;}
+  .risk-filter-tab.active.filter-low{background:#1f8a4c;border-color:#1f8a4c;}
+
   /* AI INSIGHTS — impressive dashboard card grid */
   .ai-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;}
   .ai-card{
@@ -1100,11 +1147,14 @@
 
   <div class="sld-modal-overlay" id="riskForecastModal" style="display:none;">
     <div class="sld-modal-box" style="max-width:1100px;">
-      <div class="sld-modal-head">
-        <div><div class="sld-modal-title">📈 توقع الأعطال — المغذيات عالية الخطورة</div><div class="sld-modal-sub">نموذج تنبؤي مركّب: التكرار التاريخي + الفاصل الزمني المعتاد + التوقيت الموسمي + طبيعة السبب</div></div>
+      <div class="sld-modal-head ai-modal-head">
+        <div><div class="sld-modal-title ai-shimmer-title">📈 توقع الأعطال — المغذيات عالية الخطورة <span class="ai-live-badge"><span class="ai-live-dot"></span>تحديث حي</span></div><div class="sld-modal-sub">نموذج تنبؤي مركّب: التكرار التاريخي + الفاصل الزمني المعتاد + التوقيت الموسمي + طبيعة السبب</div></div>
         <button class="sld-modal-close" id="riskForecastCloseBtn" aria-label="Close">✕</button>
       </div>
       <div class="sld-modal-body" style="flex-direction:column;align-items:stretch;padding:18px;gap:0;overflow:auto;">
+        <div id="riskForecastKpis" class="risk-dash-summary"></div>
+        <div id="riskSpotlight"></div>
+        <div id="riskFilterTabs" class="risk-filter-tabs"></div>
         <div id="riskForecastList" class="gov-stats-grid"></div>
       </div>
     </div>
@@ -3883,10 +3933,11 @@ function computeRiskFeeders(){
     };
   }).filter(Boolean);
 
-  return results.sort((a,b) => b.score - a.score).slice(0, 6);
+  return results.sort((a,b) => b.score - a.score);
 }
 
 let riskCountdownTimer = null;
+let riskFilterLevel = 'all';
 
 function riskNarrative(g, overdue){
   if(!g.predictedDate){
@@ -3920,13 +3971,96 @@ function stopRiskCountdownTicker(){
   riskCountdownTimer = null;
 }
 
+function renderRiskKpis(allRisks){
+  const kpiEl = document.getElementById('riskForecastKpis');
+  if(!kpiEl) return;
+  if(!allRisks.length){ kpiEl.innerHTML = ''; return; }
+  const high = allRisks.filter(g => g.risk === 'high').length;
+  const overdue = allRisks.filter(g => g.predictedDate && new Date(g.predictedDate) < new Date()).length;
+  const avgScore = Math.round(allRisks.reduce((s,g) => s + g.score, 0) / allRisks.length);
+  kpiEl.innerHTML = `
+    <div class="kpi"><div class="val" data-target="${allRisks.length}">0</div><div class="lbl">📡 مغذيات تحت المراقبة</div></div>
+    <div class="kpi danger"><div class="val" data-target="${high}">0</div><div class="lbl">🔥 خطورة مرتفعة</div></div>
+    <div class="kpi warn"><div class="val" data-target="${overdue}">0</div><div class="lbl">⏰ تجاوزت الموعد المتوقع</div></div>
+    <div class="kpi ok"><div class="val"><span class="num-part" data-target="${avgScore}">0</span><small>%</small></div><div class="lbl">متوسط درجة الخطورة</div></div>`;
+  kpiEl.querySelectorAll('.val[data-target], .num-part[data-target]').forEach(el => {
+    animateCountUp(el, parseInt(el.dataset.target, 10) || 0);
+  });
+}
+
+function renderRiskSpotlight(top){
+  const el = document.getElementById('riskSpotlight');
+  if(!el) return;
+  if(!top){ el.innerHTML = ''; return; }
+  const riskLabel = {high:'مرتفعة جدًا', medium:'متوسطة', low:'منخفضة'};
+  const overdue = top.predictedDate ? (new Date(top.predictedDate) < new Date()) : false;
+  el.innerHTML = `
+    <div class="risk-spotlight spotlight-${top.risk}">
+      <div class="risk-spotlight-eyebrow"><span class="risk-spotlight-bolt">⚡</span> الأعلى خطورة الآن</div>
+      <div class="risk-spotlight-body">
+        <div class="risk-spotlight-titles">
+          <h3>${esc(top.feeder)}</h3>
+          <div>${esc(top.sstn || '—')} · درجة الخطورة ${top.score}% (${riskLabel[top.risk]})${top.seasonalMatch ? ' · 🌞 نمط موسمي' : ''}</div>
+        </div>
+        ${top.predictedDate ? `
+        <div class="risk-spotlight-clock risk-countdown${overdue ? ' overdue' : ''}" data-target="${top.predictedDate}">
+          <div class="risk-countdown-label">${overdue ? '⏰ متأخر عن الموعد' : '⏳ العطل القادم خلال'}</div>
+          <div class="risk-countdown-clock">—</div>
+        </div>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderRiskFilterTabs(allRisks){
+  const el = document.getElementById('riskFilterTabs');
+  if(!el) return;
+  if(!allRisks.length){ el.innerHTML = ''; return; }
+  const counts = {
+    all: allRisks.length,
+    high: allRisks.filter(g => g.risk === 'high').length,
+    medium: allRisks.filter(g => g.risk === 'medium').length,
+    low: allRisks.filter(g => g.risk === 'low').length,
+  };
+  const tabs = [
+    {key:'all', label:'الكل'},
+    {key:'high', label:'🔥 مرتفعة'},
+    {key:'medium', label:'⚠ متوسطة'},
+    {key:'low', label:'✅ منخفضة'},
+  ];
+  el.innerHTML = tabs.map(t => `
+    <button type="button" class="risk-filter-tab filter-${t.key}${riskFilterLevel === t.key ? ' active' : ''}" data-filter="${t.key}">
+      ${t.label} <span style="opacity:.6">(${counts[t.key]})</span>
+    </button>`).join('');
+  el.querySelectorAll('.risk-filter-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      riskFilterLevel = btn.dataset.filter;
+      renderRiskForecast();
+    });
+  });
+}
+
 function renderRiskForecast(){
   const container = document.getElementById('riskForecastList');
   if(!container) return;
   stopRiskCountdownTicker();
-  const risks = computeRiskFeeders();
-  if(!risks.length){
+  const allRisks = computeRiskFeeders();
+
+  renderRiskKpis(allRisks);
+  renderRiskSpotlight(allRisks[0] || null);
+  renderRiskFilterTabs(allRisks);
+
+  if(!allRisks.length){
     container.innerHTML = '<div class="activity-empty">لا توجد بيانات كافية حاليًا للتنبؤ — يحتاج المغذي حادثتين على الأقل بأي وقت لبناء نمط.</div>';
+    tickRiskCountdowns();
+    riskCountdownTimer = setInterval(tickRiskCountdowns, 1000);
+    return;
+  }
+
+  const risks = (riskFilterLevel === 'all' ? allRisks : allRisks.filter(g => g.risk === riskFilterLevel)).slice(0, 12);
+  if(!risks.length){
+    container.innerHTML = '<div class="activity-empty">لا توجد مغذيات ضمن هذا المستوى حاليًا.</div>';
+    tickRiskCountdowns();
+    riskCountdownTimer = setInterval(tickRiskCountdowns, 1000);
     return;
   }
   const riskLabel = {high:'مرتفعة', medium:'متوسطة', low:'منخفضة'};
@@ -4058,6 +4192,7 @@ document.getElementById('aiInsightsDateClearBtn').addEventListener('click', () =
 });
 
 document.getElementById('riskForecastOpenBtn').addEventListener('click', () => {
+  riskFilterLevel = 'all';
   renderRiskForecast();
   document.getElementById('riskForecastModal').style.display = 'flex';
 });
