@@ -4849,23 +4849,38 @@ function parseReportText(text){
   m = clean.match(/Affected\s*consumers?\s*:?\s*([^\n]+)/i);
   if(m) result.affected = m[1].replace(/\.$/, '').trim();
 
-  m = clean.match(/Trip\s*Indications?\s*:?\s*([^\n]+)/i);
+  // Trip indication(s) — prefer an explicit "Trip Indications:" label, but
+  // many reports just mention O/C, E/F, or Solkor inline (e.g. "tripped at
+  // o/c at major", "Tripped solker B/S" — "solker"/"salkor" are common
+  // misspellings of Solkor) with no formal label at all.
+  const tiLabelMatch = clean.match(/Trip\s*Indications?\s*:?\s*([^\n]+)/i);
+  const tiScope = tiLabelMatch ? tiLabelMatch[1] : clean;
   const ti = [];
-  if(m){
-    if(/O\/C/i.test(m[1])) ti.push('O/C');
-    if(/E\/F/i.test(m[1])) ti.push('E/F');
-    if(/Solkor/i.test(m[1])) ti.push('Solkor B/A');
-  }
+  if(/\bO\/?C\b/i.test(tiScope)) ti.push('O/C');
+  if(/\bE\/?F\b/i.test(tiScope)) ti.push('E/F');
+  if(/\bs[ao]lk[oe]r\b/i.test(tiScope)) ti.push('Solkor B/A');
   if(ti.length) result.tripIndication = ti;
 
   // Engineer / work team — some messages list one or more names under
-  // "Work Team:", others sign off with a single "Eng. Name" line.
+  // "Work Team:", others just end with one or several "Eng <Name>" lines
+  // with no header at all (a shared job named signature by signature).
+  // Collect every such occurrence instead of only the first/last one.
   const workTeamSection = extractSection(clean, /Work\s*[Tt]eam\s*:?/i);
   if(workTeamSection){
     result.engineer = workTeamSection.split('\n').map(s => s.trim()).filter(Boolean).join(', ');
   } else {
-    const engMatch = clean.match(/Eng\.?\s*:\s*([A-Za-z.\s]+)/i);
-    if(engMatch) result.engineer = engMatch[1].replace(/\.$/, '').trim();
+    const engineerNames = [];
+    const addEngineerName = (name) => {
+      const n = name.replace(/\.$/, '').trim();
+      if(n && !engineerNames.some(e => e.toLowerCase() === n.toLowerCase())) engineerNames.push(n);
+    };
+    const engLabelMatch = clean.match(/Eng\.?\s*:\s*([^\n]{2,40})/i);
+    if(engLabelMatch) addEngineerName(engLabelMatch[1]);
+    clean.split('\n').forEach(line => {
+      const lineMatch = line.trim().match(/^Eng\.?\s*([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,3})\s*$/);
+      if(lineMatch) addEngineerName(lineMatch[1]);
+    });
+    if(engineerNames.length) result.engineer = engineerNames.join('، ');
   }
 
   // Work done — the bullet-point / free-text description of what was
@@ -5150,7 +5165,7 @@ function parseRestorationText(text){
     // -open point, energizing), so take the time next to the LAST such
     // action mentioned; that's when supply actually came back, unlike the
     // trip time quoted earlier in the same message.
-    const actionTimeMatches = [...clean.matchAll(/(?:closing|closed|restor(?:ed|ing)|energi[sz]ed|normali[sz]ed)[^\n]*?(\d{1,2}:\d{2})/gi)];
+    const actionTimeMatches = [...clean.matchAll(/(?:closing|closed|restor(?:ed|ing|e)|energi[sz]ed|normali[sz]ed)[^\n]*?(\d{1,2}:\d{2}\s*[AaPp]?[Mm]?)/gi)];
     if(actionTimeMatches.length) restoreTimeRaw = actionTimeMatches[actionTimeMatches.length - 1][1];
   }
   if(!restoreTimeRaw){
@@ -5174,13 +5189,14 @@ function parseRestorationText(text){
   // keyword up to (but not including) the next structured line, so the
   // engineer list or a "Note:" line right after it isn't swallowed too.
   if(!result.workDone){
-    const actionMatch = clean.match(/((?:Isolated|Restored|Closing|Closed|Energi[sz]ed|Repaired|Tested)[^\n]*(?:\n(?!\s*(?:Note\s*:|(?:Area\s+)?Eng\b|S\.?\s*[Ss]tn\s*:|Forwarded))[^\n]*)*)/i);
+    const actionMatch = clean.match(/((?:Isolated|Restor(?:ed|e|ing)|Closing|Closed|Energi[sz]ed|Repair(?:ed|ing)?|Tested)[^\n]*(?:\n(?!\s*(?:Note\s*:|(?:Area\s+)?Eng\b|S\.?\s*[Ss]tn\s*:|Forwarded|Informed\b|@))[^\n]*)*)/i);
     if(actionMatch) result.workDone = actionMatch[1].trim().replace(/\s+/g, ' ');
   }
 
-  // Cable fault location — "found cable Faulty between: <point A / point B>",
-  // often on the line right after the label rather than inline with it.
-  const cableMatch = clean.match(/[Cc]able\s+[Ff]ault(?:y)?\s+between\s*:?\s*\n?\s*([^\n]+(?:\n(?!\s*(?:Isolated|Restored|(?:Area\s+)?Eng\b|Note\s*:))[^\n]+)?)/);
+  // Fault location — "found (cable) fault(y) between: <point A / point B>",
+  // often on its own line (sometimes after a blank line) rather than
+  // inline with the label, and not every message says "cable" explicitly.
+  const cableMatch = clean.match(/(?:[Cc]able\s+)?[Ff]ault(?:y)?\s+between\s*:?-?\s*\n*\s*([^\n]+(?:\n(?!\s*(?:Isolated|Restor(?:ed|e|ing)|(?:Area\s+)?Eng\b|Note\s*:|Informed\b))[^\n]+)?)/);
   if(cableMatch) result.faultLocation = cableMatch[1].trim().replace(/\s+/g, ' ');
 
   // Engineer name(s) — a restoration is often a shared job with several
@@ -5220,7 +5236,7 @@ function parseRestorationText(text){
   const ti = [];
   if(/O\/?C/i.test(tiScope)) ti.push('O/C');
   if(/E\/?F/i.test(tiScope)) ti.push('E/F');
-  if(/Solkor/i.test(tiScope)) ti.push('Solkor B/A');
+  if(/s[ao]lk[oe]r/i.test(tiScope)) ti.push('Solkor B/A');
   if(ti.length) result.tripIndication = ti;
 
   // Generic fallback pass — backfills anything the specific patterns above
