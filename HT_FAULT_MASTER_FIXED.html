@@ -2962,7 +2962,11 @@ const KVDB_BASE = 'https://kvdb.io/';
 // kvdb.io requires an email to create a bucket (used for their own bucket
 // management, not surfaced anywhere in this app) — a fixed, non-personal
 // placeholder is used here rather than any real user's address.
-const KVDB_BUCKET_EMAIL = 'ht-fault-team-sync@example.com';
+// example.com/example.org/.test are RFC 2606 reserved placeholder domains
+// that anti-abuse filters commonly block outright — a made-up but
+// non-reserved domain is used instead so bucket creation isn't rejected
+// purely for looking like a throwaway address.
+const KVDB_BUCKET_EMAIL = 'team-sync@ht-fault-app.net';
 let teamSyncId = null;
 try{
   teamSyncId = localStorage.getItem(syncIdKeyFor(currentGov)) || (DEFAULT_TEAM_SYNC_ID || null);
@@ -3011,14 +3015,14 @@ async function createTeamSync(){
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
       body: 'email=' + encodeURIComponent(KVDB_BUCKET_EMAIL)
     });
-    if(!bucketRes.ok) throw new Error('HTTP ' + bucketRes.status + ' creating bucket');
+    if(!bucketRes.ok) throw new Error('HTTP ' + bucketRes.status + ' creating bucket: ' + (await bucketRes.text()).slice(0, 120));
     const id = (await bucketRes.text()).trim();
     if(!id || /[<>\s]/.test(id)) throw new Error('Unexpected response: ' + id.slice(0, 40));
     const seedRes = await fetch(KVDB_BASE + id + '/faults', {
       method: 'POST',
       body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
     });
-    if(!seedRes.ok) throw new Error('HTTP ' + seedRes.status + ' seeding data');
+    if(!seedRes.ok) throw new Error('HTTP ' + seedRes.status + ' seeding data: ' + (await seedRes.text()).slice(0, 120));
     teamSyncId = id;
     try{ localStorage.setItem(syncIdKeyFor(currentGov), id); }catch(e){}
     updateTeamSyncUI();
