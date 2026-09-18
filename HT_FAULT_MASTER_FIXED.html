@@ -4760,7 +4760,11 @@ function extractOuterParen(raw){
       if(depth === 0) return {content: raw.slice(start+1, i), fullMatch: raw.slice(start, i+1)};
     }
   }
-  return null;
+  // Parentheses never balance out — a missing closing paren is a common
+  // typo in hastily-typed field reports. Still split at the first "(" so
+  // the station name in front of it isn't swallowed into one unusable
+  // blob; take the (messy) remainder as the best-effort feeder text.
+  return {content: raw.slice(start+1).replace(/[)\s.]+$/, ''), fullMatch: raw.slice(start)};
 }
 
 /* =====================================================================
@@ -5141,27 +5145,61 @@ function parseRestorationText(text){
     if(energMatch) restoreTimeRaw = energMatch[1] + (energMatch[2] ? ' ' + energMatch[2] : '');
   }
   if(!restoreTimeRaw){
+    // No explicit "Rest:"/"Energ Time:" label — these narratives usually
+    // list switching steps in order (closing a breaker, closing a normally
+    // -open point, energizing), so take the time next to the LAST such
+    // action mentioned; that's when supply actually came back, unlike the
+    // trip time quoted earlier in the same message.
+    const actionTimeMatches = [...clean.matchAll(/(?:closing|closed|restor(?:ed|ing)|energi[sz]ed|normali[sz]ed)[^\n]*?(\d{1,2}:\d{2})/gi)];
+    if(actionTimeMatches.length) restoreTimeRaw = actionTimeMatches[actionTimeMatches.length - 1][1];
+  }
+  if(!restoreTimeRaw){
     // Last resort: any standalone HH:MM in the text, since some messages
-    // just state the time without a "Restore:" or "Energ Time:" label.
-    const anyTimeMatch = clean.match(/\b(\d{1,2}:\d{2})\s*(hrs|[AaPp][Mm])?\b/);
-    if(anyTimeMatch) restoreTimeRaw = anyTimeMatch[1] + (anyTimeMatch[2] && /[ap]m/i.test(anyTimeMatch[2]) ? ' ' + anyTimeMatch[2] : '');
+    // just state the time without a "Restore:" or "Energ Time:" label —
+    // but skip one that's clearly labeled as the trip/fault time instead.
+    const allTimes = [...clean.matchAll(/\b(\d{1,2}:\d{2})\s*(hrs|[AaPp][Mm])?\b/g)];
+    const nonTripTime = allTimes.find(t => !/\btrip\s*:?\s*$/i.test(clean.slice(Math.max(0, t.index - 15), t.index)));
+    const chosen = nonTripTime || allTimes[0];
+    if(chosen) restoreTimeRaw = chosen[1] + (chosen[2] && /[ap]m/i.test(chosen[2]) ? ' ' + chosen[2] : '');
   }
   if(restoreTimeRaw) result.restoreTime = normalizeTime(restoreTimeRaw);
 
   const workDoneSection = extractSection(clean, /Work\s*Done\s*:?/i) || extractSection(clean, /\bWork\s*:/i);
   if(workDoneSection) result.workDone = workDoneSection;
 
-  // Engineer name — try an explicit "Eng: Name" label first, then fall
-  // back to a plain "Eng.Name" signature (common at the end of messages,
-  // with no colon or space), preferring the LAST match since a role
-  // mention ("Informed: Area Eng") tends to come before the actual
-  // signature further down.
-  let engMatch = clean.match(/Eng\.?\s*:\s*([A-Za-z.\s]{2,40})/i);
-  if(!engMatch){
-    const sigMatches = [...clean.matchAll(/Eng\.([A-Z][A-Za-z.\s]{2,40})/g)];
-    if(sigMatches.length) engMatch = sigMatches[sigMatches.length - 1];
+  // Fallback for messages with no "Work Done:"/"Work:" label at all —
+  // restoration narratives are often just a free-flowing sentence
+  // ("Isolated at B/S and restored supply by closing tripped CB ...
+  // closed N.O of 1(old) s/s ..."). Capture from the first switching
+  // keyword up to (but not including) the next structured line, so the
+  // engineer list or a "Note:" line right after it isn't swallowed too.
+  if(!result.workDone){
+    const actionMatch = clean.match(/((?:Isolated|Restored|Closing|Closed|Energi[sz]ed|Repaired|Tested)[^\n]*(?:\n(?!\s*(?:Note\s*:|(?:Area\s+)?Eng\b|S\.?\s*[Ss]tn\s*:|Forwarded))[^\n]*)*)/i);
+    if(actionMatch) result.workDone = actionMatch[1].trim().replace(/\s+/g, ' ');
   }
-  if(engMatch) result.engineer = engMatch[1].replace(/\.$/, '').trim();
+
+  // Cable fault location — "found cable Faulty between: <point A / point B>",
+  // often on the line right after the label rather than inline with it.
+  const cableMatch = clean.match(/[Cc]able\s+[Ff]ault(?:y)?\s+between\s*:?\s*\n?\s*([^\n]+(?:\n(?!\s*(?:Isolated|Restored|(?:Area\s+)?Eng\b|Note\s*:))[^\n]+)?)/);
+  if(cableMatch) result.faultLocation = cableMatch[1].trim().replace(/\s+/g, ' ');
+
+  // Engineer name(s) — a restoration is often a shared job with several
+  // engineers named, either as a list under an "Area Eng's:" header or a
+  // lone signature line at the end. Collect every "Eng <Name>" line in
+  // the message (plus an explicit "Eng: Name" label) instead of just the
+  // first/last match, and combine them so nobody named gets dropped.
+  const engineerNames = [];
+  const addEngineerName = (name) => {
+    const n = name.replace(/\.$/, '').trim();
+    if(n && !engineerNames.some(e => e.toLowerCase() === n.toLowerCase())) engineerNames.push(n);
+  };
+  const engLabelMatch = clean.match(/Eng\.?\s*:\s*([^\n]{2,40})/i);
+  if(engLabelMatch) addEngineerName(engLabelMatch[1]);
+  clean.split('\n').forEach(line => {
+    const lineMatch = line.trim().match(/^Eng\.?\s*([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,3})\s*$/);
+    if(lineMatch) addEngineerName(lineMatch[1]);
+  });
+  if(engineerNames.length) result.engineer = engineerNames.join('، ');
 
   const noteMatch = clean.match(/\bNote\s*:?\s*\**\s*([^\n]+)/i);
   if(noteMatch) result.generalNote = noteMatch[1].trim();
@@ -5329,8 +5367,9 @@ document.getElementById('restoreScanRunBtn').addEventListener('click', () => {
 
   const noteParts = [];
   if(parsed.workDone) noteParts.push('الأعمال المنجزة: ' + parsed.workDone);
+  if(parsed.faultLocation) noteParts.push('موقع العطل: ' + parsed.faultLocation);
   if(parsed.generalNote) noteParts.push('ملاحظة: ' + parsed.generalNote);
-  const foundAnything = parsed.sstn || parsed.restoreTime || parsed.engineer || parsed.cause || parsed.workDone || (parsed.tripIndication && parsed.tripIndication.length);
+  const foundAnything = parsed.sstn || parsed.restoreTime || parsed.engineer || parsed.cause || parsed.workDone || parsed.faultLocation || (parsed.tripIndication && parsed.tripIndication.length);
   if(!foundAnything){
     // Nothing recognizable at all — preserve the whole message as-is so
     // the person can read it and fill the form manually without retyping.
@@ -5341,9 +5380,11 @@ document.getElementById('restoreScanRunBtn').addEventListener('click', () => {
   const foundBits = [];
   if(parsed.sstn) foundBits.push('المحطة');
   if(parsed.restoreTime) foundBits.push('وقت الاستعادة');
-  if(parsed.engineer) foundBits.push('المهندس');
+  if(parsed.engineer) foundBits.push(parsed.engineer.includes('،') ? 'المهندسون' : 'المهندس');
   if(parsed.cause) foundBits.push('نوع العطل');
   if(parsed.tripIndication && parsed.tripIndication.length) foundBits.push('مؤشر الفصل');
+  if(parsed.workDone) foundBits.push('الأعمال المنجزة');
+  if(parsed.faultLocation) foundBits.push('موقع العطل');
 
   if(foundBits.length){
     statusEl.className = 'scan-status success';
