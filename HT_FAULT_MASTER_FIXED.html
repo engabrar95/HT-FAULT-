@@ -3086,11 +3086,19 @@ async function pushToCloud(){
   if(!teamSyncId || syncInFlight) return;
   syncInFlight = true;
   try{
-    await fetch(EXTENDSCLASS_BASE + teamSyncId, {
+    const res = await fetch(EXTENDSCLASS_BASE + teamSyncId, {
       method: 'PUT',
       body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
     });
-  }catch(err){ console.error('pushToCloud failed:', err); }
+    if(!res.ok){
+      const text = await res.text();
+      console.error('pushToCloud failed:', res.status, text);
+      showToast('⚠️ فشلت مزامنة البيانات (HTTP ' + res.status + '): ' + text.slice(0, 100), 'error');
+    }
+  }catch(err){
+    console.error('pushToCloud failed:', err);
+    showToast('⚠️ فشلت مزامنة البيانات: ' + (err.message || err), 'error');
+  }
   syncInFlight = false;
 }
 
@@ -3107,8 +3115,15 @@ async function pullFromCloud(silent){
         render();
         if(!silent) showToast('Data updated from Team Sync', 'success');
       }
+    } else {
+      const text = await res.text();
+      console.error('pullFromCloud failed:', res.status, text);
+      if(!silent) showToast('⚠️ فشلت مزامنة البيانات (HTTP ' + res.status + '): ' + text.slice(0, 100), 'error');
     }
-  }catch(err){ console.error('pullFromCloud failed:', err); }
+  }catch(err){
+    console.error('pullFromCloud failed:', err);
+    if(!silent) showToast('⚠️ فشلت مزامنة البيانات: ' + (err.message || err), 'error');
+  }
   syncInFlight = false;
 }
 
