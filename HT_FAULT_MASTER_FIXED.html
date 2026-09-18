@@ -4704,6 +4704,18 @@ function normalizeDate(d){
   return '';
 }
 
+// Formal incident reports sometimes spell the date out ("10 September
+// 2026 — 06:32 AM") instead of using DD/MM/YYYY, so this covers that
+// style too.
+const MONTH_NAMES = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+function normalizeMonthNameDate(str){
+  const m = str.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})/i);
+  if(!m) return '';
+  const monthIdx = MONTH_NAMES.indexOf(m[2].toLowerCase());
+  if(monthIdx === -1) return '';
+  return m[3] + '-' + String(monthIdx + 1).padStart(2,'0') + '-' + m[1].padStart(2,'0');
+}
+
 function normalizeTime(t){
   t = t.trim();
   const ampm = t.match(/(\d{1,2}):(\d{2})\s*([ap]m)/i);
@@ -4817,7 +4829,7 @@ function parseReportText(text){
 
   m = clean.match(/S\.?\s*[Ss]tn\s*:?\s*([^\n]+)/i)
     || clean.match(/S\/S\s*&?\s*Lines?\s*:?\s*\*?\s*([^\n]+)/i)
-    || clean.match(/Substation\s*:?\s*([^\n]+)/i);
+    || clean.match(/\bSubstation\b\s*:?\s*([^\n]+)/i);
   if(m){
     let raw = m[1].trim();
     const paren = extractOuterParen(raw);
@@ -4874,10 +4886,10 @@ function parseReportText(text){
       const n = name.replace(/\.$/, '').trim();
       if(n && !engineerNames.some(e => e.toLowerCase() === n.toLowerCase())) engineerNames.push(n);
     };
-    const engLabelMatch = clean.match(/Eng\.?\s*:\s*([^\n]{2,40})/i);
+    const engLabelMatch = clean.match(/Eng(?:r|ineer)?\.?\s*:\s*([^\n]{2,40})/i);
     if(engLabelMatch) addEngineerName(engLabelMatch[1]);
     clean.split('\n').forEach(line => {
-      const lineMatch = line.trim().match(/^Eng\.?\s*([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,3})\s*$/);
+      const lineMatch = line.trim().match(/^Eng(?:r|ineer)?\.?\s*([A-Z][A-Za-z]*\.?(?:\s+[A-Z][A-Za-z]*\.?){0,4})\s*$/);
       if(lineMatch) addEngineerName(lineMatch[1]);
     });
     if(engineerNames.length) result.engineer = engineerNames.join('، ');
@@ -5129,7 +5141,7 @@ function parseRestorationText(text){
 
   let m = clean.match(/S\.?\s*[Ss]tn\s*:?\s*([^\n]+)/i)
     || clean.match(/S\/S\s*&?\s*Lines?\s*:?\s*\*?\s*([^\n]+)/i)
-    || clean.match(/Substation\s*:?\s*([^\n]+)/i);
+    || clean.match(/\bSubstation\b\s*:?\s*([^\n]+)/i);
   if(m){
     let raw = m[1].trim();
     const paren = extractOuterParen(raw);
@@ -5153,8 +5165,29 @@ function parseRestorationText(text){
   const energDateMatch = clean.match(/Energ\.?\s*Date\s*:?\s*(\d{1,2}\/\d{1,2}\/\d{2,4})/i);
   if(energDateMatch) result.restoreDate = normalizeDate(energDateMatch[1]);
 
+  // Formal incident-report layout ("Location:", "Action Taken:", "Supply
+  // Status:", "Coordination:", "Date & Time:", "Reported by:") — a more
+  // official template than the casual DCC-line messages, which often
+  // spells the date out ("10 September 2026 — 06:32 AM") instead of
+  // DD/MM/YYYY.
+  const REPORT_LABEL_STOP = '(?:Location\\s*:|Action\\s*Taken\\s*:|Supply\\s*Status\\s*:|Coordination\\s*:|Date\\s*&?\\s*Time\\s*:|Reported\\s*by\\s*:|Note\\s*:)';
+  function extractLabeledBlock(label){
+    const re = new RegExp(label + '\\s*:?\\s*\\n?\\s*([\\s\\S]*?)(?:\\n\\s*' + REPORT_LABEL_STOP + '|$)', 'i');
+    const bm = clean.match(re);
+    return bm ? bm[1].trim().replace(/\s+/g, ' ') : null;
+  }
+  const dateTimeBlock = extractLabeledBlock('Date\\s*&?\\s*Time');
+  if(dateTimeBlock && !result.restoreDate){
+    const monthDate = normalizeMonthNameDate(dateTimeBlock);
+    if(monthDate) result.restoreDate = monthDate;
+  }
+
   let restoreMatch = clean.match(/\bRest(?:ore|oration)?\.?\s*:?\s*(?:[Aa]t\s*)?(\d{1,2}:\d{2})\s*hrs/i);
   let restoreTimeRaw = restoreMatch ? restoreMatch[1] : null;
+  if(!restoreTimeRaw && dateTimeBlock){
+    const timeInBlock = dateTimeBlock.match(/(\d{1,2}:\d{2}\s*[AaPp]?[Mm]?)/);
+    if(timeInBlock) restoreTimeRaw = timeInBlock[1];
+  }
   if(!restoreTimeRaw){
     const energMatch = clean.match(/Energ\.?\s*Time\s*:?\**\s*(\d{1,2}:\d{2})\s*([AaPp][Mm])?/i);
     if(energMatch) restoreTimeRaw = energMatch[1] + (energMatch[2] ? ' ' + energMatch[2] : '');
@@ -5182,6 +5215,18 @@ function parseRestorationText(text){
   const workDoneSection = extractSection(clean, /Work\s*Done\s*:?/i) || extractSection(clean, /\bWork\s*:/i);
   if(workDoneSection) result.workDone = workDoneSection;
 
+  // "Action Taken:"/"Supply Status:" (formal report labels) — combine
+  // both into the work-done note when present, ahead of the free-text
+  // fallback below so it doesn't also swallow the later "Reported by:"
+  // section as if it were part of the same narrative.
+  if(!result.workDone){
+    const actionTakenBlock = extractLabeledBlock('Action\\s*Taken');
+    const supplyStatusBlock = extractLabeledBlock('Supply\\s*Status');
+    if(actionTakenBlock || supplyStatusBlock){
+      result.workDone = [actionTakenBlock, supplyStatusBlock].filter(Boolean).join(' ');
+    }
+  }
+
   // Fallback for messages with no "Work Done:"/"Work:" label at all —
   // restoration narratives are often just a free-flowing sentence
   // ("Isolated at B/S and restored supply by closing tripped CB ...
@@ -5189,32 +5234,52 @@ function parseRestorationText(text){
   // keyword up to (but not including) the next structured line, so the
   // engineer list or a "Note:" line right after it isn't swallowed too.
   if(!result.workDone){
-    const actionMatch = clean.match(/((?:Isolated|Restor(?:ed|e|ing)|Closing|Closed|Energi[sz]ed|Repair(?:ed|ing)?|Tested)[^\n]*(?:\n(?!\s*(?:Note\s*:|(?:Area\s+)?Eng\b|S\.?\s*[Ss]tn\s*:|Forwarded|Informed\b|@))[^\n]*)*)/i);
+    const actionMatch = clean.match(/((?:Isolated|Restor(?:ed|e|ing)|Closing|Closed|Energi[sz]ed|Repair(?:ed|ing)?|Tested)[^\n]*(?:\n(?!\s*(?:Note\s*:|(?:Area\s+)?Eng(?:r|ineer)?\b|S\.?\s*[Ss]tn\s*:|Forwarded|Informed\b|@))[^\n]*)*)/i);
     if(actionMatch) result.workDone = actionMatch[1].trim().replace(/\s+/g, ' ');
   }
 
   // Fault location — "found (cable) fault(y) between: <point A / point B>",
   // often on its own line (sometimes after a blank line) rather than
   // inline with the label, and not every message says "cable" explicitly.
-  const cableMatch = clean.match(/(?:[Cc]able\s+)?[Ff]ault(?:y)?\s+between\s*:?-?\s*\n*\s*([^\n]+(?:\n(?!\s*(?:Isolated|Restor(?:ed|e|ing)|(?:Area\s+)?Eng\b|Note\s*:|Informed\b))[^\n]+)?)/);
+  const cableMatch = clean.match(/(?:[Cc]able\s+)?[Ff]ault(?:y)?\s+between\s*:?-?\s*\n*\s*([^\n]+(?:\n(?!\s*(?:Isolated|Restor(?:ed|e|ing)|(?:Area\s+)?Eng(?:r|ineer)?\b|Note\s*:|Informed\b))[^\n]+)?)/);
   if(cableMatch) result.faultLocation = cableMatch[1].trim().replace(/\s+/g, ' ');
+  if(!result.faultLocation){
+    const locationBlock = extractLabeledBlock('Location');
+    if(locationBlock) result.faultLocation = locationBlock;
+  }
 
   // Engineer name(s) — a restoration is often a shared job with several
-  // engineers named, either as a list under an "Area Eng's:" header or a
-  // lone signature line at the end. Collect every "Eng <Name>" line in
-  // the message (plus an explicit "Eng: Name" label) instead of just the
-  // first/last match, and combine them so nobody named gets dropped.
+  // engineers named, either as a list under an "Area Eng's:" header, a
+  // formal "Reported by:" line, or one/several lone signature lines at
+  // the end. Collect every occurrence instead of just the first/last
+  // match, and combine them so nobody named gets dropped. Accepts
+  // "Eng"/"Engr"/"Engineer" prefixes and a middle initial ("Ali A.
+  // Alsaffar") in the name itself.
   const engineerNames = [];
   const addEngineerName = (name) => {
-    const n = name.replace(/\.$/, '').trim();
+    const n = name.replace(/^Eng(?:ineer|r)?\.?\s*/i, '').replace(/\.$/, '').trim();
     if(n && !engineerNames.some(e => e.toLowerCase() === n.toLowerCase())) engineerNames.push(n);
   };
-  const engLabelMatch = clean.match(/Eng\.?\s*:\s*([^\n]{2,40})/i);
+  const engLabelMatch = clean.match(/Eng(?:r|ineer)?\.?\s*:\s*([^\n]{2,40})/i);
   if(engLabelMatch) addEngineerName(engLabelMatch[1]);
+  const reportedByBlock = extractLabeledBlock('Reported\\s*by');
+  if(reportedByBlock) addEngineerName(reportedByBlock);
   clean.split('\n').forEach(line => {
-    const lineMatch = line.trim().match(/^Eng\.?\s*([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,3})\s*$/);
+    const lineMatch = line.trim().match(/^Eng(?:r|ineer)?\.?\s*([A-Z][A-Za-z]*\.?(?:\s+[A-Z][A-Za-z]*\.?){0,4})\s*$/);
     if(lineMatch) addEngineerName(lineMatch[1]);
   });
+  // Last resort: no "Eng"-prefixed name found anywhere, but many messages
+  // simply sign off with a bare name on the final line. Only accept it
+  // when it reads like a name (2-4 capitalized words) and doesn't hit any
+  // of the common operational terms that also appear alone on their own
+  // line, to avoid mistaking a station/status line for a signature.
+  if(!engineerNames.length){
+    const nonEmptyLines = clean.split('\n').map(l => l.trim()).filter(Boolean);
+    const lastLine = nonEmptyLines[nonEmptyLines.length - 1];
+    const nameLike = lastLine && /^[A-Z][A-Za-z.]*(?:\s+[A-Z][A-Za-z.]*){1,3}$/.test(lastLine);
+    const blocklist = /\b(DCC|INFORMED|FYI|NOTE|WORK|DONE|JAB|JABR|JAHR|TOWN|FL|AREA|MAJOR|MINOR|FEEDER|FEEDERS|SUPPLY|RESTORED|CLOSED|TESTED|ISOLATED|LOCATION|ACTION|TAKEN|STATUS|COORDINATION|DATE|TIME|REPORTED|SUBSTATION|SUBSTATIONS|OPEN|NORMAL|NORMALLY|OK|LOSS|TRIP|HRS)\b/i;
+    if(nameLike && !blocklist.test(lastLine)) addEngineerName(lastLine);
+  }
   if(engineerNames.length) result.engineer = engineerNames.join('، ');
 
   const noteMatch = clean.match(/\bNote\s*:?\s*\**\s*([^\n]+)/i);
@@ -5234,9 +5299,9 @@ function parseRestorationText(text){
   const tiMatch = clean.match(/Trip\s*Indications?\s*:?\s*([^\n]+)/i) || clean.match(/\bIndication\s*:?\s*([^\n]+)/i);
   const tiScope = tiMatch ? tiMatch[1] : clean;
   const ti = [];
-  if(/O\/?C/i.test(tiScope)) ti.push('O/C');
-  if(/E\/?F/i.test(tiScope)) ti.push('E/F');
-  if(/s[ao]lk[oe]r/i.test(tiScope)) ti.push('Solkor B/A');
+  if(/\bO\/?C\b/i.test(tiScope)) ti.push('O/C');
+  if(/\bE\/?F\b/i.test(tiScope)) ti.push('E/F');
+  if(/\bs[ao]lk[oe]r\b/i.test(tiScope)) ti.push('Solkor B/A');
   if(ti.length) result.tripIndication = ti;
 
   // Generic fallback pass — backfills anything the specific patterns above
