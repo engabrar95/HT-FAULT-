@@ -4736,7 +4736,7 @@ function extractSection(text, startRegex){
   const m = text.match(startRegex);
   if(!m) return null;
   const rest = text.slice(m.index + m[0].length);
-  const stopRegex = /\n\s*\n|\n(?=\s*(Note\s*:|Work\s*Team\s*:|Trip\s*Report\b|Eng\.?\s|S\.?\s*[Ss]tn\s*:|S\/S|Substation\s*:|Line\s*:|Trip\s*Date|Energ\.?\s*(Date|Time)\s*:|Forwarded))/i;
+  const stopRegex = /\n\s*\n|\n(?=\s*((?:Area\s+)?Eng(?:r|ineer)?\.?\s|Note\b|Work\s*Team\s*:|Trip\s*Report\b|S\.?\s*[Ss]tn\s*:|S\/S|Substation\s*:|Line\s*:|Trip\s*Date|Energ\.?\s*(Date|Time)\s*:|Forwarded))/i;
   const stopMatch = rest.match(stopRegex);
   const section = stopMatch ? rest.slice(0, stopMatch.index) : rest;
   return section.replace(/^[:\s]+/, '').trim() || null;
@@ -4919,8 +4919,8 @@ function parseReportText(text){
     result.cause = 'Cable Fault';
   }
 
-  const noteMatch = clean.match(/\bNote\s*:?\s*\**\s*([^\n]+)/i);
-  if(noteMatch) result.generalNote = noteMatch[1].trim();
+  const noteSection = extractSection(clean, /\bNote\s*:?\s*\**\s*/i);
+  if(noteSection) result.generalNote = noteSection;
 
   const noteParts = [];
   if(result.tripReason && !/^nothing$/i.test(result.tripReason)) noteParts.push('السبب: ' + result.tripReason);
@@ -5234,14 +5234,14 @@ function parseRestorationText(text){
   // keyword up to (but not including) the next structured line, so the
   // engineer list or a "Note:" line right after it isn't swallowed too.
   if(!result.workDone){
-    const actionMatch = clean.match(/((?:Isolated|Restor(?:ed|e|ing)|Closing|Closed|Energi[sz]ed|Repair(?:ed|ing)?|Tested)[^\n]*(?:\n(?!\s*(?:Note\s*:|(?:Area\s+)?Eng(?:r|ineer)?\b|S\.?\s*[Ss]tn\s*:|Forwarded|Informed\b|@))[^\n]*)*)/i);
+    const actionMatch = clean.match(/((?:Isolated|Restor(?:ed|e|ing)|Closing|Closed|Energi[sz]ed|Repair(?:ed|ing)?|Tested)[^\n]*(?:\n(?!\s*(?:Note\b|(?:Area\s+)?Eng(?:r|ineer)?\b|S\.?\s*[Ss]tn\s*:|Forwarded|Informed\b|@))[^\n]*)*)/i);
     if(actionMatch) result.workDone = actionMatch[1].trim().replace(/\s+/g, ' ');
   }
 
   // Fault location — "found (cable) fault(y) between: <point A / point B>",
   // often on its own line (sometimes after a blank line) rather than
   // inline with the label, and not every message says "cable" explicitly.
-  const cableMatch = clean.match(/(?:[Cc]able\s+)?[Ff]ault(?:y)?\s+between\s*:?-?\s*\n*\s*([^\n]+(?:\n(?!\s*(?:Isolated|Restor(?:ed|e|ing)|(?:Area\s+)?Eng(?:r|ineer)?\b|Note\s*:|Informed\b))[^\n]+)?)/);
+  const cableMatch = clean.match(/(?:[Cc]able\s+)?[Ff]ault(?:y)?\s+between\s*:?-?\s*\n*\s*([^\n]+(?:\n(?!\s*(?:Isolated|Restor(?:ed|e|ing)|(?:Area\s+)?Eng(?:r|ineer)?\b|Note\b|Informed\b))[^\n]+)?)/);
   if(cableMatch) result.faultLocation = cableMatch[1].trim().replace(/\s+/g, ' ');
   if(!result.faultLocation){
     const locationBlock = extractLabeledBlock('Location');
@@ -5282,8 +5282,8 @@ function parseRestorationText(text){
   }
   if(engineerNames.length) result.engineer = engineerNames.join('، ');
 
-  const noteMatch = clean.match(/\bNote\s*:?\s*\**\s*([^\n]+)/i);
-  if(noteMatch) result.generalNote = noteMatch[1].trim();
+  const noteSection = extractSection(clean, /\bNote\s*:?\s*\**\s*/i);
+  if(noteSection) result.generalNote = noteSection;
 
   // Fault type — Feeder faults (O/C, E/F), OHL faults (HT Fuse), or False Alarm.
   if(/false\s*alarm/i.test(clean)) result.cause = 'False Alarm';
