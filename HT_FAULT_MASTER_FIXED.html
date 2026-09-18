@@ -2948,25 +2948,24 @@ function exportReportExcel(title, rows){
 
 renderWeeklyReport();
 
-/* ---- Team Sync (shared cloud sync across devices via kvdb.io) ----
-   Previously used jsonblob.com, which returns the new record's id only in
-   a "Location" response header. Browsers hide non-whitelisted response
-   headers from cross-origin fetch() unless the server explicitly opts in
-   with Access-Control-Expose-Headers — jsonblob.com never did, so every
-   create request silently failed with "No sync code returned" no matter
-   how healthy the network was. kvdb.io returns everything (the new bucket
-   id, the stored value) in the response body instead, which cross-origin
-   fetch() can always read, so it works from a plain static page with no
-   backend of its own. */
-const KVDB_BASE = 'https://kvdb.io/';
-// kvdb.io requires an email to create a bucket (used for their own bucket
-// management, not surfaced anywhere in this app) — a fixed, non-personal
-// placeholder is used here rather than any real user's address.
-// example.com/example.org/.test are RFC 2606 reserved placeholder domains
-// that anti-abuse filters commonly block outright — a made-up but
-// non-reserved domain is used instead so bucket creation isn't rejected
-// purely for looking like a throwaway address.
-const KVDB_BUCKET_EMAIL = 'team-sync@ht-fault-app.net';
+/* ---- Team Sync (shared cloud sync across devices via jsonstore.io) ----
+   Two backends were tried and rejected before this one, each for a
+   different structural reason rather than a one-off bug:
+   - jsonblob.com returns the new record's id only in a "Location"
+     response header. Cross-origin fetch() hides non-whitelisted response
+     headers unless the server opts in with Access-Control-Expose-Headers,
+     which jsonblob.com never does, so every create silently failed with
+     "No sync code returned" no matter how healthy the network was.
+   - kvdb.io requires an email tied to the bucket to be verified through
+     their own login flow before the bucket accepts writes (HTTP 403
+     "email address not verified") — there is no way to satisfy that from
+     inside a static page with no account system of its own.
+   jsonstore.io sidesteps both: there is no separate "create" call to
+   misparse at all. The client makes up its own random key, and writing
+   to that key is what brings it into existence — reading and writing are
+   both plain JSON in the request/response body, nothing tucked into a
+   header or gated behind a verified account. */
+const JSONSTORE_BASE = 'https://www.jsonstore.io/';
 let teamSyncId = null;
 try{
   teamSyncId = localStorage.getItem(syncIdKeyFor(currentGov)) || (DEFAULT_TEAM_SYNC_ID || null);
@@ -3006,23 +3005,23 @@ function updateTeamSyncUI(){
   }
 }
 
+function randomSyncCode(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g, '');
+  let s = '';
+  for(let i = 0; i < 32; i++) s += Math.floor(Math.random() * 16).toString(16);
+  return s;
+}
+
 async function createTeamSync(){
   const btn = document.getElementById('teamSyncCreateBtn');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Creating…'; }
   try{
-    const bucketRes = await fetch(KVDB_BASE, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: 'email=' + encodeURIComponent(KVDB_BUCKET_EMAIL)
-    });
-    if(!bucketRes.ok) throw new Error('HTTP ' + bucketRes.status + ' creating bucket: ' + (await bucketRes.text()).slice(0, 120));
-    const id = (await bucketRes.text()).trim();
-    if(!id || /[<>\s]/.test(id)) throw new Error('Unexpected response: ' + id.slice(0, 40));
-    const seedRes = await fetch(KVDB_BASE + id + '/faults', {
+    const id = randomSyncCode();
+    const res = await fetch(JSONSTORE_BASE + id, {
       method: 'POST',
       body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
     });
-    if(!seedRes.ok) throw new Error('HTTP ' + seedRes.status + ' seeding data: ' + (await seedRes.text()).slice(0, 120));
+    if(!res.ok) throw new Error('HTTP ' + res.status + ': ' + (await res.text()).slice(0, 120));
     teamSyncId = id;
     try{ localStorage.setItem(syncIdKeyFor(currentGov), id); }catch(e){}
     updateTeamSyncUI();
@@ -3041,19 +3040,15 @@ async function joinTeamSync(){
   const btn = document.getElementById('teamSyncJoinBtn');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Connecting…'; }
   try{
-    const res = await fetch(KVDB_BASE + code + '/faults');
-    // A brand-new bucket with nothing pushed to it yet 404s on this key —
-    // that's still a valid code to join, just with no remote data yet.
-    if(!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
+    const res = await fetch(JSONSTORE_BASE + code);
+    if(!res.ok) throw new Error('HTTP ' + res.status + ': ' + (await res.text()).slice(0, 120));
+    const body = JSON.parse(await res.text());
     teamSyncId = code;
     try{ localStorage.setItem(syncIdKeyFor(currentGov), code); }catch(e){}
-    if(res.ok){
-      const remote = JSON.parse(await res.text());
-      if(Array.isArray(remote.faults)){
-        data = remote.faults;
-        try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
-        render();
-      }
+    if(body.result && Array.isArray(body.result.faults)){
+      data = body.result.faults;
+      try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
+      render();
     } else {
       await pushToCloud();
     }
@@ -3077,7 +3072,7 @@ async function pushToCloud(){
   if(!teamSyncId || syncInFlight) return;
   syncInFlight = true;
   try{
-    await fetch(KVDB_BASE + teamSyncId + '/faults', {
+    await fetch(JSONSTORE_BASE + teamSyncId, {
       method: 'POST',
       body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
     });
@@ -3089,10 +3084,11 @@ async function pullFromCloud(silent){
   if(!teamSyncId || syncInFlight) return;
   syncInFlight = true;
   try{
-    const res = await fetch(KVDB_BASE + teamSyncId + '/faults');
+    const res = await fetch(JSONSTORE_BASE + teamSyncId);
     if(res.ok){
-      const remote = JSON.parse(await res.text());
-      if(Array.isArray(remote.faults) && JSON.stringify(remote.faults) !== JSON.stringify(data)){
+      const body = JSON.parse(await res.text());
+      const remote = body.result;
+      if(remote && Array.isArray(remote.faults) && JSON.stringify(remote.faults) !== JSON.stringify(data)){
         data = remote.faults;
         try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
         render();
