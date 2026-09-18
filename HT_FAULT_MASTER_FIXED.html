@@ -5049,11 +5049,22 @@ document.getElementById('scanRunBtn').addEventListener('click', () => {
   }
 
   fillFieldsFromParsed(parsed);
+
+  let trNote = '';
+  if(!modalTRRows.length){
+    const trHits = extractTRsFromText(text, typeof parsed.mw === 'number' ? parsed.mw : null);
+    if(trHits.length){
+      modalTRRows = trHits;
+      renderTRRows();
+      trNote = ' ⚡ Detected ' + trHits.length + ' transformer(s) out of service: ' + trHits.map(t => t.name).join(', ') + '.';
+    }
+  }
+
   document.getElementById('scanFieldsNote').style.display = 'block';
   statusEl.className = 'scan-status success';
-  const statusNote = parsed.status === 'restored'
+  const statusNote = (parsed.status === 'restored'
     ? ('✅ Filled ' + foundCount + ' field(s) — detected as RESTORED (restore time ' + (parsed.restoreTime || '—') + ').')
-    : ('✅ Filled ' + foundCount + ' field(s) — detected as OPEN (no restore time found in text).');
+    : ('✅ Filled ' + foundCount + ' field(s) — detected as OPEN (no restore time found in text).')) + trNote;
   statusEl.textContent = statusNote;
 
   document.getElementById('modeManualBtn').click();
@@ -5355,6 +5366,34 @@ function parseReportText(text){
   }
 
   return result;
+}
+
+// Real DCC messages never label a transformer outage with its own field —
+// it only ever shows up inline in the feeder/line text, e.g. "One 11/0.415
+// kV local transformer #4 inside R/M (WABM 44)" or "Two 11/0.415 kV
+// LTR3,4 inside R/M (FARW 43)" ("LTR" = Local TRansformer). This pulls the
+// transformer number(s) and the R/M they sit in out of that free text, so
+// pasting the message can auto-fill the TR list instead of leaving it for
+// manual entry. The fault's total loss (if known) is split evenly across
+// however many TRs were found, since messages report one combined MW figure.
+function extractTRsFromText(text, parsedMw){
+  const clean = (text || '').replace(/\r/g, '');
+  const numbers = new Set();
+  let m;
+  const ltrRe = /\bLTR\s*([\d\s,&\/]+)/gi;
+  while((m = ltrRe.exec(clean))){
+    m[1].split(/[^\d]+/).forEach(n => { if(n) numbers.add(parseInt(n, 10)); });
+  }
+  const trWordRe = /\b(?:local\s+)?transformers?\s*#?\s*(\d+(?:\s*(?:,|&|\/|and)\s*\d+)*)/gi;
+  while((m = trWordRe.exec(clean))){
+    m[1].split(/[^\d]+/).forEach(n => { if(n) numbers.add(parseInt(n, 10)); });
+  }
+  if(!numbers.size) return [];
+  const rmMatch = clean.match(/R\/M\s*\(([^)]+)\)/i) || clean.match(/R\/M\s*:?\s*([^\n,]+)/i);
+  const rmCode = rmMatch ? rmMatch[1].trim().replace(/[.:,]+$/, '') : '';
+  const sorted = Array.from(numbers).sort((a, b) => a - b);
+  const perTrMw = (typeof parsedMw === 'number' && sorted.length) ? +(parsedMw / sorted.length).toFixed(2) : 0;
+  return sorted.map(n => ({name: (rmCode ? rmCode + ' ' : '') + 'TR' + n, mw: perTrMw}));
 }
 
 function fillFieldsFromParsed(p){
