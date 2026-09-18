@@ -6019,7 +6019,7 @@ function updateAdminUI(){
   const addBtn = document.getElementById('addBtn');
   if(backupBtn) backupBtn.style.display = isAdmin() ? '' : 'none';
   if(importBtn) importBtn.style.display = isAdmin() ? '' : 'none';
-  if(syncBtn) syncBtn.style.display = 'none'; /* مزامنة الفريق معطّلة مؤقتًا */
+  if(syncBtn) syncBtn.style.display = isAdmin() ? '' : 'none';
   if(addBtn) addBtn.style.display = canEdit() ? '' : 'none';
 }
 
