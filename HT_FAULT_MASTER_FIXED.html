@@ -352,6 +352,13 @@
     display:flex;justify-content:space-between;align-items:center;padding:7px 12px;
     background:var(--panel2);border:1px solid var(--line);border-radius:6px;font-size:12.5px;
   }
+  .tr-status-banner{
+    font-size:12px;line-height:1.7;padding:9px 12px;border-radius:6px;margin-bottom:10px;
+  }
+  .tr-status-banner b{font-family:'Inter',sans-serif;}
+  .tr-status-banner.danger{background:rgba(255,60,60,0.1);color:var(--text);border:1px solid rgba(255,60,60,0.3);}
+  .tr-status-banner.danger b{color:#ff5c5c;}
+  .tr-status-banner.ok{background:rgba(55,214,122,0.1);color:var(--text);border:1px solid rgba(55,214,122,0.3);}
 
   /* ===== ORIGINAL SLD SCAN MODAL ===== */
   .sld-modal-overlay{
@@ -1115,6 +1122,7 @@
     <div class="kpi danger"><div class="val" id="kLoss"><span class="num-part">0</span><small> MW</small></div><div class="lbl">إجمالي الفاقد</div></div>
     <div class="kpi"><div class="val" id="kDur"><span class="num-part">0</span><small> min</small></div><div class="lbl">متوسط وقت الاستعادة</div></div>
     <div class="kpi danger"><div class="val" id="kLossNow"><span class="num-part">0</span><small> MW</small></div><div class="lbl">⚡ الفاقد الحالي بالشبكة</div></div>
+    <div class="kpi danger"><div class="val" id="kTROut"><span class="num-part">0</span></div><div class="lbl">🔌 محولات خارج الخدمة</div></div>
   </div>
 
   <div class="toolbar">
@@ -1941,6 +1949,7 @@ function updateStats(){
   animateNumber(document.querySelector('#kLoss .num-part'), totalLoss, 1);
   animateNumber(document.querySelector('#kDur .num-part'), avgDur, 0);
   animateNumber(document.querySelector('#kLossNow .num-part'), currentLoss, 1);
+  animateNumber(document.querySelector('#kTROut .num-part'), getOutOfServiceTRs(null).length, 0);
 
   updateAlarmBanner(open);
   renderDonut(open, restored);
@@ -4661,6 +4670,29 @@ function isTROutOfService(sstn, trName){
     (d.affectedTRs || []).some(t => (t.name || '').trim().toLowerCase() === key));
 }
 
+// Fully automatic — no manual marking needed. Reads every currently-open
+// fault's affectedTRs list and returns the out-of-service transformers,
+// scoped to one station (pass a name) or the whole network (pass null).
+// Two TRs are only treated as "the same" if they share both station and
+// name, so identically-named TRs at different stations still count twice.
+function getOutOfServiceTRs(sstn){
+  const seen = new Set();
+  const out = [];
+  data.forEach(d => {
+    if(d.status !== 'open') return;
+    if(sstn && d.sstn !== sstn) return;
+    (d.affectedTRs || []).forEach(t => {
+      const name = (t.name || '').trim();
+      if(!name) return;
+      const key = (d.sstn || '') + '::' + name.toLowerCase();
+      if(seen.has(key)) return;
+      seen.add(key);
+      out.push({sstn: d.sstn, name, mw: parseFloat(t.mw) || 0});
+    });
+  });
+  return out;
+}
+
 function buildOriginalSldPreviewHTML(sstnName){
   const sheets = findOriginalSheetsForStation(sstnName);
   if(!sheets.length){
@@ -4685,6 +4717,16 @@ function buildOriginalSldPreviewHTML(sstnName){
       <div class="cap">${esc(s.title)}</div>
     </div>`;
   }).join('');
+  // Only show a status line when this station actually has some TR
+  // tracking history — otherwise "all in service" would be a claim we
+  // have no data to back up, not a real all-clear.
+  const stationHasTRHistory = data.some(d => d.sstn === sstnName && (d.affectedTRs || []).length);
+  const outAtStation = getOutOfServiceTRs(sstnName);
+  const statusBannerHtml = !stationHasTRHistory ? '' : (
+    outAtStation.length
+      ? `<div class="tr-status-banner danger">🔴 <b>${outAtStation.length}</b> محول خارج الخدمة بهذه المحطة الآن — ${esc(outAtStation.map(t => t.name).join('، '))}</div>`
+      : `<div class="tr-status-banner ok">✅ كل المحولات المسجّلة بهذه المحطة بالخدمة حاليًا</div>`
+  );
   return `
     <div class="orig-sld-preview">
       <div class="orig-sld-preview-head">
@@ -4694,6 +4736,7 @@ function buildOriginalSldPreviewHTML(sstnName){
           <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="openSLDImageModalForStation('${esc(sstnName).replace(/'/g,"\\'")}')">🔍 تكبير</button>
         </div>
       </div>
+      ${statusBannerHtml}
       <div class="orig-sld-thumb-row">${thumbs}</div>
     </div>`;
 }
