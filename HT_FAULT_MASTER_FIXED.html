@@ -631,6 +631,15 @@
   .ai-card-title{font-size:14.5px;font-weight:800;color:var(--text);margin-bottom:8px;position:relative;z-index:1;}
   .ai-card-text{font-size:12.5px;line-height:1.75;color:var(--mute);position:relative;z-index:1;}
   .ai-card-text b{color:var(--text);}
+  .ai-card-solution{
+    margin-top:10px;font-size:12px;line-height:1.75;color:var(--text);position:relative;z-index:1;
+    background:rgba(0,174,239,0.08);border:1px solid rgba(0,174,239,0.25);border-radius:8px;padding:9px 12px;
+  }
+  .ai-card-solution b{color:var(--e-blue);}
+  .ai-card.sev-high .ai-card-solution{background:rgba(255,60,60,0.08);border-color:rgba(255,60,60,0.28);}
+  .ai-card.sev-high .ai-card-solution b{color:#ff5c5c;}
+  .ai-card.sev-medium .ai-card-solution{background:rgba(255,176,32,0.08);border-color:rgba(255,176,32,0.28);}
+  .ai-card.sev-medium .ai-card-solution b{color:var(--amber);}
   @media (max-width:640px){ .ai-card-grid{grid-template-columns:1fr;} }
 
   /* AI INSIGHTS — per-card mini visualizations */
@@ -3394,6 +3403,7 @@ function computeAIInsights(records){
     insights.push({
       icon:'🔁', label:'تكرار على نفس المغذي', severity:'high',
       text:`العطل تكرر <b>${topCount}</b> مرات على <b>${esc(topKey)}</b> — يشير إلى احتمال وجود مشكلة كامنة تحتاج فحصًا فنيًا.`,
+      solution:`جدول فحصًا فنيًا ميدانيًا عاجلاً لهذا المغذي (كابل / عزل / معدات) لتحديد السبب الجذري قبل أن يتكرر العطل مرة أخرى، وأضفه لقائمة "توقع الأعطال" للمتابعة.`,
       viz:{type:'repeat', count:topCount}
     });
   }
@@ -3407,6 +3417,7 @@ function computeAIInsights(records){
     insights.push({
       icon:'⚡', label:'أكثر المغذيات تسجيلًا للأعطال', severity:'info',
       text:`هذه المغذيات سجّلت أكبر عدد من الأعطال ضمن الفترة المحددة: <b>${list}</b>.`,
+      solution:`ضع هذه المغذيات ضمن خطة صيانة وقائية دورية بدل انتظار العطل التالي، وراقب حالتها أولًا بأول من شاشة "توقع الأعطال".`,
       viz:{type:'bars', items: topFeeders.map(([f,c]) => ({label:f, value:c}))}
     });
   }
@@ -3420,6 +3431,7 @@ function computeAIInsights(records){
     insights.push({
       icon:'📊', label:'أكثر نوع عطل شيوعًا', severity:'info',
       text:`أكثر نوع عطل انتشارًا هو <b>${esc(topCause[0])}</b> — يمثل ${pct}% من إجمالي الأعطال (${topCause[1]} حادثة).`,
+      solution:`ركّز جهود الصيانة الوقائية على معالجة سبب "${esc(topCause[0])}" تحديدًا بما إنه المصدر الأكبر للأعطال حاليًا — معالجة سبب واحد بهذا الحجم تقلل إجمالي الأعطال بشكل ملحوظ.`,
       viz:{type:'donut', pct, count:topCause[1]}
     });
   }
@@ -3442,6 +3454,7 @@ function computeAIInsights(records){
     insights.push({
       icon:'⏰', label:'أعطال تحتاج متابعة', severity:'high',
       text:`<b>${followUp.length}</b> عطل مفتوح يحتاج متابعة عاجلة (أولوية عالية أو مضى عليه أكثر من 24 ساعة)${stations ? ' — ' + esc(stations) : ''}.`,
+      solution:`وزّع هذه الحالات فورًا على المهندسين المناوبين وحدد لها أولوية عالية للإغلاق، خصوصًا التي تجاوزت 24 ساعة — كل ساعة تأخير إضافية تزيد الفاقد وتؤخر التقارير.`,
       viz:{type:'gauge', count:followUp.length, total: totalOpen || followUp.length, stations: stationsList}
     });
   }
@@ -3455,6 +3468,7 @@ function computeAIInsights(records){
       insights.push({
         icon:'⏳', label:'تأخر في الاستعادة', severity:'medium',
         text:`<b>${delayed.length}</b> عطل استغرقت استعادته وقتًا أطول من المعتاد — أبرزها ${fmtFid(delayed[0].id)} في ${esc(delayed[0].sstn)} بمدة ${delayed[0].duration} دقيقة (المتوسط العام ${Math.round(avg)} دقيقة).`,
+        solution:`راجع إجراءات الاستجابة لهذه الحالات وحدد أين حصل التأخير فعليًا (وصول الفريق، توفر القطع، الموافقات الإدارية) — تقصير أي خطوة منها ينعكس مباشرة على متوسط وقت الاستعادة العام.`,
         viz:{type:'compare', value:delayed[0].duration, avg:Math.round(avg)}
       });
     }
@@ -3483,12 +3497,15 @@ function computeAIInsights(records){
       text: unfollowed.length
         ? `<b>${unfollowed.length}</b> من أصل ${openFaultsNow.length} عطل مفتوح ما تابعه أي مهندس بعد${unfollowedStationsList.length ? ' — ' + esc(unfollowedStationsList.join('، ')) : ''}.${timeNote}`
         : `كل الأعطال المفتوحة (${openFaultsNow.length}) عندها متابعة من مهندس واحد على الأقل.${timeNote}`,
+      solution: unfollowed.length
+        ? `فعّل تنبيهًا فوريًا عند فتح أي بلاغ جديد وحدد مهندسًا مسؤولًا تلقائيًا خلال أول 15 دقيقة، بدل ترك البلاغ بلا متابعة.`
+        : `استمر بنفس الانضباط في المتابعة — هذا هو المعيار المطلوب لكل عطل مفتوح.`,
       viz:{type:'gauge', count:unfollowed.length, total: openFaultsNow.length, stations: unfollowedStationsList, color:'#a78bfa', chipIcon:'👁️'}
     });
   }
 
   if(!insights.length){
-    insights.push({icon:'✅', label:'الوضع مستقر', severity:'info', text:'لا توجد أنماط ملحوظة ضمن الفترة المحددة.', viz:null});
+    insights.push({icon:'✅', label:'الوضع مستقر', severity:'info', text:'لا توجد أنماط ملحوظة ضمن الفترة المحددة.', solution:'لا حاجة لإجراء حاليًا — استمر بالمراقبة الدورية للشبكة.', viz:null});
   }
   return insights;
 }
@@ -3849,6 +3866,7 @@ function renderAIInsights(){
       <div class="ai-card-title">${esc(i.label)}</div>
       ${renderAIInsightViz(i.viz)}
       <div class="ai-card-text">${i.text}</div>
+      ${i.solution ? `<div class="ai-card-solution">💡 <b>مقترح الحل:</b> ${i.solution}</div>` : ''}
     </div>`).join('');
 
   requestAnimationFrame(() => {
