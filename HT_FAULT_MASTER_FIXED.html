@@ -1736,7 +1736,10 @@ function canEdit(){ return true; }
 
 /* ⚙️ للأدمن: بعد إنشاء "مزامنة فريق" جديدة من الأزرار بالأسفل، انسخ الرمز والصقه هنا،
    ثم أعد توزيع هذا الملف على الفريق — بهذي الطريقة يتصل كل جهاز تلقائيًا بدون أي إعداد يدوي. */
-const DEFAULT_TEAM_SYNC_ID = '';
+// Baked in so every device connects automatically with zero setup — no
+// code to create or paste anywhere. Bin created manually (no account
+// needed for a public bin) at https://extendsclass.com/jsonstorage/7276908ba1f1
+const DEFAULT_TEAM_SYNC_ID = '7276908ba1f1';
 
 let data = loadData();
 let editingId = null;
@@ -2948,8 +2951,9 @@ function exportReportExcel(title, rows){
 
 renderWeeklyReport();
 
-/* ---- Team Sync (shared cloud sync across devices via jsonstore.io) ----
-   Two backends were tried and rejected before this one, each for a
+/* ---- Team Sync (shared cloud sync across devices via extendsclass.com's
+   JSON storage) ----
+   Three backends were tried and rejected before this one, each for a
    different structural reason rather than a one-off bug:
    - jsonblob.com returns the new record's id only in a "Location"
      response header. Cross-origin fetch() hides non-whitelisted response
@@ -2960,12 +2964,16 @@ renderWeeklyReport();
      their own login flow before the bucket accepts writes (HTTP 403
      "email address not verified") — there is no way to satisfy that from
      inside a static page with no account system of its own.
-   jsonstore.io sidesteps both: there is no separate "create" call to
-   misparse at all. The client makes up its own random key, and writing
-   to that key is what brings it into existence — reading and writing are
-   both plain JSON in the request/response body, nothing tucked into a
-   header or gated behind a verified account. */
-const JSONSTORE_BASE = 'https://www.jsonstore.io/';
+   - jsonstore.io's API turned out to be dead (every request failed at
+     the network level, not even reaching a server to respond).
+   extendsclass.com's JSON storage explicitly documents CORS support from
+   any origin, and reading/updating an existing bin (GET/PUT) needs no
+   account or API key at all — only creating a brand new bin through
+   their API does. That's sidestepped entirely by using one bin created
+   once through their public web form (which needs no account) and baked
+   in below as DEFAULT_TEAM_SYNC_ID, so this app only ever reads and
+   updates that same bin. */
+const EXTENDSCLASS_BASE = 'https://json.extendsclass.com/bin/';
 let teamSyncId = null;
 try{
   teamSyncId = localStorage.getItem(syncIdKeyFor(currentGov)) || (DEFAULT_TEAM_SYNC_ID || null);
@@ -3013,12 +3021,18 @@ function randomSyncCode(){
 }
 
 async function createTeamSync(){
+  // Creating a brand NEW bin needs an extendsclass.com account (their API
+  // requirement, not something this app can satisfy on its own) — so
+  // "starting" a sync here just points this device at the same shared
+  // bin everyone else already uses (DEFAULT_TEAM_SYNC_ID), the same as
+  // if nothing had ever been typed in. It exists mainly so a device that
+  // previously disabled sync has an obvious button to turn it back on.
   const btn = document.getElementById('teamSyncCreateBtn');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Creating…'; }
   try{
-    const id = randomSyncCode();
-    const res = await fetch(JSONSTORE_BASE + id, {
-      method: 'POST',
+    const id = DEFAULT_TEAM_SYNC_ID || randomSyncCode();
+    const res = await fetch(EXTENDSCLASS_BASE + id, {
+      method: 'PUT',
       body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
     });
     if(!res.ok) throw new Error('HTTP ' + res.status + ': ' + (await res.text()).slice(0, 120));
@@ -3040,13 +3054,13 @@ async function joinTeamSync(){
   const btn = document.getElementById('teamSyncJoinBtn');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Connecting…'; }
   try{
-    const res = await fetch(JSONSTORE_BASE + code);
+    const res = await fetch(EXTENDSCLASS_BASE + code);
     if(!res.ok) throw new Error('HTTP ' + res.status + ': ' + (await res.text()).slice(0, 120));
-    const body = JSON.parse(await res.text());
+    const remote = JSON.parse(await res.text());
     teamSyncId = code;
     try{ localStorage.setItem(syncIdKeyFor(currentGov), code); }catch(e){}
-    if(body.result && Array.isArray(body.result.faults)){
-      data = body.result.faults;
+    if(remote && Array.isArray(remote.faults)){
+      data = remote.faults;
       try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
       render();
     } else {
@@ -3072,8 +3086,8 @@ async function pushToCloud(){
   if(!teamSyncId || syncInFlight) return;
   syncInFlight = true;
   try{
-    await fetch(JSONSTORE_BASE + teamSyncId, {
-      method: 'POST',
+    await fetch(EXTENDSCLASS_BASE + teamSyncId, {
+      method: 'PUT',
       body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
     });
   }catch(err){ console.error('pushToCloud failed:', err); }
@@ -3084,10 +3098,9 @@ async function pullFromCloud(silent){
   if(!teamSyncId || syncInFlight) return;
   syncInFlight = true;
   try{
-    const res = await fetch(JSONSTORE_BASE + teamSyncId);
+    const res = await fetch(EXTENDSCLASS_BASE + teamSyncId);
     if(res.ok){
-      const body = JSON.parse(await res.text());
-      const remote = body.result;
+      const remote = JSON.parse(await res.text());
       if(remote && Array.isArray(remote.faults) && JSON.stringify(remote.faults) !== JSON.stringify(data)){
         data = remote.faults;
         try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
