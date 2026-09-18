@@ -2959,6 +2959,10 @@ renderWeeklyReport();
    fetch() can always read, so it works from a plain static page with no
    backend of its own. */
 const KVDB_BASE = 'https://kvdb.io/';
+// kvdb.io requires an email to create a bucket (used for their own bucket
+// management, not surfaced anywhere in this app) — a fixed, non-personal
+// placeholder is used here rather than any real user's address.
+const KVDB_BUCKET_EMAIL = 'ht-fault-team-sync@example.com';
 let teamSyncId = null;
 try{
   teamSyncId = localStorage.getItem(syncIdKeyFor(currentGov)) || (DEFAULT_TEAM_SYNC_ID || null);
@@ -3002,12 +3006,16 @@ async function createTeamSync(){
   const btn = document.getElementById('teamSyncCreateBtn');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Creating…'; }
   try{
-    const bucketRes = await fetch(KVDB_BASE, {method: 'POST'});
+    const bucketRes = await fetch(KVDB_BASE, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'email=' + encodeURIComponent(KVDB_BUCKET_EMAIL)
+    });
     if(!bucketRes.ok) throw new Error('HTTP ' + bucketRes.status + ' creating bucket');
     const id = (await bucketRes.text()).trim();
     if(!id || /[<>\s]/.test(id)) throw new Error('Unexpected response: ' + id.slice(0, 40));
     const seedRes = await fetch(KVDB_BASE + id + '/faults', {
-      method: 'PUT',
+      method: 'POST',
       body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
     });
     if(!seedRes.ok) throw new Error('HTTP ' + seedRes.status + ' seeding data');
@@ -3066,7 +3074,7 @@ async function pushToCloud(){
   syncInFlight = true;
   try{
     await fetch(KVDB_BASE + teamSyncId + '/faults', {
-      method: 'PUT',
+      method: 'POST',
       body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
     });
   }catch(err){ console.error('pushToCloud failed:', err); }
