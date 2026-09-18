@@ -4879,7 +4879,10 @@ function parseReportText(text){
   // Collect every such occurrence instead of only the first/last one.
   const workTeamSection = extractSection(clean, /Work\s*[Tt]eam\s*:?/i);
   if(workTeamSection){
-    result.engineer = workTeamSection.split('\n').map(s => s.trim()).filter(Boolean).join(', ');
+    result.engineer = workTeamSection.split('\n')
+      .map(s => s.trim().replace(/^Eng(?:ineer|r)?\.?\s*/i, ''))
+      .filter(Boolean)
+      .join('، ');
   } else {
     const engineerNames = [];
     const addEngineerName = (name) => {
@@ -5193,6 +5196,12 @@ function parseRestorationText(text){
     if(energMatch) restoreTimeRaw = energMatch[1] + (energMatch[2] ? ' ' + energMatch[2] : '');
   }
   if(!restoreTimeRaw){
+    // Arabic-language reports label the restoration time as "وقت التشغيل:"
+    // or "وقت الاستعادة:" instead of "Rest:"/"Energ Time:".
+    const arTimeMatch = clean.match(/وقت\s*(?:التشغيل|الاستعادة)\s*:?\s*(\d{1,2}:\d{2}\s*(?:[AaPp][Mm])?)/);
+    if(arTimeMatch) restoreTimeRaw = arTimeMatch[1];
+  }
+  if(!restoreTimeRaw){
     // No explicit "Rest:"/"Energ Time:" label — these narratives usually
     // list switching steps in order (closing a breaker, closing a normally
     // -open point, energizing), so take the time next to the LAST such
@@ -5244,6 +5253,12 @@ function parseRestorationText(text){
   const cableMatch = clean.match(/(?:[Cc]able\s+)?[Ff]ault(?:y)?\s+between\s*:?-?\s*\n*\s*([^\n]+(?:\n(?!\s*(?:Isolated|Restor(?:ed|e|ing)|(?:Area\s+)?Eng(?:r|ineer)?\b|Note\b|Informed\b))[^\n]+)?)/);
   if(cableMatch) result.faultLocation = cableMatch[1].trim().replace(/\s+/g, ' ');
   if(!result.faultLocation){
+    // Reordered phrasing — "the cable between X —— Y was found faulty"
+    // states the two points BEFORE the word "faulty" instead of after.
+    const reorderedCableMatch = clean.match(/[Cc]able\s+between\s+([^\n]+?)\s*(?:was\s+found\s+faulty|is\s+faulty|found\s+faulty)/i);
+    if(reorderedCableMatch) result.faultLocation = reorderedCableMatch[1].trim().replace(/\s+/g, ' ');
+  }
+  if(!result.faultLocation){
     const locationBlock = extractLabeledBlock('Location');
     if(locationBlock) result.faultLocation = locationBlock;
   }
@@ -5267,6 +5282,10 @@ function parseRestorationText(text){
   clean.split('\n').forEach(line => {
     const lineMatch = line.trim().match(/^Eng(?:r|ineer)?\.?\s*([A-Z][A-Za-z]*\.?(?:\s+[A-Z][A-Za-z]*\.?){0,4})\s*$/);
     if(lineMatch) addEngineerName(lineMatch[1]);
+    // Arabic reports sign off with "م. <name>" (م. = مهندس/Eng.) or the
+    // full word "مهندس"/"المهندس" instead of a Latin "Eng" prefix.
+    const arLineMatch = line.trim().match(/^(?:م\.|مهندس|المهندس)\s*([؀-ۿ][؀-ۿ .]{1,40})\s*$/);
+    if(arLineMatch) addEngineerName(arLineMatch[1]);
   });
   // Last resort: no "Eng"-prefixed name found anywhere, but many messages
   // simply sign off with one or more bare names on the final lines (a
