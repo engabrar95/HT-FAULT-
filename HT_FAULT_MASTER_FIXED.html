@@ -110,7 +110,7 @@
   .wrap{max-width:1400px;margin:0 auto;padding:26px 24px 70px;}
 
   /* ===== KPI CARDS ===== */
-  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:26px;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:26px;}
   .kpi{
     background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     padding:16px 18px;position:relative;overflow:hidden;
@@ -124,6 +124,26 @@
   .kpi .val{font-family:'Inter',sans-serif;font-size:26px;font-weight:800;line-height:1;color:var(--text);}
   .kpi .val small{font-size:13px;font-weight:600;color:var(--mute);}
   .kpi .lbl{font-size:11.5px;color:var(--mute);margin-top:7px;font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;text-transform:uppercase;}
+
+  /* ===== AFFECTED TRANSFORMERS (TR) — Add/Edit Fault ===== */
+  .tr-row-list{display:flex;flex-direction:column;gap:8px;}
+  .tr-row{display:grid;grid-template-columns:1fr 90px 32px;gap:8px;align-items:center;}
+  .tr-row input{
+    padding:8px 10px;border-radius:6px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--text);font-size:12.5px;width:100%;
+  }
+  .tr-remove{
+    background:rgba(255,60,60,0.12);color:#ff5c5c;border:1px solid rgba(255,60,60,0.3);
+    border-radius:6px;height:32px;cursor:pointer;font-size:13px;
+  }
+  .tr-remove:hover{background:rgba(255,60,60,0.2);}
+  .tr-empty-hint{font-size:11.5px;color:var(--mute);}
+  .tr-total-hint{margin-top:8px;font-size:12px;color:var(--mute);}
+  .tr-total-hint b{color:var(--text);font-family:'Inter',sans-serif;}
+  .tr-badge{
+    display:inline-block;margin-right:4px;font-size:10px;font-weight:700;
+    background:rgba(0,174,239,0.12);color:var(--e-blue);border-radius:10px;padding:1px 6px;cursor:default;
+  }
 
   /* ===== TOOLBAR ===== */
   .toolbar{
@@ -1071,6 +1091,7 @@
     <div class="kpi ok"><div class="val" id="kRestored"><span class="num-part">0</span></div><div class="lbl">تمت الاستعادة</div></div>
     <div class="kpi danger"><div class="val" id="kLoss"><span class="num-part">0</span><small> MW</small></div><div class="lbl">إجمالي الفاقد</div></div>
     <div class="kpi"><div class="val" id="kDur"><span class="num-part">0</span><small> min</small></div><div class="lbl">متوسط وقت الاستعادة</div></div>
+    <div class="kpi danger"><div class="val" id="kLossNow"><span class="num-part">0</span><small> MW</small></div><div class="lbl">⚡ الفاقد الحالي بالشبكة</div></div>
   </div>
 
   <div class="toolbar">
@@ -1588,6 +1609,13 @@
         <div class="field"><label>المدة (دقيقة)</label><input id="m_duration" type="number" placeholder="تلقائي أو يدوي"></div>
         <div class="field span2"><label>العمل المنجز</label><textarea id="m_work_done" placeholder="مثال: Patrolled line found nothing. Tested cable found faulty. Isolated faulty portion. Energized BTN."></textarea></div>
         <div class="field span2"><label>ملاحظات</label><textarea id="m_notes" placeholder="ملاحظات اختيارية"></textarea></div>
+        <div class="field span2">
+          <label>⚡ المحولات (TR) الخارجة من الخدمة</label>
+          <div id="m_tr_rows" class="tr-row-list"></div>
+          <button type="button" class="btn ghost" id="m_tr_add_btn" style="margin-top:8px;">➕ إضافة محول</button>
+          <div class="tr-total-hint" id="m_tr_total_hint"></div>
+        </div>
+        <div class="field span2" id="m_sld_preview_wrap"></div>
       </div>
     </div>
     <div class="modal-foot">
@@ -1800,7 +1828,7 @@ function render(){
       <td>${esc(r.date)}</td>
       <td>${esc(r.time)}</td>
       <td>${(r.tripIndication && r.tripIndication.length) ? r.tripIndication.map(t => `<span class="ti-badge">${esc(t)}</span>`).join('') : '—'}</td>
-      <td class="mw-val">${(parseFloat(r.mw)||0).toFixed(1)}</td>
+      <td class="mw-val">${(parseFloat(r.mw)||0).toFixed(1)}${(r.affectedTRs && r.affectedTRs.length) ? ` <span class="tr-badge" title="${esc(r.affectedTRs.map(t => t.name + ' (' + (parseFloat(t.mw)||0).toFixed(1) + ' MW)').join('، '))}">🔌${r.affectedTRs.length}</span>` : ''}</td>
       <td>${esc(r.affected)}</td>
       <td>${esc(r.restoreTime) || '—'}</td>
       <td>${r.duration ? r.duration : '—'}</td>
@@ -1851,6 +1879,10 @@ function updateStats(){
   const open = data.filter(d => d.status === 'open').length;
   const restored = data.filter(d => d.status === 'restored').length;
   const totalLoss = data.reduce((s,d) => s + (parseFloat(d.mw)||0), 0);
+  // Current network-wide loss — only faults still open right now, unlike
+  // "إجمالي الفاقد" which is the all-time cumulative total. This is the
+  // actual MW impact on the network at this moment.
+  const currentLoss = data.filter(d => d.status === 'open').reduce((s,d) => s + (parseFloat(d.mw)||0), 0);
   const durations = data.filter(d => d.duration).map(d => d.duration);
   const avgDur = durations.length ? Math.round(durations.reduce((a,b)=>a+b,0)/durations.length) : 0;
 
@@ -1859,6 +1891,7 @@ function updateStats(){
   animateNumber(document.querySelector('#kRestored .num-part'), restored, 0);
   animateNumber(document.querySelector('#kLoss .num-part'), totalLoss, 1);
   animateNumber(document.querySelector('#kDur .num-part'), avgDur, 0);
+  animateNumber(document.querySelector('#kLossNow .num-part'), currentLoss, 1);
 
   updateAlarmBanner(open);
   renderDonut(open, restored);
@@ -2030,6 +2063,71 @@ document.getElementById('quickRestoreModal').addEventListener('click', (e) => {
   if(e.target.id === 'quickRestoreModal') document.getElementById('quickRestoreModal').style.display = 'none';
 });
 
+/* =====================================================================
+   AFFECTED TRANSFORMERS (TR) — a fault can knock out more than one
+   transformer at once, each with its own MW rating. Tracked as a list
+   per fault instead of a single manual loss figure, with the total
+   loss auto-summed from the list. The original scanned single-line
+   diagram for the station is shown alongside so the engineer can read
+   off TR names and ratings from the real diagram while entering them.
+   ===================================================================== */
+let modalTRRows = [];
+
+function renderTRRows(){
+  const container = document.getElementById('m_tr_rows');
+  if(!container) return;
+  container.innerHTML = modalTRRows.length ? modalTRRows.map((t, i) => `
+    <div class="tr-row" data-idx="${i}">
+      <input class="tr-name" placeholder="اسم المحول (TR)" value="${esc(t.name || '')}">
+      <input class="tr-mw" type="number" step="0.1" placeholder="MW" value="${t.mw || ''}">
+      <button type="button" class="tr-remove" title="حذف">✕</button>
+    </div>`).join('') : '<div class="tr-empty-hint">لا يوجد محولات مضافة — اضغطي "إضافة محول" إذا خرج أي TR من الخدمة بهذا العطل.</div>';
+
+  container.querySelectorAll('.tr-row').forEach(row => {
+    const idx = parseInt(row.dataset.idx, 10);
+    row.querySelector('.tr-name').addEventListener('input', (e) => { modalTRRows[idx].name = e.target.value; });
+    row.querySelector('.tr-mw').addEventListener('input', (e) => {
+      modalTRRows[idx].mw = parseFloat(e.target.value) || 0;
+      updateTRTotalHint();
+    });
+    row.querySelector('.tr-remove').addEventListener('click', () => {
+      modalTRRows.splice(idx, 1);
+      renderTRRows();
+    });
+  });
+  updateTRTotalHint();
+}
+
+function updateTRTotalHint(){
+  const hint = document.getElementById('m_tr_total_hint');
+  const mwInput = document.getElementById('m_mw');
+  if(!hint || !mwInput) return;
+  if(!modalTRRows.length){
+    hint.textContent = '';
+    mwInput.disabled = false;
+    return;
+  }
+  const total = modalTRRows.reduce((s,t) => s + (parseFloat(t.mw)||0), 0);
+  hint.innerHTML = `⚡ إجمالي فاقد المحولات: <b>${total.toFixed(1)} MW</b> — تمت تعبئة حقل "الفاقد" تلقائيًا.`;
+  mwInput.value = total.toFixed(1);
+  mwInput.disabled = true;
+}
+
+document.getElementById('m_tr_add_btn').addEventListener('click', () => {
+  modalTRRows.push({name:'', mw: 0});
+  renderTRRows();
+});
+
+function refreshModalSldPreview(){
+  const wrap = document.getElementById('m_sld_preview_wrap');
+  if(!wrap) return;
+  const sstn = document.getElementById('m_sstn').value.trim();
+  if(!sstn){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = buildOriginalSldPreviewHTML(sstn);
+  wireOriginalSldPreview(wrap);
+}
+document.getElementById('m_sstn').addEventListener('input', refreshModalSldPreview);
+
 /* ===== MODAL ===== */
 const overlay = document.getElementById('modalOverlay');
 const fields = ['from','sstn','feeder','date','time','mw','status','affected','restore_time','duration','cause','notes'];
@@ -2053,12 +2151,16 @@ function openModal(id){
     document.getElementById('m_duration').value = r.duration || '';
     document.getElementById('m_work_done').value = r.workDone || '';
     document.getElementById('m_notes').value = r.notes || '';
+    modalTRRows = (r.affectedTRs || []).map(t => ({name: t.name || '', mw: parseFloat(t.mw) || 0}));
   } else {
     ['m_engineer','m_from','m_sstn','m_feeder','m_date','m_time','m_mw','m_affected','m_duration','m_work_done','m_notes'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('m_status').value = 'open';
     document.getElementById('m_priority').value = 'medium';
     document.getElementById('m_from').value = 'JABR DCC';
+    modalTRRows = [];
   }
+  renderTRRows();
+  refreshModalSldPreview();
   resetScanPanel();
   updateStationLocationDisplay();
   pendingParsedRestoreTime = null;
@@ -2168,6 +2270,11 @@ document.getElementById('modalSaveBtn').addEventListener('click', () => {
   const sstn = document.getElementById('m_sstn').value.trim();
   if(!sstn){ showToast('يرجى إدخال اسم المحطة.', 'error'); return; }
 
+  const trList = modalTRRows
+    .map(t => ({name: (t.name||'').trim(), mw: parseFloat(t.mw)||0}))
+    .filter(t => t.name || t.mw > 0);
+  const trTotalMw = trList.reduce((s,t) => s + t.mw, 0);
+
   const rec = {
     engineer: document.getElementById('m_engineer').value.trim(),
     from: document.getElementById('m_from').value.trim() || 'JABR DCC',
@@ -2175,7 +2282,8 @@ document.getElementById('modalSaveBtn').addEventListener('click', () => {
     feeder: document.getElementById('m_feeder').value.trim(),
     date: document.getElementById('m_date').value,
     time: document.getElementById('m_time').value,
-    mw: parseFloat(document.getElementById('m_mw').value) || 0,
+    mw: trList.length ? trTotalMw : (parseFloat(document.getElementById('m_mw').value) || 0),
+    affectedTRs: trList,
     priority: document.getElementById('m_priority').value,
     status: document.getElementById('m_status').value,
     affected: document.getElementById('m_affected').value.trim(),
