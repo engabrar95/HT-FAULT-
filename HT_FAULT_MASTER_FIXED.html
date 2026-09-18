@@ -5114,7 +5114,7 @@ document.getElementById('scanRunBtn').addEventListener('click', () => {
 
   let trNote = '';
   if(!modalTRRows.length){
-    const trHits = extractTRsFromText(text, typeof parsed.mw === 'number' ? parsed.mw : null);
+    const trHits = extractTRsFromText(text, typeof parsed.mw === 'number' ? parsed.mw : null, parsed.sstn);
     if(trHits.length){
       modalTRRows = trHits;
       renderTRRows();
@@ -5152,6 +5152,15 @@ function normalizeMonthNameDate(str){
   const monthIdx = MONTH_NAMES.indexOf(m[2].toLowerCase());
   if(monthIdx === -1) return '';
   return m[3] + '-' + String(monthIdx + 1).padStart(2,'0') + '-' + m[1].padStart(2,'0');
+}
+
+// Arabic-language DCC messages often use Arabic-Indic digits (٠-٩) instead
+// of plain ASCII ones — every other regex in the parser only recognizes
+// \d, so this runs first and converts them before anything else looks at
+// the text.
+const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+function normalizeArabicDigits(str){
+  return str.replace(/[٠-٩]/g, ch => String(ARABIC_DIGITS.indexOf(ch)));
 }
 
 function normalizeTime(t){
@@ -5260,7 +5269,7 @@ function genericLabelScan(text){
 
 function parseReportText(text){
   const result = {};
-  const clean = text.replace(/\r/g, '');
+  const clean = normalizeArabicDigits(text.replace(/\r/g, ''));
 
   let m = clean.match(/From\s*:?\s*([^\n]+)/i);
   if(m) result.from = m[1].replace(/\.$/, '').trim();
@@ -5280,6 +5289,16 @@ function parseReportText(text){
     const lineMatch = clean.match(/^Line\s*:?\s*([^\n]+)/im);
     if(lineMatch) result.feeder = lineMatch[1].trim().replace(/[.:,]+$/, '');
   }
+  // Plain Arabic messages often just open with "محطة <name>" — no colon,
+  // no English label at all. The very next non-empty line, when there is
+  // no "Work Done:"-style label to find it under later, is what actually
+  // happened (e.g. "تم ربط ٢ مولد ديزل ..." — generators connected ahead
+  // of planned transformer replacement).
+  const stnArMatch = clean.match(/^\s*محطة\s+([^\n]+)\n+([^\n]+)/m);
+  if(stnArMatch){
+    if(!result.sstn) result.sstn = stnArMatch[1].trim().replace(/[.:,]+$/, '');
+    if(!result.workDone && !/^TR\s/i.test(stnArMatch[2].trim())) result.workDone = stnArMatch[2].trim();
+  }
 
   m = clean.match(/Trip\s*:?\s*(\d{1,2}:\d{2})\s*hrs\.?\s*(\d{1,2}\/\d{1,2}\/\d{2,4})/i);
   if(m){
@@ -5291,6 +5310,17 @@ function parseReportText(text){
     const mt = clean.match(/Trip\s*Time\s*:?\s*([\d:apm\s]+)/i);
     if(mt) result.time = normalizeTime(mt[1]);
   }
+
+  // Some Arabic-language messages list every affected transformer group as
+  // its own "وقت الفصل" (trip time) / "وقت التشغيل" (restore time) pair
+  // instead of one shared trip time for the whole fault — e.g. "TR 3+4"
+  // tripping and being restored separately from "TR 1+2". The earliest
+  // trip and latest restore across all pairs describe the overall event.
+  const tripTimesAr = [...clean.matchAll(/وقت\s*الفصل\s*:?\s*(\d{1,2}:\d{2}\s*[AaPp][Mm])/g)]
+    .map(mm => normalizeTime(mm[1])).sort();
+  const restoreTimesAr = [...clean.matchAll(/وقت\s*التشغيل\s*:?\s*(\d{1,2}:\d{2}\s*[AaPp][Mm])/g)]
+    .map(mm => normalizeTime(mm[1])).sort();
+  if(!result.time && tripTimesAr.length) result.time = tripTimesAr[0];
 
   m = clean.match(/Loss\s*:?\s*([\d.]+)\s*MW/i);
   if(m) result.mw = parseFloat(m[1]);
@@ -5335,6 +5365,12 @@ function parseReportText(text){
     });
     if(engineerNames.length) result.engineer = engineerNames.join('، ');
   }
+  // "م. <name>" on its own line is the Arabic equivalent of an "Eng <name>"
+  // signature line.
+  if(!result.engineer){
+    const engAr = clean.match(/^\s*م\.\s+([^\n]{2,40})$/m);
+    if(engAr) result.engineer = engAr[1].trim().replace(/[.:,]+$/, '');
+  }
 
   // Work done — the bullet-point / free-text description of what was
   // actually carried out, kept separate from the trip reason and notes.
@@ -5360,7 +5396,7 @@ function parseReportText(text){
     result.cause = 'Cable Fault';
   }
 
-  const noteSection = extractSection(clean, /\bNote\s*:?\s*\**\s*/i);
+  const noteSection = extractSection(clean, /\bNote\s*:?\s*\**\s*/i) || extractSection(clean, /ملاحظة\s*:?\s*/);
   if(noteSection) result.generalNote = noteSection;
 
   const noteParts = [];
@@ -5412,6 +5448,9 @@ function parseReportText(text){
   if(!restoreTimeRaw && generic.restoreTime && /\d{1,2}:\d{2}/.test(generic.restoreTime)){
     restoreTimeRaw = generic.restoreTime;
   }
+  if(!restoreTimeRaw && restoreTimesAr.length){
+    restoreTimeRaw = restoreTimesAr[restoreTimesAr.length - 1];
+  }
   if(restoreTimeRaw){
     result.status = 'restored';
     result.restoreTime = normalizeTime(restoreTimeRaw);
@@ -5438,7 +5477,7 @@ function parseReportText(text){
 // pasting the message can auto-fill the TR list instead of leaving it for
 // manual entry. The fault's total loss (if known) is split evenly across
 // however many TRs were found, since messages report one combined MW figure.
-function extractTRsFromText(text, parsedMw){
+function extractTRsFromText(text, parsedMw, locationName){
   const clean = (text || '').replace(/\r/g, '');
   const numbers = new Set();
   let m;
@@ -5450,9 +5489,19 @@ function extractTRsFromText(text, parsedMw){
   while((m = trWordRe.exec(clean))){
     m[1].split(/[^\d]+/).forEach(n => { if(n) numbers.add(parseInt(n, 10)); });
   }
+  // Bare "TR 3+4" / "TR1+2" headers — common in Arabic-language messages
+  // that list each affected transformer group under its own line instead
+  // of mentioning "transformer" or "LTR" by name.
+  const trHeaderRe = /\bTR\s*(\d+(?:\s*[+&,]\s*\d+)*)\b/gi;
+  while((m = trHeaderRe.exec(clean))){
+    m[1].split(/[^\d]+/).forEach(n => { if(n) numbers.add(parseInt(n, 10)); });
+  }
   if(!numbers.size) return [];
   const rmMatch = clean.match(/R\/M\s*\(([^)]+)\)/i) || clean.match(/R\/M\s*:?\s*([^\n,]+)/i);
-  const rmCode = rmMatch ? rmMatch[1].trim().replace(/[.:,]+$/, '') : '';
+  // No R/M mention at all usually means the station itself IS where the
+  // transformers sit (e.g. a plain Arabic message naming only "محطة ..."),
+  // so the parsed station name is used as the location prefix instead.
+  const rmCode = rmMatch ? rmMatch[1].trim().replace(/[.:,]+$/, '') : (locationName || '');
   const sorted = Array.from(numbers).sort((a, b) => a - b);
   const perTrMw = (typeof parsedMw === 'number' && sorted.length) ? +(parsedMw / sorted.length).toFixed(2) : 0;
   return sorted.map(n => ({name: (rmCode ? rmCode + ' ' : '') + 'TR' + n, mw: perTrMw}));
