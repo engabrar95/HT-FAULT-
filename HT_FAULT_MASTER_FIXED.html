@@ -331,12 +331,20 @@
   }
   .orig-sld-empty{color:var(--mute);font-size:12.5px;padding:6px 2px;}
 
-  /* ===== TR (transformer) markers overlaid on the original SLD image ===== */
+  /* ===== TR (transformer) markers overlaid on the original SLD image =====
+     Styled after how engineers actually mark these diagrams by hand — a
+     circled dot for a normal point, a red circle with a ⚡ bolt for a
+     tripped one, the way "EXB 10 NEW" gets circled and flagged with a
+     lightning bolt on the real annotated sheets. */
   .tr-marker-dot{
     position:absolute;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;
     background:var(--green);border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.35);cursor:default;
+    display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1;
   }
-  .tr-marker-dot.out-of-service{background:#ff5c5c;animation:trMarkerPulse 1.4s ease-in-out infinite;}
+  .tr-marker-dot.out-of-service{
+    background:#ff5c5c;width:22px;height:22px;font-size:13px;
+    animation:trMarkerPulse 1.4s ease-in-out infinite;
+  }
   @keyframes trMarkerPulse{
     0%,100%{box-shadow:0 0 0 1px rgba(0,0,0,0.35), 0 0 0 0 rgba(255,92,92,0.55);}
     50%{box-shadow:0 0 0 1px rgba(0,0,0,0.35), 0 0 0 7px rgba(255,92,92,0);}
@@ -993,7 +1001,7 @@
   .report-summary-head h3{margin:0;font-size:17px;font-weight:700;color:var(--text);}
   .report-summary-head .range-sub{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--mute);margin-top:3px;}
 
-  .report-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;}
+  .report-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px;}
   .report-kpis .kpi .val{font-size:22px;}
 
   .report-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;}
@@ -2462,10 +2470,11 @@ function buildFaultTablePdfDoc(title, subtitle, kpis, rows){
   doc.setTextColor(120);
   doc.text(subtitle + '  ·  Generated ' + genDate, 40, 58);
 
+  const trEvents = rows.reduce((s,r) => s + (r.affectedTRs || []).length, 0);
   doc.setTextColor(20);
   doc.setFontSize(10);
   doc.text(
-    `Total: ${kpis.total}    |    Open: ${kpis.open}    |    Restored: ${kpis.restored}    |    Total Loss: ${kpis.totalLoss.toFixed(1)} MW    |    Avg Restoration: ${kpis.avgDur} min`,
+    `Total: ${kpis.total}    |    Open: ${kpis.open}    |    Restored: ${kpis.restored}    |    Total Loss: ${kpis.totalLoss.toFixed(1)} MW    |    Avg Restoration: ${kpis.avgDur} min    |    Affected TRs: ${trEvents}`,
     40, 78
   );
 
@@ -2473,18 +2482,19 @@ function buildFaultTablePdfDoc(title, subtitle, kpis, rows){
     fmtFid(r.id), r.sstn||'', r.engineer||'—', r.date||'', r.time||'',
     (r.tripIndication||[]).join(', ')||'—',
     (parseFloat(r.mw)||0).toFixed(1),
+    (r.affectedTRs||[]).map(t => t.name).join(', ')||'—',
     r.affected||'', r.cause||'—',
     r.status === 'open' ? 'Open' : 'Restored'
   ]);
 
   doc.autoTable({
     startY: 94,
-    head: [['Fault ID','Station','Engineer','Date','Time','Trip Ind.','MW','Affected','Cause','Status']],
+    head: [['Fault ID','Station','Engineer','Date','Time','Trip Ind.','MW','TR','Affected','Cause','Status']],
     body,
     styles: {fontSize:8, cellPadding:4, overflow:'linebreak'},
     headStyles: {fillColor:[10,61,124], textColor:255, fontStyle:'bold'},
     alternateRowStyles: {fillColor:[245,247,250]},
-    columnStyles: {7:{cellWidth:130}},
+    columnStyles: {8:{cellWidth:110}},
     margin: {left:40, right:40},
     didDrawPage: () => {
       doc.setFontSize(8);
@@ -2779,6 +2789,10 @@ function buildReport(rows, title, subtitle){
   rows.forEach(r => { const k = r.cause || 'Unspecified'; byCause[k] = (byCause[k]||0) + 1; });
   const byTi = {};
   rows.forEach(r => (r.tripIndication||[]).forEach(t => { byTi[t] = (byTi[t]||0) + 1; }));
+  // Total transformer-outage events recorded within this reporting period
+  // (not "right now" like the live dashboard KPI — this is the historical
+  // count for whatever date range the report covers).
+  const trEventsInReport = rows.reduce((s,r) => s + (r.affectedTRs || []).length, 0);
 
   function barsHtml(obj){
     const entries = Object.entries(obj).sort((a,b) => b[1]-a[1]);
@@ -2801,10 +2815,11 @@ function buildReport(rows, title, subtitle){
       <td>${esc(r.time)}</td>
       <td>${(r.tripIndication||[]).join(', ') || '—'}</td>
       <td>${(parseFloat(r.mw)||0).toFixed(1)}</td>
+      <td>${(r.affectedTRs && r.affectedTRs.length) ? esc(r.affectedTRs.map(t => t.name).join(', ')) : '—'}</td>
       <td>${esc(r.affected)}</td>
       <td>${esc(r.cause)||'—'}</td>
       <td><span class="status-pill ${r.status}">${r.status === 'open' ? 'Open' : 'Restored'}</span></td>
-    </tr>`).join('') || `<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--mute);">No records match this report.</td></tr>`;
+    </tr>`).join('') || `<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--mute);">No records match this report.</td></tr>`;
 
   reportOutput.innerHTML = `
     <div class="report-summary-head">
@@ -2825,6 +2840,7 @@ function buildReport(rows, title, subtitle){
       <div class="kpi ok"><div class="val">${restored}</div><div class="lbl">تمت الاستعادة</div></div>
       <div class="kpi danger"><div class="val">${totalLoss.toFixed(1)}<small> MW</small></div><div class="lbl">إجمالي الفاقد</div></div>
       <div class="kpi"><div class="val">${avgDur}<small> min</small></div><div class="lbl">متوسط الاستعادة</div></div>
+      <div class="kpi danger"><div class="val">${trEventsInReport}</div><div class="lbl">🔌 المحولات المتأثرة</div></div>
     </div>
 
     <div class="report-cols">
@@ -2842,7 +2858,7 @@ function buildReport(rows, title, subtitle){
         <table>
           <thead><tr>
             <th>رقم العطل</th><th>المحطة</th><th>المهندس</th><th>Date</th><th>Time</th><th>Trip Ind.</th>
-            <th>MW</th><th>Affected</th><th>Cause</th><th>الحالة</th>
+            <th>MW</th><th>TR</th><th>Affected</th><th>Cause</th><th>الحالة</th>
           </tr></thead>
           <tbody>${tableRowsHtml}</tbody>
         </table>
@@ -2917,7 +2933,8 @@ function exportReportExcel(title, rows){
   const out = rows.map(r => ({
     'Fault ID': fmtFid(r.id), 'Engineer': r.engineer, 'From': r.from, 'Substation': r.sstn, 'Feeder': r.feeder,
     'Trip Date': r.date, 'Trip Time': r.time, 'Trip Indication': (r.tripIndication||[]).join(', '),
-    'Losses (MW)': r.mw, 'Affected Consumers': r.affected, 'Restoration Time': r.restoreTime,
+    'Losses (MW)': r.mw, 'Affected TRs': (r.affectedTRs||[]).map(t => t.name + ' (' + (parseFloat(t.mw)||0).toFixed(1) + ' MW)').join(', '),
+    'Affected Consumers': r.affected, 'Restoration Time': r.restoreTime,
     'Duration (min)': r.duration, 'Fault Cause': r.cause, 'Status': r.status === 'open' ? 'Open' : 'Restored',
     'Notes': r.notes
   }));
@@ -4706,7 +4723,7 @@ function buildOriginalSldPreviewHTML(sstnName){
   const thumbs = sheets.map((s, i) => {
     const dotsHtml = markers.filter(m => m.sheetIndex === i).map(m => {
       const out = isTROutOfService(sstnName, m.name);
-      return `<div class="tr-marker-dot${out ? ' out-of-service' : ''}" style="left:${m.xPct}%;top:${m.yPct}%;" title="${esc(m.name)}${out ? ' — خارج الخدمة الآن' : ''}"></div>`;
+      return `<div class="tr-marker-dot${out ? ' out-of-service' : ''}" style="left:${m.xPct}%;top:${m.yPct}%;" title="${esc(m.name)}${out ? ' — خارج الخدمة الآن' : ''}">${out ? '⚡' : ''}</div>`;
     }).join('');
     return `
     <div class="orig-sld-thumb" data-sstn="${esc(sstnName)}" data-index="${i}">
@@ -4802,11 +4819,13 @@ function renderTRMarkerEditorImage(){
     showToast('تم تثبيت موقع المحول', 'success');
   });
   trMarkerEditState.markers.filter(m => m.sheetIndex === trMarkerEditState.sheetIndex).forEach(m => {
+    const out = isTROutOfService(trMarkerEditState.sstn, m.name);
     const dot = document.createElement('div');
-    dot.className = 'tr-marker-dot' + (isTROutOfService(trMarkerEditState.sstn, m.name) ? ' out-of-service' : '');
+    dot.className = 'tr-marker-dot' + (out ? ' out-of-service' : '');
     dot.style.left = m.xPct + '%';
     dot.style.top = m.yPct + '%';
     dot.title = m.name;
+    if(out) dot.textContent = '⚡';
     wrap.appendChild(dot);
   });
 }
