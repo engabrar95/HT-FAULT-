@@ -323,12 +323,35 @@
     cursor:pointer;background:#fff;transition:border-color .12s ease, transform .1s ease;
   }
   .orig-sld-thumb:hover{border-color:var(--e-blue);transform:translateY(-2px);}
+  .orig-sld-thumb-imgwrap{position:relative;}
   .orig-sld-thumb img{width:100%;display:block;}
   .orig-sld-thumb .cap{
     font-size:10.5px;color:var(--navy);background:#f4f8fc;padding:5px 8px;font-family:'IBM Plex Mono',monospace;
     text-align:center;
   }
   .orig-sld-empty{color:var(--mute);font-size:12.5px;padding:6px 2px;}
+
+  /* ===== TR (transformer) markers overlaid on the original SLD image ===== */
+  .tr-marker-dot{
+    position:absolute;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;
+    background:var(--green);border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.35);cursor:default;
+  }
+  .tr-marker-dot.out-of-service{background:#ff5c5c;animation:trMarkerPulse 1.4s ease-in-out infinite;}
+  @keyframes trMarkerPulse{
+    0%,100%{box-shadow:0 0 0 1px rgba(0,0,0,0.35), 0 0 0 0 rgba(255,92,92,0.55);}
+    50%{box-shadow:0 0 0 1px rgba(0,0,0,0.35), 0 0 0 7px rgba(255,92,92,0);}
+  }
+  /* Opened from inside the Add/Edit Fault modal, so it must stack above it
+     (both share the same .sld-modal-overlay/.modal-overlay z-index). */
+  #trMarkerModal{z-index:200;}
+  #trMarkerImageWrap{position:relative;display:inline-block;max-width:100%;cursor:crosshair;}
+  #trMarkerImageWrap img{max-width:100%;display:block;border-radius:8px;}
+  #trMarkerImageWrap .tr-marker-dot{width:18px;height:18px;}
+  .tr-marker-list{display:flex;flex-direction:column;gap:6px;}
+  .tr-marker-list-row{
+    display:flex;justify-content:space-between;align-items:center;padding:7px 12px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:6px;font-size:12.5px;
+  }
 
   /* ===== ORIGINAL SLD SCAN MODAL ===== */
   .sld-modal-overlay{
@@ -1463,6 +1486,32 @@
       <div class="sld-modal-foot">
         <span id="sldModalCount">—</span>
         <span class="sld-modal-hint">اضغط <b>Esc</b> أو ✕ عند الانتهاء</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sld-modal-overlay" id="trMarkerModal" style="display:none;">
+    <div class="sld-modal-box" style="max-width:920px;">
+      <div class="sld-modal-head">
+        <div>
+          <div class="sld-modal-title">📍 تحديد مواقع المحولات (TR) — <span id="trMarkerStationName"></span></div>
+          <div class="sld-modal-sub">اكتبي اسم المحول بالحقل تحت، وبعدها اضغطي على مكانه بالمخطط لتثبيته</div>
+        </div>
+        <button class="sld-modal-close" id="trMarkerCloseBtn" aria-label="Close">✕</button>
+      </div>
+      <div class="sld-modal-body" style="flex-direction:column;align-items:stretch;padding:18px;gap:14px;overflow:auto;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <input id="trMarkerNameInput" placeholder="اسم المحول الجديد (مثال: TR-1)" style="flex:1;min-width:180px;padding:9px 12px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:12.5px;">
+          <div id="trMarkerSheetSelectorWrap"></div>
+        </div>
+        <div id="trMarkerImageWrap"></div>
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;">المحولات المحددة</div>
+          <div id="trMarkerList" class="tr-marker-list"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" id="trMarkerCloseBtn2">إغلاق</button>
       </div>
     </div>
   </div>
@@ -4574,6 +4623,44 @@ function findOriginalSheetsForStation(sstnName){
   return [];
 }
 
+/* =====================================================================
+   TR MARKERS — one-time pinned positions for each transformer on a
+   station's original SLD scan, so a TR reported "out of service" on a
+   fault can be shown as a red pulsing dot right where it sits on the
+   real diagram, instead of just a name in a list. Positions are stored
+   as a percentage of the image's own width/height, so the same pin
+   lines up correctly whether it's shown on a small thumbnail or the
+   full-size editor image.
+   ===================================================================== */
+const TR_MARKERS_KEY = 'htFaultTRMarkers_v1';
+
+function loadTRMarkersMap(){
+  try{ return JSON.parse(localStorage.getItem(TR_MARKERS_KEY)) || {}; }catch(e){ return {}; }
+}
+function saveTRMarkersMap(map){
+  try{ localStorage.setItem(TR_MARKERS_KEY, JSON.stringify(map)); }catch(e){}
+}
+function getTRMarkersForStation(sstn){
+  if(!sstn) return [];
+  const map = loadTRMarkersMap();
+  const key = Object.keys(map).find(k => k.trim().toLowerCase() === sstn.trim().toLowerCase());
+  return key ? map[key] : [];
+}
+function setTRMarkersForStation(sstn, markers){
+  const map = loadTRMarkersMap();
+  Object.keys(map).forEach(k => { if(k.trim().toLowerCase() === sstn.trim().toLowerCase()) delete map[k]; });
+  map[sstn] = markers;
+  saveTRMarkersMap(map);
+}
+// A TR is "out of service" right now if it's named in the affectedTRs
+// list of a currently-open fault on that same station.
+function isTROutOfService(sstn, trName){
+  const key = (trName || '').trim().toLowerCase();
+  if(!key) return false;
+  return data.some(d => d.status === 'open' && d.sstn === sstn &&
+    (d.affectedTRs || []).some(t => (t.name || '').trim().toLowerCase() === key));
+}
+
 function buildOriginalSldPreviewHTML(sstnName){
   const sheets = findOriginalSheetsForStation(sstnName);
   if(!sheets.length){
@@ -4583,16 +4670,29 @@ function buildOriginalSldPreviewHTML(sstnName){
         <div class="orig-sld-empty">لا يوجد مسح ضوئي للمخطط الأصلي لهذه المحطة بعد.</div>
       </div>`;
   }
-  const thumbs = sheets.map((s, i) => `
+  const markers = getTRMarkersForStation(sstnName);
+  const thumbs = sheets.map((s, i) => {
+    const dotsHtml = markers.filter(m => m.sheetIndex === i).map(m => {
+      const out = isTROutOfService(sstnName, m.name);
+      return `<div class="tr-marker-dot${out ? ' out-of-service' : ''}" style="left:${m.xPct}%;top:${m.yPct}%;" title="${esc(m.name)}${out ? ' — خارج الخدمة الآن' : ''}"></div>`;
+    }).join('');
+    return `
     <div class="orig-sld-thumb" data-sstn="${esc(sstnName)}" data-index="${i}">
-      <img src="${s.src}" alt="${esc(s.title)}" loading="lazy">
+      <div class="orig-sld-thumb-imgwrap">
+        <img src="${s.src}" alt="${esc(s.title)}" loading="lazy">
+        ${dotsHtml}
+      </div>
       <div class="cap">${esc(s.title)}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   return `
     <div class="orig-sld-preview">
       <div class="orig-sld-preview-head">
         <span class="lbl">📐 المخطط الرسمي الأصلي (Single Line Diagram)</span>
-        <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="openSLDImageModalForStation('${esc(sstnName).replace(/'/g,"\\'")}')">🔍 تكبير</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="openTRMarkerEditor('${esc(sstnName).replace(/'/g,"\\'")}')">📍 تحديد مواقع المحولات</button>
+          <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="openSLDImageModalForStation('${esc(sstnName).replace(/'/g,"\\'")}')">🔍 تكبير</button>
+        </div>
       </div>
       <div class="orig-sld-thumb-row">${thumbs}</div>
     </div>`;
@@ -4605,6 +4705,101 @@ function wireOriginalSldPreview(containerEl){
     });
   });
 }
+
+/* ---- TR marker editor: click the original SLD to pin a TR's location ---- */
+let trMarkerEditState = { sstn: null, sheetIndex: 0, markers: [] };
+
+function openTRMarkerEditor(sstn){
+  if(!findOriginalSheetsForStation(sstn).length){
+    showToast('لا يوجد مخطط أصلي لهذه المحطة بعد', 'error');
+    return;
+  }
+  trMarkerEditState.sstn = sstn;
+  trMarkerEditState.sheetIndex = 0;
+  trMarkerEditState.markers = getTRMarkersForStation(sstn).slice();
+  document.getElementById('trMarkerStationName').textContent = sstn;
+  document.getElementById('trMarkerNameInput').value = '';
+  renderTRMarkerSheetSelector();
+  renderTRMarkerEditorImage();
+  renderTRMarkerListUI();
+  document.getElementById('trMarkerModal').style.display = 'flex';
+}
+
+function renderTRMarkerSheetSelector(){
+  const sheets = findOriginalSheetsForStation(trMarkerEditState.sstn);
+  const wrap = document.getElementById('trMarkerSheetSelectorWrap');
+  if(sheets.length <= 1){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = `<select id="trMarkerSheetSelect">${sheets.map((s,i) => `<option value="${i}">${esc(s.title)}</option>`).join('')}</select>`;
+  document.getElementById('trMarkerSheetSelect').addEventListener('change', (e) => {
+    trMarkerEditState.sheetIndex = parseInt(e.target.value, 10) || 0;
+    renderTRMarkerEditorImage();
+  });
+}
+
+function renderTRMarkerEditorImage(){
+  const sheets = findOriginalSheetsForStation(trMarkerEditState.sstn);
+  const sheet = sheets[trMarkerEditState.sheetIndex];
+  const wrap = document.getElementById('trMarkerImageWrap');
+  if(!sheet){ wrap.innerHTML = '<div class="activity-empty">لا يوجد مخطط لهذه المحطة.</div>'; return; }
+  wrap.innerHTML = `<img id="trMarkerImg" src="${sheet.src}" alt="${esc(sheet.title)}">`;
+  const img = document.getElementById('trMarkerImg');
+  img.addEventListener('click', (e) => {
+    const nameInput = document.getElementById('trMarkerNameInput');
+    const name = nameInput.value.trim();
+    if(!name){ showToast('اكتبي اسم المحول أولاً', 'error'); return; }
+    const rect = img.getBoundingClientRect();
+    const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+    const yPct = ((e.clientY - rect.top) / rect.height) * 100;
+    trMarkerEditState.markers.push({name, sheetIndex: trMarkerEditState.sheetIndex, xPct, yPct});
+    setTRMarkersForStation(trMarkerEditState.sstn, trMarkerEditState.markers);
+    nameInput.value = '';
+    renderTRMarkerEditorImage();
+    renderTRMarkerListUI();
+    if(typeof refreshModalSldPreview === 'function') refreshModalSldPreview();
+    showToast('تم تثبيت موقع المحول', 'success');
+  });
+  trMarkerEditState.markers.filter(m => m.sheetIndex === trMarkerEditState.sheetIndex).forEach(m => {
+    const dot = document.createElement('div');
+    dot.className = 'tr-marker-dot' + (isTROutOfService(trMarkerEditState.sstn, m.name) ? ' out-of-service' : '');
+    dot.style.left = m.xPct + '%';
+    dot.style.top = m.yPct + '%';
+    dot.title = m.name;
+    wrap.appendChild(dot);
+  });
+}
+
+function renderTRMarkerListUI(){
+  const list = document.getElementById('trMarkerList');
+  if(!trMarkerEditState.markers.length){
+    list.innerHTML = '<div class="tr-empty-hint">لا توجد مواقع محددة بعد — اكتبي اسم المحول واضغطي على مكانه بالمخطط.</div>';
+    return;
+  }
+  list.innerHTML = trMarkerEditState.markers.map((m, i) => `
+    <div class="tr-marker-list-row">
+      <span>📍 ${esc(m.name)}</span>
+      <button type="button" class="tr-remove" data-idx="${i}" title="حذف">✕</button>
+    </div>`).join('');
+  list.querySelectorAll('.tr-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      trMarkerEditState.markers.splice(idx, 1);
+      setTRMarkersForStation(trMarkerEditState.sstn, trMarkerEditState.markers);
+      renderTRMarkerEditorImage();
+      renderTRMarkerListUI();
+      if(typeof refreshModalSldPreview === 'function') refreshModalSldPreview();
+    });
+  });
+}
+
+document.getElementById('trMarkerCloseBtn').addEventListener('click', () => {
+  document.getElementById('trMarkerModal').style.display = 'none';
+});
+document.getElementById('trMarkerCloseBtn2').addEventListener('click', () => {
+  document.getElementById('trMarkerModal').style.display = 'none';
+});
+document.getElementById('trMarkerModal').addEventListener('click', (e) => {
+  if(e.target.id === 'trMarkerModal') document.getElementById('trMarkerModal').style.display = 'none';
+});
 
 function renderStationDetail(name, containerId, idPrefix){
   const records = data.filter(r => r.sstn === name).sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
