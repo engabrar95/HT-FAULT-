@@ -5269,16 +5269,24 @@ function parseRestorationText(text){
     if(lineMatch) addEngineerName(lineMatch[1]);
   });
   // Last resort: no "Eng"-prefixed name found anywhere, but many messages
-  // simply sign off with a bare name on the final line. Only accept it
-  // when it reads like a name (2-4 capitalized words) and doesn't hit any
-  // of the common operational terms that also appear alone on their own
-  // line, to avoid mistaking a station/status line for a signature.
+  // simply sign off with one or more bare names on the final lines (a
+  // shared job credited without an "Eng" prefix at all). Walk backward
+  // from the end and accept a run of consecutive lines that read like a
+  // name (2-4 capitalized words), stopping at the first line that
+  // doesn't — filtered against a blocklist of common operational terms
+  // that also appear alone on their own line, to avoid mistaking a
+  // station/status line for a signature.
   if(!engineerNames.length){
     const nonEmptyLines = clean.split('\n').map(l => l.trim()).filter(Boolean);
-    const lastLine = nonEmptyLines[nonEmptyLines.length - 1];
-    const nameLike = lastLine && /^[A-Z][A-Za-z.]*(?:\s+[A-Z][A-Za-z.]*){1,3}$/.test(lastLine);
+    const nameLikeRe = /^[A-Z][A-Za-z.]*(?:\s+[A-Z][A-Za-z.]*){1,3}$/;
     const blocklist = /\b(DCC|INFORMED|FYI|NOTE|WORK|DONE|JAB|JABR|JAHR|TOWN|FL|AREA|MAJOR|MINOR|FEEDER|FEEDERS|SUPPLY|RESTORED|CLOSED|TESTED|ISOLATED|LOCATION|ACTION|TAKEN|STATUS|COORDINATION|DATE|TIME|REPORTED|SUBSTATION|SUBSTATIONS|OPEN|NORMAL|NORMALLY|OK|LOSS|TRIP|HRS)\b/i;
-    if(nameLike && !blocklist.test(lastLine)) addEngineerName(lastLine);
+    const trailingNames = [];
+    for(let i = nonEmptyLines.length - 1; i >= 0; i--){
+      const line = nonEmptyLines[i];
+      if(nameLikeRe.test(line) && !blocklist.test(line)) trailingNames.unshift(line);
+      else break;
+    }
+    trailingNames.forEach(addEngineerName);
   }
   if(engineerNames.length) result.engineer = engineerNames.join('، ');
 
