@@ -2948,8 +2948,17 @@ function exportReportExcel(title, rows){
 
 renderWeeklyReport();
 
-/* ---- Team Sync (shared cloud sync across devices via jsonblob.com) ---- */
-const JSONBLOB_BASE = 'https://jsonblob.com/api/jsonBlob/';
+/* ---- Team Sync (shared cloud sync across devices via kvdb.io) ----
+   Previously used jsonblob.com, which returns the new record's id only in
+   a "Location" response header. Browsers hide non-whitelisted response
+   headers from cross-origin fetch() unless the server explicitly opts in
+   with Access-Control-Expose-Headers — jsonblob.com never did, so every
+   create request silently failed with "No sync code returned" no matter
+   how healthy the network was. kvdb.io returns everything (the new bucket
+   id, the stored value) in the response body instead, which cross-origin
+   fetch() can always read, so it works from a plain static page with no
+   backend of its own. */
+const KVDB_BASE = 'https://kvdb.io/';
 let teamSyncId = null;
 try{
   teamSyncId = localStorage.getItem(syncIdKeyFor(currentGov)) || (DEFAULT_TEAM_SYNC_ID || null);
@@ -2993,21 +3002,22 @@ async function createTeamSync(){
   const btn = document.getElementById('teamSyncCreateBtn');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Creating…'; }
   try{
-    const res = await fetch(JSONBLOB_BASE.slice(0, -1), {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
+    const bucketRes = await fetch(KVDB_BASE, {method: 'POST'});
+    if(!bucketRes.ok) throw new Error('HTTP ' + bucketRes.status + ' creating bucket');
+    const id = (await bucketRes.text()).trim();
+    if(!id || /[<>\s]/.test(id)) throw new Error('Unexpected response: ' + id.slice(0, 40));
+    const seedRes = await fetch(KVDB_BASE + id + '/faults', {
+      method: 'PUT',
       body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
     });
-    const location = res.headers.get('Location') || res.headers.get('location');
-    if(!location) throw new Error('No sync code returned');
-    const id = location.split('/').pop();
+    if(!seedRes.ok) throw new Error('HTTP ' + seedRes.status + ' seeding data');
     teamSyncId = id;
     try{ localStorage.setItem(syncIdKeyFor(currentGov), id); }catch(e){}
     updateTeamSyncUI();
     showToast('Team Sync enabled — share the code with your team', 'success');
   }catch(err){
     console.error('createTeamSync failed:', err);
-    showToast('Could not create Team Sync. Check your internet connection and try again.', 'error');
+    showToast('Could not create Team Sync: ' + (err.message || err) + '. Check your internet connection and try again.', 'error');
   }
   if(btn){ btn.disabled = false; btn.textContent = '✨ بدء مزامنة فريق جديدة (أول جهاز)'; }
 }
@@ -3019,21 +3029,27 @@ async function joinTeamSync(){
   const btn = document.getElementById('teamSyncJoinBtn');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Connecting…'; }
   try{
-    const res = await fetch(JSONBLOB_BASE + code);
-    if(!res.ok) throw new Error('Invalid code');
-    const remote = await res.json();
+    const res = await fetch(KVDB_BASE + code + '/faults');
+    // A brand-new bucket with nothing pushed to it yet 404s on this key —
+    // that's still a valid code to join, just with no remote data yet.
+    if(!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
     teamSyncId = code;
     try{ localStorage.setItem(syncIdKeyFor(currentGov), code); }catch(e){}
-    if(Array.isArray(remote.faults)){
-      data = remote.faults;
-      try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
-      render();
+    if(res.ok){
+      const remote = JSON.parse(await res.text());
+      if(Array.isArray(remote.faults)){
+        data = remote.faults;
+        try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
+        render();
+      }
+    } else {
+      await pushToCloud();
     }
     updateTeamSyncUI();
     showToast('Connected to Team Sync', 'success');
   }catch(err){
     console.error('joinTeamSync failed:', err);
-    showToast('That code did not work. Double-check it and try again.', 'error');
+    showToast('That code did not work: ' + (err.message || err), 'error');
   }
   if(btn){ btn.disabled = false; btn.textContent = '🔗 الانضمام لمزامنة فريق قائمة'; }
 }
@@ -3049,9 +3065,8 @@ async function pushToCloud(){
   if(!teamSyncId || syncInFlight) return;
   syncInFlight = true;
   try{
-    await fetch(JSONBLOB_BASE + teamSyncId, {
+    await fetch(KVDB_BASE + teamSyncId + '/faults', {
       method: 'PUT',
-      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
     });
   }catch(err){ console.error('pushToCloud failed:', err); }
@@ -3062,9 +3077,9 @@ async function pullFromCloud(silent){
   if(!teamSyncId || syncInFlight) return;
   syncInFlight = true;
   try{
-    const res = await fetch(JSONBLOB_BASE + teamSyncId);
+    const res = await fetch(KVDB_BASE + teamSyncId + '/faults');
     if(res.ok){
-      const remote = await res.json();
+      const remote = JSON.parse(await res.text());
       if(Array.isArray(remote.faults) && JSON.stringify(remote.faults) !== JSON.stringify(data)){
         data = remote.faults;
         try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
