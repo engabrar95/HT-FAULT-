@@ -3155,7 +3155,7 @@ async function attemptCreateBin(url){
   const res = await fetch(url, {
     method: 'POST',
     headers: {'Content-Type': 'application/json', 'Api-key': EXTENDSCLASS_API_KEY},
-    body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
+    body: JSON.stringify({faults: data, trMarkers: loadTRMarkersMap(), lastUpdated: new Date().toISOString()})
   });
   const bodyText = await res.text();
   const contentType = res.headers.get('content-type') || '(none)';
@@ -3203,7 +3203,7 @@ async function joinTeamSync(){
   const btn = document.getElementById('teamSyncJoinBtn');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Connecting…'; }
   try{
-    const res = await fetch(EXTENDSCLASS_BASE + code, {headers: {'Api-key': EXTENDSCLASS_API_KEY}});
+    const res = await fetch(EXTENDSCLASS_BASE + code);
     if(!res.ok) throw new Error('HTTP ' + res.status + ': ' + (await res.text()).slice(0, 120));
     const remote = JSON.parse(await res.text());
     teamSyncId = code;
@@ -3211,6 +3211,9 @@ async function joinTeamSync(){
     if(remote && Array.isArray(remote.faults)){
       data = remote.faults;
       try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
+      if(remote.trMarkers && typeof remote.trMarkers === 'object'){
+        saveTRMarkersMap(remote.trMarkers);
+      }
       render();
     } else {
       await pushToCloud();
@@ -3237,8 +3240,8 @@ async function pushToCloud(){
   try{
     const res = await fetch(EXTENDSCLASS_BASE + teamSyncId, {
       method: 'PUT',
-      headers: {'Content-Type': 'application/json', 'Api-key': EXTENDSCLASS_API_KEY},
-      body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({faults: data, trMarkers: loadTRMarkersMap(), lastUpdated: new Date().toISOString()})
     });
     if(!res.ok){
       const text = await res.text();
@@ -3256,12 +3259,21 @@ async function pullFromCloud(silent){
   if(!teamSyncId || syncInFlight) return;
   syncInFlight = true;
   try{
-    const res = await fetch(EXTENDSCLASS_BASE + teamSyncId, {headers: {'Api-key': EXTENDSCLASS_API_KEY}});
+    const res = await fetch(EXTENDSCLASS_BASE + teamSyncId);
     if(res.ok){
       const remote = JSON.parse(await res.text());
+      let changed = false;
       if(remote && Array.isArray(remote.faults) && JSON.stringify(remote.faults) !== JSON.stringify(data)){
         data = remote.faults;
         try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
+        changed = true;
+      }
+      if(remote && remote.trMarkers && typeof remote.trMarkers === 'object' &&
+         JSON.stringify(remote.trMarkers) !== JSON.stringify(loadTRMarkersMap())){
+        saveTRMarkersMap(remote.trMarkers);
+        changed = true;
+      }
+      if(changed){
         render();
         if(!silent) showToast('Data updated from Team Sync', 'success');
       }
@@ -4886,6 +4898,7 @@ function setTRMarkersForStation(sstn, markers){
   Object.keys(map).forEach(k => { if(k.trim().toLowerCase() === sstn.trim().toLowerCase()) delete map[k]; });
   map[sstn] = markers;
   saveTRMarkersMap(map);
+  if(typeof teamSyncId !== 'undefined' && teamSyncId && typeof pushToCloud === 'function') pushToCloud();
 }
 // A TR is "out of service" right now if it's named in the affectedTRs
 // list of a currently-open fault on that same station.
