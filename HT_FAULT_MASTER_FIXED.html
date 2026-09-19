@@ -3478,7 +3478,13 @@ document.getElementById('teamSyncCopyBtn').addEventListener('click', () => {
 
 updateTeamSyncUI();
 if(teamSyncId) pullFromCloud(true);
-setInterval(() => { if(teamSyncId) pullFromCloud(true); }, 15000);
+// 15s was burning through the shared free-tier monthly call quota in about
+// a day of active testing alone (HTTP 429 "exceeded the call limit"). Every
+// actual change already pushes immediately via saveData(), so this
+// interval only exists to pick up changes made on OTHER devices — a
+// minute of lag for that is unnoticeable in practice, and cuts the
+// request volume by 4x.
+setInterval(() => { if(teamSyncId) pullFromCloud(true); }, 60000);
 
 /* =====================================================================
    PROFESSIONAL FEATURES ENGINE
