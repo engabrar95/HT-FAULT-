@@ -3152,9 +3152,10 @@ async function attemptCreateBin(url){
     body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
   });
   const bodyText = await res.text();
-  if(!res.ok) throw new Error('HTTP ' + res.status + ': ' + bodyText.slice(0, 120));
+  const contentType = res.headers.get('content-type') || '(none)';
+  if(!res.ok) throw new Error('HTTP ' + res.status + ' [' + contentType + ']: ' + bodyText.slice(0, 150));
   const trimmed = bodyText.trim();
-  if(trimmed.startsWith('<')) throw new Error('Server returned a web page instead of data (got redirected)');
+  if(trimmed.startsWith('<')) throw new Error('HTTP ' + res.status + ' [' + contentType + '] web page: ' + trimmed.slice(0, 150));
   const parsed = JSON.parse(bodyText);
   const id = parsed && parsed.id;
   if(!id) throw new Error('No bin id returned');
