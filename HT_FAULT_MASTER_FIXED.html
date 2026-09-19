@@ -4607,7 +4607,9 @@ function updateAlarmBanner(openCount){
   if(openCount > 0){
     const stations = data.filter(d => d.status === 'open').map(d => d.sstn).filter(Boolean);
     const uniqueStations = [...new Set(stations)];
-    text.textContent = openCount + ' عطل نشط — ' + uniqueStations.join('، ') + '   •   ';
+    const trOutCount = getOutOfServiceTRs(null).length;
+    const trPart = trOutCount ? ('   •   🔌 ' + trOutCount + ' محول خارج الخدمة بالشبكة') : '';
+    text.textContent = openCount + ' عطل نشط — ' + uniqueStations.join('، ') + trPart + '   •   ';
     banner.style.display = 'flex';
   } else {
     banner.style.display = 'none';
