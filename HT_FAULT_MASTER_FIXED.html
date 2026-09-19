@@ -1780,7 +1780,7 @@ function canEdit(){ return true; }
    ثم أعد توزيع هذا الملف على الفريق — بهذي الطريقة يتصل كل جهاز تلقائيًا بدون أي إعداد يدوي. */
 // Baked in so every device connects automatically with zero setup — no
 // code to create or paste anywhere.
-const DEFAULT_TEAM_SYNC_ID = '7276908ba1f1';
+const DEFAULT_TEAM_SYNC_ID = '58d084a178d9';
 // Private account key so this app's requests count against its own
 // dedicated quota instead of extendsclass.com's shared/anonymous pool
 // (the anonymous pool is shared with unrelated strangers and can run out
@@ -3099,10 +3099,16 @@ renderWeeklyReport();
    account's Api-key gives this app its own dedicated quota instead. */
 const EXTENDSCLASS_BASE = 'https://json.extendsclass.com/bin/';
 const EXTENDSCLASS_CREATE_URL = 'https://json.extendsclass.com/bin';
+// Old baked-in defaults that got retired (e.g. hit their call-limit cap).
+// A device that visited before auto-saved one of these to localStorage,
+// so without this list it would keep using a dead bin forever even after
+// DEFAULT_TEAM_SYNC_ID moves on to a fresh one.
+const STALE_TEAM_SYNC_IDS = ['7276908ba1f1'];
 let teamSyncId = null;
 try{
-  teamSyncId = localStorage.getItem(syncIdKeyFor(currentGov)) || (DEFAULT_TEAM_SYNC_ID || null);
-  if(teamSyncId && DEFAULT_TEAM_SYNC_ID && !localStorage.getItem(syncIdKeyFor(currentGov))){
+  const stored = localStorage.getItem(syncIdKeyFor(currentGov));
+  teamSyncId = (stored && !STALE_TEAM_SYNC_IDS.includes(stored)) ? stored : (DEFAULT_TEAM_SYNC_ID || null);
+  if(teamSyncId && (!stored || STALE_TEAM_SYNC_IDS.includes(stored))){
     localStorage.setItem(syncIdKeyFor(currentGov), teamSyncId);
   }
 }catch(e){ teamSyncId = DEFAULT_TEAM_SYNC_ID || null; }
@@ -6369,7 +6375,13 @@ function switchGovernorate(gov){
   try{ activityLog = JSON.parse(localStorage.getItem(activityKeyFor(currentGov))) || []; }catch(e){ activityLog = []; }
 
   teamSyncId = null;
-  try{ teamSyncId = localStorage.getItem(syncIdKeyFor(currentGov)) || null; }catch(e){}
+  try{
+    const stored = localStorage.getItem(syncIdKeyFor(currentGov));
+    teamSyncId = (stored && !STALE_TEAM_SYNC_IDS.includes(stored)) ? stored : (DEFAULT_TEAM_SYNC_ID || null);
+    if(teamSyncId && (!stored || STALE_TEAM_SYNC_IDS.includes(stored))){
+      localStorage.setItem(syncIdKeyFor(currentGov), teamSyncId);
+    }
+  }catch(e){}
   updateTeamSyncUI();
 
   updateGovBrand();
