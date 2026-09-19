@@ -3145,6 +3145,22 @@ function randomSyncCode(){
   return s;
 }
 
+async function attemptCreateBin(url){
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'Api-key': EXTENDSCLASS_API_KEY},
+    body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
+  });
+  const bodyText = await res.text();
+  if(!res.ok) throw new Error('HTTP ' + res.status + ': ' + bodyText.slice(0, 120));
+  const trimmed = bodyText.trim();
+  if(trimmed.startsWith('<')) throw new Error('Server returned a web page instead of data (got redirected)');
+  const parsed = JSON.parse(bodyText);
+  const id = parsed && parsed.id;
+  if(!id) throw new Error('No bin id returned');
+  return id;
+}
+
 async function createTeamSync(){
   // Creates a brand NEW bin under the app's own private extendsclass.com
   // account, so it gets its own dedicated call-limit quota instead of
@@ -3152,16 +3168,16 @@ async function createTeamSync(){
   const btn = document.getElementById('teamSyncCreateBtn');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Creating…'; }
   try{
-    const res = await fetch(EXTENDSCLASS_CREATE_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'Api-key': EXTENDSCLASS_API_KEY},
-      body: JSON.stringify({faults: data, lastUpdated: new Date().toISOString()})
-    });
-    const bodyText = await res.text();
-    if(!res.ok) throw new Error('HTTP ' + res.status + ': ' + bodyText.slice(0, 120));
-    const parsed = JSON.parse(bodyText);
-    const id = parsed && parsed.id;
-    if(!id) throw new Error('No bin id returned');
+    let id;
+    try{
+      id = await attemptCreateBin(EXTENDSCLASS_CREATE_URL);
+    }catch(firstErr){
+      // Some responses get redirected (e.g. missing/extra trailing slash)
+      // and come back as an HTML page instead of JSON — retry once with
+      // the alternate URL shape before giving up.
+      const altUrl = EXTENDSCLASS_CREATE_URL.endsWith('/') ? EXTENDSCLASS_CREATE_URL.slice(0, -1) : EXTENDSCLASS_CREATE_URL + '/';
+      id = await attemptCreateBin(altUrl);
+    }
     teamSyncId = id;
     try{ localStorage.setItem(syncIdKeyFor(currentGov), id); }catch(e){}
     updateTeamSyncUI();
