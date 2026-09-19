@@ -408,6 +408,7 @@
     display:flex;align-items:center;justify-content:center;min-height:200px;padding:10px;
   }
   .sld-modal-img{max-width:100%;max-height:78vh;display:block;border-radius:4px;background:#fff;}
+  .sld-modal-imgwrap{position:relative;display:inline-block;line-height:0;}
   .sld-modal-nav{
     position:sticky;top:50%;flex-shrink:0;background:rgba(255,255,255,0.1);color:#fff;
     border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:42px;height:42px;font-size:22px;
@@ -1535,7 +1536,9 @@
       </div>
       <div class="sld-modal-body">
         <button class="sld-modal-nav prev" id="sldModalPrevBtn" aria-label="Previous sheet">‹</button>
-        <img class="sld-modal-img" id="sldModalImg" alt="Original single line diagram scan">
+        <div class="sld-modal-imgwrap" id="sldModalImgWrap">
+          <img class="sld-modal-img" id="sldModalImg" alt="Original single line diagram scan">
+        </div>
         <button class="sld-modal-nav next" id="sldModalNextBtn" aria-label="Next sheet">›</button>
       </div>
       <div class="sld-modal-foot">
@@ -5155,6 +5158,28 @@ function renderSLDModalFrame(){
     dl.href = item.src;
     dl.download = (item.sstn || 'SLD').replace(/[^a-zA-Z0-9]+/g,'_') + '.webp';
   }
+
+  // This full-size viewer used to just show the raw scan with no marker
+  // overlay at all, unlike the small thumbnail preview — so a TR position
+  // pinned in the marker editor looked like it "didn't save" the moment
+  // someone reopened the diagram from here to check it. Same dots, same
+  // out-of-service styling, now shown here too.
+  const wrap = document.getElementById('sldModalImgWrap');
+  wrap.querySelectorAll('.tr-marker-dot').forEach(d => d.remove());
+  let sheetIndex = 0;
+  for(let i = 0; i < sldModalIndex; i++){
+    if(sldModalImages[i].sstn === item.sstn) sheetIndex++;
+  }
+  getTRMarkersForStation(item.sstn).filter(m => m.sheetIndex === sheetIndex).forEach(m => {
+    const out = isTROutOfService(item.sstn, m.name);
+    const dot = document.createElement('div');
+    dot.className = 'tr-marker-dot' + (out ? ' out-of-service' : '');
+    dot.style.left = m.xPct + '%';
+    dot.style.top = m.yPct + '%';
+    dot.title = m.name + (out ? ' — خارج الخدمة الآن' : '');
+    if(out) dot.textContent = '⚡';
+    wrap.appendChild(dot);
+  });
 }
 
 function sldModalStep(dir){
