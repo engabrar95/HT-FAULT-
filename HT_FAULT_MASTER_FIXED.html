@@ -262,7 +262,12 @@
     display:inline-block;white-space:nowrap;padding-left:100%;
     animation:alarmTicker 22s linear infinite;
   }
-  .alarm-ticker-wrap:hover .alarm-text{animation-play-state:paused;}
+  /* Only pause-on-hover for real pointers — on touchscreens a tap can get
+     stuck in a sticky ":hover" state with no mouse-out to clear it, which
+     froze the ticker permanently on tablets/phones. */
+  @media (hover:hover) and (pointer:fine){
+    .alarm-ticker-wrap:hover .alarm-text{animation-play-state:paused;}
+  }
   @keyframes alarmTicker{
     0%{transform:translateX(0);}
     100%{transform:translateX(-100%);}
@@ -1826,7 +1831,10 @@ function loadData(){
     const saved = localStorage.getItem(storageKeyFor(currentGov));
     if(saved){
       const parsed = JSON.parse(saved);
-      if(Array.isArray(parsed) && parsed.length > 0) return parsed;
+      // An empty array is a real, valid state (e.g. synced from a team
+      // member who cleared it) — only reseed demo data when this browser
+      // has genuinely never stored anything for this governorate.
+      if(Array.isArray(parsed)) return parsed;
     }
   }catch(e){ /* localStorage blocked (e.g. local file:// preview) — fall through to seed */ }
   isFreshStorage = true;
