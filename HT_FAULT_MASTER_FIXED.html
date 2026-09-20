@@ -420,6 +420,18 @@
     cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s ease;
   }
   .sld-modal-nav:hover{background:rgba(0,174,239,0.5);}
+  .sanad-messages{
+    flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;
+    background:var(--panel);min-height:320px;max-height:50vh;
+  }
+  .sanad-msg{max-width:82%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.7;white-space:pre-wrap;}
+  .sanad-msg.user{align-self:flex-start;background:#0ea5e9;color:#fff;border-bottom-left-radius:3px;}
+  .sanad-msg.bot{align-self:flex-end;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-bottom-right-radius:3px;}
+  .sanad-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line);background:var(--panel2);}
+  .sanad-input-row input{
+    flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel);color:var(--text);font-size:13px;
+  }
   .sld-modal-nav.prev{margin-right:8px;}
   .sld-modal-nav.next{margin-left:8px;}
   .sld-modal-foot{
@@ -1158,6 +1170,7 @@
     <button class="btn ghost" id="aiInsightsOpenBtn">🧠 تحليل الأعطال الذكي</button>
     <button class="btn ghost" id="riskForecastOpenBtn">📈 توقع الأعطال</button>
     <button class="btn ghost" id="allGovStatsBtn">📊 إحصائية كل المحافظات</button>
+    <button class="btn ghost" id="sanadOpenBtn" style="background:#dc2626;color:#fff;border-color:#dc2626;">🆘 سند</button>
   </div>
 </div>
 
@@ -1219,6 +1232,22 @@
           </div>
         </div>
         <button class="btn ghost" id="teamSyncDisableBtn" style="display:none;">🔌 إيقاف مزامنة الفريق على هذا الجهاز</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sld-modal-overlay" id="sanadModal" style="display:none;">
+    <div class="sld-modal-box" style="max-width:480px;">
+      <div class="sld-modal-head" style="background:#dc2626;">
+        <div><div class="sld-modal-title" style="color:#fff;">🆘 سند</div><div class="sld-modal-sub" style="color:rgba(255,255,255,0.85);">مساعد الأسئلة الشائعة لنظام HT FAULT</div></div>
+        <button class="sld-modal-close" id="sanadCloseBtn" aria-label="Close">✕</button>
+      </div>
+      <div class="sld-modal-body" style="flex-direction:column;align-items:stretch;padding:0;gap:0;">
+        <div id="sanadMessages" class="sanad-messages"></div>
+        <div class="sanad-input-row">
+          <input id="sanadInput" placeholder="اكتبي سؤالج هنا..." autocomplete="off">
+          <button class="btn add" id="sanadSendBtn" style="background:#dc2626;border-color:#dc2626;">إرسال</button>
+        </div>
       </div>
     </div>
   </div>
@@ -3323,6 +3352,121 @@ document.getElementById('teamSyncModal').addEventListener('click', (e) => {
 document.getElementById('teamSyncCreateBtn').addEventListener('click', createTeamSync);
 document.getElementById('teamSyncJoinBtn').addEventListener('click', joinTeamSync);
 document.getElementById('teamSyncDisableBtn').addEventListener('click', disableTeamSync);
+
+/* ---- سند: offline FAQ assistant. No AI API, no cost — matches the
+   question's keywords against a fixed set of answers about how this
+   app works. Doesn't understand free-form questions like a real
+   assistant would; only covers what's listed in SANAD_FAQ below. ---- */
+function sanadNormalize(s){
+  return (s || '')
+    .toLowerCase()
+    .replace(/[إأآا]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
+    .replace(/[ًٌٍَُِّْ]/g, '')
+    .trim();
+}
+
+const SANAD_FAQ = [
+  {
+    keywords: ['محول خارج الخدمة', 'تر خارج', 'ترانس خارج', 'كيف يتحدد المحول', 'محولات خارج'],
+    answer: 'محول "خارج الخدمة" يتحدد تلقائيًا بالكامل — بدون أي تحديد يدوي. أي محول (TR) مذكور اسمه ضمن عطل حالته "مفتوح" يُحسب خارج الخدمة تلقائيًا، ويرجع "بالخدمة" لحظة ما تحولين حالة ذاك العطل لـ"مستعاد". يظهر العدد بكرت "🔌 محولات خارج الخدمة" وبالشريط الأحمر فوق.'
+  },
+  {
+    keywords: ['اضافة عطل', 'اضيف عطل', 'عطل جديد', 'ادخال عطل'],
+    answer: 'اضغطي زر "➕ إضافة عطل" فوق. تقدرين تكتبين البيانات يدويًا، أو تلصقين رسالة DCC كاملة (عربي أو إنجليزي) بالخانة المخصصة وبيسحب منها المحطة، الوقت، المغذي، وأسماء المحولات (TR) تلقائيًا.'
+  },
+  {
+    keywords: ['استعادة عطل', 'استرجاع عطل', 'restore', 'كيف اسوي استعادة', 'اقفال عطل'],
+    answer: 'اضغطي "🔁 استعادة عطل"، اختاري العطل من القائمة، وحطي وقت الاستعادة. الحالة تتحول تلقائيًا لـ"مستعاد" ويُحسب مدة الانقطاع، وأي محول مرتبط فيه يرجع "بالخدمة" تلقائيًا.'
+  },
+  {
+    keywords: ['حالة العطل', 'مفتوح ومستعاد', 'شنو معنى مفتوح', 'شنو معنى مستعاد', 'الحالات'],
+    answer: '"مفتوح" = العطل لسا قائم وما تم استعادة الخدمة. "مستعاد" = تم إصلاح العطل وإرجاع الخدمة (لازم وقت استعادة مسجل). تقدرين تصفّين القائمة حسب الحالة من القائمة المنسدلة "كل الحالات" بأعلى الجدول.'
+  },
+  {
+    keywords: ['طباعة', 'تصدير', 'pdf', 'excel', 'تقرير', 'اصدار تقرير'],
+    answer: 'من أسفل الجدول: "📄 تصدير PDF" و"📊 تصدير Excel" و"🖨️ طباعة". كل التقارير والإحصائيات تطلع فيها شعار الكويت وشعار وزارة الكهرباء والماء تلقائيًا بالطباعة والـPDF.'
+  },
+  {
+    keywords: ['تحديد مواقع المحولات', 'سنقل لاين', 'single line', 'موقع المحول على المخطط', 'علامة المحول', 'دبوس'],
+    answer: 'افتحي محطة من الرسم الشبكي، بعدها زر "📍 تحديد مواقع المحولات" فوق المخطط الأصلي (Single Line Diagram). اكتبي اسم المحول بالخانة واضغطي مكانه بالضبط على الصورة — يتثبت مباشرة ويظهر بكل مرة تفتحين فيها نفس المحطة، بما فيها وضع "🔍 تكبير".'
+  },
+  {
+    keywords: ['نسخة احتياطية', 'حفظ نسخة', 'استيراد نسخة', 'backup', 'استرجاع البيانات'],
+    answer: '"💾 حفظ نسخة احتياطية" يحمّل ملف JSON فيه كل بياناتج الحالية. "📂 استيراد نسخة محفوظة" يرجّع بيانات من ملف حفظتيه قبل. احتفظي بنسخة بين فترة وفترة خصوصًا قبل أي تحديث كبير على النظام.'
+  },
+  {
+    keywords: ['بحث', 'ابحث عن عطل', 'دور على عطل', 'كيف الاقي عطل'],
+    answer: 'استخدمي خانة "🔍 بحث بالمحطة، المغذي، المنطقة، السبب..." فوق الجدول — تقدرين تفلترين كمان بالتاريخ وبالحالة (مفتوح/مستعاد) من نفس الصف.'
+  },
+  {
+    keywords: ['الشريط الاحمر', 'الشريط المتحرك', 'التنبيه فوق', 'الشريط الي يتحرك'],
+    answer: 'الشريط الأحمر فوق الصفحة يعرض كل الأعطال المفتوحة حاليًا بأسماء محطاتها، وإذا فيه محولات خارج الخدمة يضيف عدها بالآخر. يتحرك تلقائيًا كل ما فيه عطل مفتوح واحد أو أكثر.'
+  },
+  {
+    keywords: ['بدون نت', 'بدون انترنت', 'يشتغل اوفلاين', 'offline'],
+    answer: 'إي، التطبيق يشتغل بدون إنترنت بالكامل بعد أول فتحة — البيانات تنحفظ بذاكرة المتصفح بجهازج. بس ملاحظة: كل جهاز يحفظ نسخته الخاصة محليًا، ما فيه مزامنة حية بين الأجهزة حاليًا.'
+  },
+  {
+    keywords: ['تحليل الاعطال الذكي', 'توقع الاعطال', 'ai', 'ذكاء اصطناعي'],
+    answer: '"🧠 تحليل الأعطال الذكي" و"📈 توقع الأعطال" أدوات إحصائية مبنية على بياناتج المخزنة (تكرار الأعطال، أكثر المحطات تعطلًا، إلخ) — تحليل مباشر من البيانات، مو ذكاء اصطناعي حقيقي يحاور.'
+  },
+  {
+    keywords: ['مين طور', 'مين سوى', 'المطور', 'الدعم', 'تواصل', 'مساعدة'],
+    answer: 'هذا النظام من تطوير م.ابرار المويزري. سند هذا مساعد أسئلة شائعة بسيط بدون تكلفة — لأي مشكلة أو طلب تعديل بالنظام، تواصلي مباشرة مع المهندسة المسؤولة.'
+  }
+];
+
+function sanadFindAnswer(question){
+  const q = sanadNormalize(question);
+  if(!q) return null;
+  let best = null, bestScore = 0;
+  SANAD_FAQ.forEach(entry => {
+    let score = 0;
+    entry.keywords.forEach(k => { if(q.includes(sanadNormalize(k))) score++; });
+    if(score > bestScore){ bestScore = score; best = entry; }
+  });
+  return bestScore > 0 ? best.answer : null;
+}
+
+function sanadAppendMessage(text, who){
+  const wrap = document.getElementById('sanadMessages');
+  const div = document.createElement('div');
+  div.className = 'sanad-msg ' + who;
+  div.textContent = text;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function sanadAsk(){
+  const input = document.getElementById('sanadInput');
+  const question = input.value.trim();
+  if(!question) return;
+  sanadAppendMessage(question, 'user');
+  input.value = '';
+  const answer = sanadFindAnswer(question) ||
+    'ما لقيت جواب مناسب لهالسؤال بعد. سند حاليًا يجاوب بس على الأسئلة الشائعة حول استخدام نظام HT FAULT (إضافة/استعادة عطل، المحولات، التقارير، النسخ الاحتياطية...). لأي سؤال أعمق، تواصلي مباشرة مع المهندسة المسؤولة.';
+  setTimeout(() => sanadAppendMessage(answer, 'bot'), 250);
+}
+
+document.getElementById('sanadOpenBtn').addEventListener('click', () => {
+  const modal = document.getElementById('sanadModal');
+  modal.style.display = 'flex';
+  const wrap = document.getElementById('sanadMessages');
+  if(!wrap.children.length){
+    sanadAppendMessage('هلا! أنا سند 🆘 اسأليني أي سؤال عن استخدام نظام HT FAULT.', 'bot');
+  }
+  document.getElementById('sanadInput').focus();
+});
+document.getElementById('sanadCloseBtn').addEventListener('click', () => {
+  document.getElementById('sanadModal').style.display = 'none';
+});
+document.getElementById('sanadModal').addEventListener('click', (e) => {
+  if(e.target.id === 'sanadModal') document.getElementById('sanadModal').style.display = 'none';
+});
+document.getElementById('sanadSendBtn').addEventListener('click', sanadAsk);
+document.getElementById('sanadInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') sanadAsk();
+});
 
 /* ===== ALL-GOVERNORATES STATISTICS ===== */
 function computeGovStats(records){
