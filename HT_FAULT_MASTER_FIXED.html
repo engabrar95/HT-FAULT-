@@ -3428,6 +3428,70 @@ function sanadFindAnswer(question){
   return bestScore > 0 ? best.answer : null;
 }
 
+// Arabic-name aliases for the Farwaniya-area station codes used in this
+// app's data (sstn values), so a question in Arabic ("الجليب") can be
+// matched against records stored with English station codes ("JALB").
+// Written already run through sanadNormalize (ة→ه, أ/إ/آ→ا) so a direct
+// substring check against the normalized question works.
+const SANAD_AREA_ALIASES = {
+  'فروانيه': 'FARW', 'جليب': 'JALB', 'خيطان': 'KHIT', 'يرموك': 'YARK',
+  'رحاب': 'RABA', 'رقه': 'RABA', 'عارضيه': 'ARDY', 'اردية': 'ARDY',
+  'فردوس': 'FRRD', 'صليبيه': 'PLES', 'سليبيه': 'SLBC',
+  'عبدالله المبارك': 'WABM', 'مطار': 'AIRP', 'اسكان': 'ISCC',
+  'صباح الناصر': 'SBNR', 'اميه': 'UWRC'
+};
+
+// Answers questions about the app's actual live fault records (counts by
+// area, currently out-of-service transformers, open-count right now) —
+// still zero-cost/local, just reading the in-memory `data` array instead
+// of matching a fixed FAQ answer.
+function sanadTryDataQuery(question){
+  const q = sanadNormalize(question);
+  const rawUpper = (question || '').toUpperCase();
+
+  const asksHow = /كيف|ليش|لماذا|شنو معنى|ما معنى/.test(q);
+  const asksLastTR = /(اخر|آخر)/.test(q) && /(ترانس|محول)/.test(q);
+  const asksOutTR = !asksHow && (/خارج الخدمه/.test(q) || /ترانس خارج/.test(q) || /محول خارج/.test(q));
+  if(asksLastTR || asksOutTR){
+    const out = getOutOfServiceTRs(null);
+    if(!out.length) return 'ماكو أي محول خارج الخدمة حاليًا بكل الشبكة — كل شي بالخدمة.';
+    const last = out[out.length - 1];
+    return (asksLastTR ? 'آخر محول خارج عن الخدمة حاليًا: ' : 'محول واحد على الأقل خارج الخدمة حاليًا: ') +
+      last.name + ' (محطة ' + last.sstn + ')، بفاقد ' + last.mw + ' MW. ' +
+      'إجمالي المحولات خارج الخدمة بالشبكة الحين: ' + out.length + '.';
+  }
+
+  // Resolve a station/area code either from an Arabic alias or a literal
+  // station-code substring (e.g. "FARW") appearing in the question.
+  let code = null;
+  for(const alias in SANAD_AREA_ALIASES){
+    if(q.includes(alias)){ code = SANAD_AREA_ALIASES[alias]; break; }
+  }
+  if(!code){
+    const knownCodes = [...new Set(data.map(d => (d.sstn || '').split(' ')[0]).filter(Boolean))];
+    code = knownCodes.find(c => c.length >= 3 && rawUpper.includes(c));
+  }
+
+  const asksCount = /كم |جم |عدد/.test(q);
+  if(code){
+    const matches = data.filter(d => (d.sstn || '').split(' ')[0] === code);
+    const open = matches.filter(d => d.status === 'open').length;
+    if(!matches.length) return 'ما فيه أي عطل مسجل بمحطات ' + code + ' حاليًا.';
+    return 'محطات ' + code + ': ' + matches.length + ' عطل مسجل إجمالًا، منهم ' + open + ' مفتوح حاليًا.';
+  }
+
+  if(asksCount && /مفتوح|قائم|حاليا|الان/.test(q)){
+    const open = data.filter(d => d.status === 'open').length;
+    return 'عدد الأعطال المفتوحة حاليًا بكل المحافظة: ' + open + '.';
+  }
+  if(asksCount && /اليوم/.test(q)){
+    const today = new Date().toISOString().slice(0, 10);
+    const count = data.filter(d => d.date === today).length;
+    return 'عدد الأعطال المسجلة اليوم (' + today + '): ' + count + '.';
+  }
+  return null;
+}
+
 function sanadAppendMessage(text, who){
   const wrap = document.getElementById('sanadMessages');
   const div = document.createElement('div');
@@ -3443,8 +3507,8 @@ function sanadAsk(){
   if(!question) return;
   sanadAppendMessage(question, 'user');
   input.value = '';
-  const answer = sanadFindAnswer(question) ||
-    'ما لقيت جواب مناسب لهالسؤال بعد. سند حاليًا يجاوب بس على الأسئلة الشائعة حول استخدام نظام HT FAULT (إضافة/استعادة عطل، المحولات، التقارير، النسخ الاحتياطية...). لأي سؤال أعمق، تواصلي مباشرة مع المهندسة المسؤولة.';
+  const answer = sanadTryDataQuery(question) || sanadFindAnswer(question) ||
+    'ما لقيت جواب مناسب لهالسؤال بعد. سند حاليًا يجاوب على الأسئلة الشائعة حول استخدام نظام HT FAULT (إضافة/استعادة عطل، المحولات، التقارير، النسخ الاحتياطية...) وأسئلة بسيطة عن بياناتج الحالية (عدد الأعطال بمحطة معينة، آخر محول خارج الخدمة...). لأي سؤال أعمق، تواصلي مباشرة مع المهندسة المسؤولة.';
   setTimeout(() => sanadAppendMessage(answer, 'bot'), 250);
 }
 
