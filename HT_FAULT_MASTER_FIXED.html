@@ -144,6 +144,10 @@
     display:inline-block;margin-right:4px;font-size:10px;font-weight:700;
     background:rgba(0,174,239,0.12);color:var(--e-blue);border-radius:10px;padding:1px 6px;cursor:default;
   }
+  .gen-badge{
+    display:inline-block;margin-right:4px;font-size:10px;font-weight:700;
+    background:rgba(185,28,28,0.12);color:#e05555;border-radius:10px;padding:1px 6px;cursor:default;
+  }
 
   /* ===== TOOLBAR ===== */
   .toolbar{
@@ -1261,7 +1265,8 @@
       <div class="sld-modal-body" style="flex-direction:column;align-items:center;text-align:center;padding:28px 22px;gap:14px;background:var(--panel);">
         <div style="font-size:44px;">🔔</div>
         <div id="generatorAlertText" style="font-size:16px;font-weight:700;color:var(--text);line-height:1.8;white-space:pre-line;"></div>
-        <button class="btn add" id="generatorAlertOkBtn" style="background:#b91c1c;border-color:#b91c1c;width:100%;margin-top:8px;">تم، شكرًا</button>
+        <button class="btn add" id="generatorAlertUseBtn" style="background:#b91c1c;border-color:#b91c1c;width:100%;display:none;">✅ استخدمت هذا المولد</button>
+        <button class="btn ghost" id="generatorAlertOkBtn" style="width:100%;">إغلاق</button>
       </div>
     </div>
   </div>
@@ -1991,7 +1996,7 @@ function render(){
       <td class="fid">${fmtFid(r.id)}</td>
       <td>${esc(r.engineer) || '—'}</td>
       <td>${esc(r.from)}</td>
-      <td class="sstn-cell">${esc(r.sstn)}${repeatTagFor(r.sstn)}</td>
+      <td class="sstn-cell">${esc(r.sstn)}${repeatTagFor(r.sstn)}${r.generatorUsed ? ` <span class="gen-badge" title="يبعد تقريبًا ${r.generatorUsed.distanceKm} كم">⚡ ${esc(r.generatorUsed.name)}</span>` : ''}</td>
       <td>${esc(r.feeder)}</td>
       <td>${esc(r.date)}</td>
       <td>${esc(r.time)}</td>
@@ -2506,9 +2511,10 @@ document.getElementById('modalSaveBtn').addEventListener('click', () => {
   logActivity(isEdit ? 'edit' : 'add', (isEdit ? 'Edited ' : 'Added ') + fmtFid(isEdit ? editingId : rec.id) + ' — ' + sstn);
   showToast(isEdit ? 'تم تحديث العطل بنجاح' : 'تم حفظ العطل بنجاح', 'success');
   const shouldAlertGenerator = !isEdit && rec.status === 'open' && findNearestGenerator(rec.sstn);
+  const savedFaultId = rec.id;
   closeModal();
   render();
-  if(shouldAlertGenerator) setTimeout(() => showNearestGenerator(rec.sstn), 400);
+  if(shouldAlertGenerator) setTimeout(() => showNearestGenerator(rec.sstn, savedFaultId), 400);
 });
 
 /* ===== TOOLBAR ===== */
@@ -5233,7 +5239,22 @@ function findNearestGenerator(sstn){
   return best ? {name: best.name, distanceKm: Math.round(bestDist * 10) / 10} : null;
 }
 
-function showNearestGenerator(sstn){
+// If exactly one open fault exists at this station, attach the "used
+// this generator" confirmation to it; with none or several, the modal
+// just informs (no unambiguous fault to attach to).
+function showNearestGeneratorForStation(sstnName){
+  const openFaults = data.filter(d => d.sstn === sstnName && d.status === 'open');
+  showNearestGenerator(sstnName, openFaults.length === 1 ? openFaults[0].id : null);
+}
+
+let generatorAlertPendingFaultId = null;
+
+// faultId is optional — when known (a specific fault this suggestion is
+// for), the modal offers a button to record that generator against that
+// fault record, and a badge for it then shows next to the fault in the
+// table. Without one (e.g. the general per-station button, or several
+// open faults at once), the modal is informational only.
+function showNearestGenerator(sstn, faultId){
   const result = findNearestGenerator(sstn);
   if(!result){
     showToast('ما قدرت ألقى إحداثيات معتمدة لمحطة ' + sstn + ' حاليًا.', 'error');
@@ -5241,16 +5262,30 @@ function showNearestGenerator(sstn){
   }
   document.getElementById('generatorAlertText').textContent =
     'محطة ' + sstn + ' — أقرب مستودع مولدات:\n' + result.name + '\nيبعد تقريبًا ' + result.distanceKm + ' كم';
+  generatorAlertPendingFaultId = (faultId != null) ? {faultId, result} : null;
+  document.getElementById('generatorAlertUseBtn').style.display = generatorAlertPendingFaultId ? 'block' : 'none';
   document.getElementById('generatorAlertModal').style.display = 'flex';
 }
-document.getElementById('generatorAlertCloseBtn').addEventListener('click', () => {
+function closeGeneratorAlert(){
   document.getElementById('generatorAlertModal').style.display = 'none';
-});
-document.getElementById('generatorAlertOkBtn').addEventListener('click', () => {
-  document.getElementById('generatorAlertModal').style.display = 'none';
-});
+  generatorAlertPendingFaultId = null;
+}
+document.getElementById('generatorAlertCloseBtn').addEventListener('click', closeGeneratorAlert);
+document.getElementById('generatorAlertOkBtn').addEventListener('click', closeGeneratorAlert);
 document.getElementById('generatorAlertModal').addEventListener('click', (e) => {
-  if(e.target.id === 'generatorAlertModal') document.getElementById('generatorAlertModal').style.display = 'none';
+  if(e.target.id === 'generatorAlertModal') closeGeneratorAlert();
+});
+document.getElementById('generatorAlertUseBtn').addEventListener('click', () => {
+  if(!generatorAlertPendingFaultId) return;
+  const {faultId, result} = generatorAlertPendingFaultId;
+  const rec = data.find(d => d.id === faultId);
+  if(rec){
+    rec.generatorUsed = {name: result.name, distanceKm: result.distanceKm};
+    saveData();
+    render();
+    showToast('✅ تم ربط ' + result.name + ' بالعطل ' + fmtFid(faultId), 'success');
+  }
+  closeGeneratorAlert();
 });
 
 function buildOriginalSldPreviewHTML(sstnName){
@@ -5294,7 +5329,7 @@ function buildOriginalSldPreviewHTML(sstnName){
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="openTRMarkerEditor('${esc(sstnName).replace(/'/g,"\\'")}')">📍 تحديد مواقع المحولات</button>
           <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="openSLDImageModalForStation('${esc(sstnName).replace(/'/g,"\\'")}')">🔍 تكبير</button>
-          <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="showNearestGenerator('${esc(sstnName).replace(/'/g,"\\'")}')">⚡ أقرب مولد</button>
+          <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="showNearestGeneratorForStation('${esc(sstnName).replace(/'/g,"\\'")}')">⚡ أقرب مولد</button>
         </div>
       </div>
       ${statusBannerHtml}
