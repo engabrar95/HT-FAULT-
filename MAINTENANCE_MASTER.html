@@ -1167,6 +1167,16 @@
   .up-item.late .when{color:var(--red);font-weight:700;}
   .kpi .val.pct small{font-size:13px;}
   .toolbar .filter-sel{min-width:130px;}
+  .ht-link-badge{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;background:var(--amber-dim);color:var(--amber);border-radius:10px;padding:1px 7px;font-family:'IBM Plex Mono',monospace;}
+  .wo-sheet{font-family:Arial,sans-serif;color:#111;}
+  .wo-sheet .wo-id{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:#0a3d7c;}
+  .wo-sheet table.wo-grid{width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;}
+  .wo-sheet table.wo-grid th{width:22%;background:#f0f4f8;text-align:left;border:1px solid #ccc;padding:7px 9px;color:#000;}
+  .wo-sheet table.wo-grid td{border:1px solid #ccc;padding:7px 9px;white-space:pre-wrap;vertical-align:top;}
+  .wo-sheet .wo-box{border:1px solid #ccc;min-height:70px;padding:8px 10px;margin:4px 0 12px;font-size:12.5px;white-space:pre-wrap;}
+  .wo-sheet .wo-label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;margin-top:8px;}
+  .wo-sheet .wo-signs{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px;font-size:12px;}
+  .wo-sheet .wo-signs div{border-top:1px solid #333;padding-top:6px;text-align:center;}
 </style>
 </head>
 <body>
@@ -1377,6 +1387,26 @@
       <button class="modal-close" id="modalCloseBtn">✕</button>
     </div>
     <div class="modal-body">
+
+      <div class="entry-mode-toggle">
+        <button class="mode-btn active" id="modeManualBtn">✍️ إدخال يدوي</button>
+        <button class="mode-btn" id="modeScanBtn">📋 لصق وتعبئة تلقائية</button>
+      </div>
+
+      <div class="scan-panel" id="scanPanel" style="display:none;">
+        <label style="display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;">الصق نص طلب / تقرير الصيانة هنا (من واتساب، إيميل، إلخ)</label>
+        <textarea id="scanPasteBox" rows="8" placeholder="S.Stn : KHIT F&#10;Equipment : TR-2 (11/0.415 kV)&#10;Type : Preventive maintenance&#10;Date : 05/10/2026  08:00 hrs&#10;PTW : PTW-2026-0142&#10;Team : Eng. Ahmad, Eng. Salem&#10;Shutdown : KHIT 69&#10;Work : Oil test, tap changer inspection." style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:12px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);resize:vertical;"></textarea>
+        <div class="scan-actions">
+          <button class="btn add" id="scanRunBtn">✨ تحليل وتعبئة النموذج</button>
+        </div>
+        <div class="scan-status" id="scanStatus"></div>
+      </div>
+
+      <div class="field" id="htLinkRow" style="margin-bottom:16px;">
+        <label>⚡ ربط بعطل من نظام HT (اختياري)</label>
+        <select id="m_linkedFault"></select>
+      </div>
+
       <div class="form-grid">
         <div class="field"><label>المحطة</label><input id="m_sstn" list="stationList" placeholder="مثال: KHIT F"></div>
         <div class="field"><label>المعدة / الرقم</label><input id="m_equipment" placeholder="مثال: TR-2 / KHIT 69 / RMU FARW 43"></div>
@@ -1602,7 +1632,7 @@ function render(){
 
   let rows = sortRows(data);
   if(term){
-    rows = rows.filter(r => [fmtWid(r.id), r.sstn, r.equipment, r.equipType, r.engineer, r.ptw, r.description, r.workDone, r.affected, r.spares, r.notes]
+    rows = rows.filter(r => [fmtWid(r.id), r.linkedFaultId ? fmtFid(r.linkedFaultId) : '', r.sstn, r.equipment, r.equipType, r.engineer, r.ptw, r.description, r.workDone, r.affected, r.spares, r.notes]
       .join(' ').toLowerCase().includes(term));
   }
   if(dateVal) rows = rows.filter(r => refDate(r) === dateVal);
@@ -1616,7 +1646,7 @@ function render(){
   rows.forEach(r => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="fid">${fmtWid(r.id)}</td>
+      <td class="fid">${fmtWid(r.id)}${r.linkedFaultId ? `<span class="ht-link-badge" title="مرتبط بعطل ${esc(fmtFid(r.linkedFaultId))}">⚡ ${esc(fmtFid(r.linkedFaultId))}</span>` : ''}</td>
       <td class="sstn-cell">${esc(r.sstn) || '—'}</td>
       <td>${esc(r.equipment) || '—'}</td>
       <td>${esc(r.equipType) || '—'}</td>
@@ -1635,6 +1665,7 @@ function render(){
           ${(r.status === 'planned' || r.status === 'postponed') ? `<button class="icon-btn start" data-id="${r.id}" title="بدء التنفيذ">▶️</button>` : ''}
           ${PENDING.includes(r.status) ? `<button class="icon-btn close-fault" data-id="${r.id}" title="تحديد كمنجزة">✔️</button>` : ''}
           <button class="icon-btn edit" data-id="${r.id}" title="تعديل">✏️</button>
+          <button class="icon-btn wo-print" data-id="${r.id}" title="طباعة أمر العمل">🖨️</button>
           <button class="icon-btn del" data-id="${r.id}" title="حذف">🗑️</button>
         </div>
       </td>`;
@@ -1642,6 +1673,7 @@ function render(){
   });
 
   tbody.querySelectorAll('.edit').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.id))));
+  tbody.querySelectorAll('.wo-print').forEach(b => b.addEventListener('click', () => printWorkOrder(parseInt(b.dataset.id))));
   tbody.querySelectorAll('.del').forEach(b => b.addEventListener('click', () => deleteRecord(parseInt(b.dataset.id))));
   tbody.querySelectorAll('.start').forEach(b => b.addEventListener('click', () => startWork(parseInt(b.dataset.id))));
   tbody.querySelectorAll('.close-fault').forEach(b => b.addEventListener('click', () => completeWork(parseInt(b.dataset.id))));
@@ -1871,6 +1903,10 @@ function openModal(id){
     el.value = (v === null || v === undefined) ? '' : v;
     if(el.tagName === 'SELECT' && !el.value && el.options.length) el.selectedIndex = 0;
   });
+  populateLinkedFaultSelect(rec ? rec.linkedFaultId : null);
+  setEntryMode('manual');
+  document.getElementById('scanPasteBox').value = '';
+  setScanStatus('', '');
   document.getElementById('modalOverlay').classList.add('show');
   setTimeout(() => document.getElementById('m_sstn').focus(), 50);
 }
@@ -1892,6 +1928,7 @@ function saveModal(){
   FIELDS.forEach(f => { rec[f] = document.getElementById('m_' + f).value.trim(); });
   rec.sstn = rec.sstn.toUpperCase();
   rec.duration = rec.duration === '' ? null : parseFloat(rec.duration);
+  rec.linkedFaultId = parseInt(document.getElementById('m_linkedFault').value) || null;
   if(!rec.sstn && !rec.equipment){ showToast('أدخل المحطة أو المعدة على الأقل', 'error'); return; }
   if(!rec.plannedDate && !rec.startDate){ showToast('أدخل التاريخ المخطط أو تاريخ البدء', 'error'); return; }
   if(rec.status === 'completed' && !rec.endDate){ rec.endDate = todayISO(); rec.endTime = rec.endTime || nowHHMM(); }
@@ -1917,6 +1954,218 @@ function saveModal(){
   showToast('تم حفظ ' + fmtWid(saved.id) + (next ? ' — وتمت جدولة الدورة القادمة ' + fmtWid(next.id) : ''), 'success');
   closeModal();
   render();
+}
+
+/* ===== LINK TO AN HT FAULT =====
+   HT FAULT keeps its records in this same browser, so a corrective work
+   order can be raised straight from a fault instead of retyping it. */
+function fmtFid(id){ return 'HT-' + String(id).padStart(4,'0'); }
+function loadHTFaults(){
+  try{ const p = JSON.parse(localStorage.getItem('htFaultRecords_v2_' + currentGov)); return Array.isArray(p) ? p : []; }catch(e){ return []; }
+}
+function populateLinkedFaultSelect(selectedId){
+  const faults = loadHTFaults().filter(f => f && typeof f.id === 'number')
+    .sort((a, b) => (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1) || ((b.date || '') + (b.time || '')).localeCompare((a.date || '') + (a.time || '')));
+  const shown = faults.slice(0, 80);
+  if(selectedId && !shown.some(f => f.id === selectedId)){
+    const f = faults.find(x => x.id === selectedId);
+    shown.unshift(f || {id: selectedId, sstn: '(غير موجود في هذا الجهاز)'});
+  }
+  const sel = document.getElementById('m_linkedFault');
+  sel.innerHTML = `<option value="">— بدون ربط —${faults.length ? '' : ' (لا توجد أعطال HT محفوظة لهذه المحافظة)'}</option>` +
+    shown.map(f => `<option value="${f.id}">${esc([fmtFid(f.id), f.sstn, f.feeder, f.date, f.status === 'open' ? 'مفتوح' : (f.status === 'restored' ? 'مستعاد' : '')].filter(Boolean).join(' · '))}</option>`).join('');
+  sel.value = selectedId ? String(selectedId) : '';
+}
+document.getElementById('m_linkedFault').addEventListener('change', e => {
+  const f = loadHTFaults().find(x => x.id === parseInt(e.target.value));
+  if(!f) return;
+  const setIfEmpty = (field, val) => { const el = document.getElementById('m_' + field); if(val && !el.value.trim()) el.value = val; };
+  setIfEmpty('sstn', f.sstn);
+  setIfEmpty('equipment', f.feeder);
+  setIfEmpty('engineer', f.engineer);
+  setIfEmpty('affected', f.affected);
+  setIfEmpty('description', ['إصلاح عطل ' + fmtFid(f.id), f.cause ? 'السبب: ' + f.cause : '', f.workDone || ''].filter(Boolean).join(' — '));
+  if(!editingId){
+    document.getElementById('m_mtType').value = f.priority === 'critical' ? 'emergency' : 'corrective';
+    if(f.priority) document.getElementById('m_priority').value = f.priority;
+    const detected = detectEquipType(f.feeder || '');
+    if(detected) document.getElementById('m_equipType').value = detected;
+  }
+  showToast('تمت تعبئة البيانات من العطل ' + fmtFid(f.id) + ' — راجعها قبل الحفظ', 'info');
+});
+
+/* ===== PASTE & AUTO-FILL =====
+   Reads "Label : value" lines (English or Arabic) from a pasted WhatsApp /
+   email message. Unlabelled lines continue the previous field, and if no
+   label is recognised at all the whole text becomes the work description. */
+function setEntryMode(mode){
+  document.getElementById('modeManualBtn').classList.toggle('active', mode === 'manual');
+  document.getElementById('modeScanBtn').classList.toggle('active', mode === 'scan');
+  document.getElementById('scanPanel').style.display = mode === 'scan' ? 'block' : 'none';
+}
+function setScanStatus(text, cls){
+  const el = document.getElementById('scanStatus');
+  el.textContent = text;
+  el.className = 'scan-status' + (cls ? ' ' + cls : '');
+}
+document.getElementById('modeManualBtn').addEventListener('click', () => setEntryMode('manual'));
+document.getElementById('modeScanBtn').addEventListener('click', () => {
+  setEntryMode('scan');
+  setTimeout(() => document.getElementById('scanPasteBox').focus(), 30);
+});
+
+function normalizeArabicDigits(str){
+  return str.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+}
+function parseDateIn(text){
+  let m = text.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+  if(m) return m[1] + '-' + pad2(m[2]) + '-' + pad2(m[3]);
+  m = text.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);
+  if(m){
+    const y = m[3].length === 2 ? '20' + m[3] : m[3];
+    return y + '-' + pad2(m[2]) + '-' + pad2(m[1]); // day/month/year, as written locally
+  }
+  return '';
+}
+function parseTimeIn(text){
+  let m = text.match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b(?![-\/.]\d)/);
+  if(m) return pad2(m[1]) + ':' + m[2];
+  m = text.match(/\b([01]\d|2[0-3])([0-5]\d)\s*hrs?\b/i);
+  if(m) return m[1] + ':' + m[2];
+  return '';
+}
+function detectEquipType(text){
+  const t = text.toLowerCase();
+  if(/\brmu\b|r\/m\b|ring main/.test(t)) return 'RMU';
+  if(/transformer|\btr\s*-?\d|\bltr|محول/.test(t)) return /0\.415|\bltr|local|distribution|توزيع/.test(t) ? 'Distribution Transformer (11/0.415 kV)' : 'Power Transformer';
+  if(/breaker|switchgear|\bcb\b|قاطع|لوحة/.test(t)) return 'Switchgear / Circuit Breaker';
+  if(/relay|protection|ريليه|حماية/.test(t)) return 'Protection Relay';
+  if(/batter|charger|بطاري|شاحن/.test(t)) return 'Battery & Charger';
+  if(/\brtu\b|scada|سكادا/.test(t)) return 'RTU / SCADA';
+  if(/\bohl\b|overhead|خط هوائي/.test(t)) return 'OHL';
+  if(/cable|كيبل|كابل/.test(t)) return 'Cable';
+  if(/earth|grounding|تأريض/.test(t)) return 'Earthing System';
+  if(/feeder|مغذي/.test(t)) return 'Cable';
+  return '';
+}
+function detectMtType(text){
+  const t = text.toLowerCase();
+  if(/emergenc|urgent|طارئ/.test(t)) return 'emergency';
+  if(/preventive|\bpm\b|routine|periodic|annual|وقائي|دوري/.test(t)) return 'preventive';
+  if(/corrective|repair|replace|تصحيح|إصلاح|اصلاح|تبديل/.test(t)) return 'corrective';
+  if(/inspect|patrol|visual|فحص|تفتيش/.test(t)) return 'inspection';
+  if(/\btest|اختبار/.test(t)) return 'testing';
+  return '';
+}
+const PASTE_LABELS = [
+  ['workDone', /^(work\s*done|done|action\s*taken|العمل المنجز|المنجز|تم عمل)$/i],
+  ['sstn', /^(s\.?\s*stn|s\/s|sub\s*station|station|المحطة|محطة)$/i],
+  ['equipment', /^(equipment|equip\.?|asset|المعدة|معدة|الجهاز)$/i],
+  ['mtType', /^(type|maint(enance)?\s*type|نوع الصيانة|النوع)$/i],
+  ['plannedDate', /^(date|planned\s*date|schedule[d]?|التاريخ|تاريخ|الموعد)$/i],
+  ['startTime', /^(time|start\s*time|الوقت|وقت|وقت البدء)$/i],
+  ['ptw', /^(ptw|ptw\s*no\.?|permit|permit\s*no\.?|تصريح|رقم التصريح)$/i],
+  ['engineer', /^(team|engineer|eng\.?|by|crew|الفريق|المهندس|فريق العمل)$/i],
+  ['shutdown', /^(shutdown|outage|isolation|فصل|الفصل)$/i],
+  ['description', /^(work|job|scope|description|details|task|الوصف|العمل|وصف العمل|المطلوب)$/i],
+  ['spares', /^(spares?|materials?|parts|قطع الغيار|المواد)$/i],
+  ['notes', /^(notes?|remarks?|ملاحظات|ملاحظة)$/i],
+  ['priority', /^(priority|الأولوية|الاولوية)$/i]
+];
+function parseMaintenanceText(raw){
+  const text = normalizeArabicDigits(raw || '');
+  const found = {};
+  let current = null;
+  text.split(/\r?\n/).forEach(line => {
+    const trimmed = line.trim();
+    if(!trimmed) return;
+    const m = trimmed.match(/^([^:：\-–]{1,30}?)\s*[:：\-–]\s*(.*)$/);
+    const hit = m && PASTE_LABELS.find(([, re]) => re.test(m[1].trim().replace(/\s+/g, ' ')));
+    if(hit){
+      current = hit[0];
+      found[current] = (found[current] ? found[current] + ' ' : '') + m[2].trim();
+    } else if(current){
+      found[current] += '\n' + trimmed;
+    } else {
+      found._free = (found._free ? found._free + '\n' : '') + trimmed;
+    }
+  });
+
+  const out = {};
+  if(found.sstn) out.sstn = found.sstn.replace(/\.$/, '').toUpperCase();
+  if(found.equipment) out.equipment = found.equipment.replace(/\.$/, '');
+  if(found.engineer) out.engineer = found.engineer.replace(/\.$/, '');
+  if(found.description) out.description = found.description;
+  if(found.workDone) out.workDone = found.workDone;
+  if(found.spares) out.spares = found.spares;
+  if(found.notes) out.notes = found.notes;
+  if(found._free) out.description = out.description ? out.description + '\n' + found._free : found._free;
+
+  const dateSrc = found.plannedDate || text;
+  const d = parseDateIn(dateSrc);
+  if(d) out.plannedDate = d;
+  const t = parseTimeIn(found.startTime || found.plannedDate || '');
+  if(t) out.startTime = t;
+
+  const ptw = found.ptw || ((text.match(/\bPTW[\s#:no.-]*([A-Z0-9][A-Z0-9\/-]{2,})/i) || [])[1] || '');
+  if(ptw) out.ptw = ptw.replace(/\.$/, '');
+
+  if(found.shutdown !== undefined){
+    const v = found.shutdown.trim();
+    if(/^(no|none|nil|n\/a|لا|لا يوجد|بدون)\.?$/i.test(v)) out.shutdown = 'no';
+    else { out.shutdown = 'yes'; if(v && !/^(yes|required|نعم|مطلوب)\.?$/i.test(v)) out.affected = v; }
+  }
+
+  const mt = detectMtType(found.mtType || text);
+  if(mt) out.mtType = mt;
+  const eq = detectEquipType((found.equipment || '') + ' ' + (found.description || '') + ' ' + (found.mtType || ''));
+  if(eq) out.equipType = eq;
+
+  const pr = (found.priority || '').toLowerCase();
+  if(/critical|urgent|حرج|عاجل/.test(pr)) out.priority = 'critical';
+  else if(/high|عالي/.test(pr)) out.priority = 'high';
+  else if(/low|منخفض/.test(pr)) out.priority = 'low';
+  else if(/medium|normal|متوسط/.test(pr)) out.priority = 'medium';
+  return out;
+}
+const FIELD_LABELS_AR = {sstn:'المحطة', equipment:'المعدة', equipType:'نوع المعدة', mtType:'نوع الصيانة', plannedDate:'التاريخ', startTime:'الوقت', ptw:'التصريح', engineer:'الفريق', shutdown:'الفصل', affected:'المتأثرون', description:'الوصف', workDone:'العمل المنجز', spares:'قطع الغيار', notes:'ملاحظات', priority:'الأولوية'};
+document.getElementById('scanRunBtn').addEventListener('click', () => {
+  const parsed = parseMaintenanceText(document.getElementById('scanPasteBox').value);
+  const keys = Object.keys(parsed);
+  if(!keys.length){ setScanStatus('ما قدرت أتعرف على أي بيانات — الصق النص أولاً.', 'error'); return; }
+  keys.forEach(k => { document.getElementById('m_' + k).value = parsed[k]; });
+  setScanStatus('✅ تمت تعبئة: ' + keys.map(k => FIELD_LABELS_AR[k] || k).join('، ') + ' — راجع الحقول قبل الحفظ.', 'success');
+});
+
+/* ===== PRINTABLE WORK ORDER (one sheet for the field team) ===== */
+function printWorkOrder(id){
+  const r = data.find(d => d.id === id);
+  if(!r) return;
+  const row = (label, val) => `<tr><th>${label}</th><td>${esc(val) || '—'}</td></tr>`;
+  const html = `
+    <div class="wo-sheet">
+      <div class="wo-id">${fmtWid(r.id)}${r.linkedFaultId ? ' · ⚡ ' + esc(fmtFid(r.linkedFaultId)) : ''}</div>
+      <table class="wo-grid">
+        ${row('Governorate / المحافظة', govName(currentGov))}
+        ${row('Substation / المحطة', r.sstn)}
+        ${row('Equipment / المعدة', [r.equipment, r.equipType].filter(Boolean).join(' — '))}
+        ${row('Maintenance Type / نوع الصيانة', MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].en + ' / ' + MT_TYPES[r.mtType].ar : '')}
+        ${row('Priority / الأولوية', r.priority)}
+        ${row('Status / الحالة', STATUSES[r.status] ? STATUSES[r.status].en + ' / ' + STATUSES[r.status].ar : '')}
+        ${row('Planned Date / التاريخ المخطط', r.plannedDate)}
+        ${row('Start / البدء', ((r.startDate || '') + ' ' + (r.startTime || '')).trim())}
+        ${row('End / الانتهاء', ((r.endDate || '') + ' ' + (r.endTime || '')).trim())}
+        ${row('PTW No. / رقم التصريح', r.ptw)}
+        ${row('Shutdown / الفصل', r.shutdown === 'yes' ? 'Yes / نعم' + (r.affected ? ' — ' + r.affected : '') : 'No / لا')}
+        ${row('Team / الفريق', r.engineer)}
+      </table>
+      <div class="wo-label">Work Description / وصف العمل</div><div class="wo-box">${esc(r.description)}</div>
+      <div class="wo-label">Work Done / العمل المنجز</div><div class="wo-box">${esc(r.workDone)}</div>
+      <div class="wo-label">Spares & Materials / قطع الغيار والمواد</div><div class="wo-box" style="min-height:40px;">${esc(r.spares)}</div>
+      <div class="wo-label">Notes / ملاحظات</div><div class="wo-box" style="min-height:40px;">${esc(r.notes)}</div>
+      <div class="wo-signs"><div>Issued by / المُصدر</div><div>Executed by / المنفذ</div><div>Approved by / المعتمد</div></div>
+    </div>`;
+  printReport('Work Order / أمر عمل صيانة', fmtWid(r.id) + ' — ' + (r.sstn || ''), html);
 }
 
 document.getElementById('addBtn').addEventListener('click', () => openModal(null));
@@ -2032,7 +2281,7 @@ function recordToExcelRow(r){
     'Start': ((r.startDate || '') + ' ' + (r.startTime || '')).trim(), 'End': ((r.endDate || '') + ' ' + (r.endTime || '')).trim(),
     'Duration (hr)': r.duration, 'PTW No.': r.ptw, 'Shutdown': r.shutdown === 'yes' ? 'Yes' : 'No', 'Affected': r.affected,
     'Priority': r.priority, 'Status': (STATUSES[r.status] || {}).en + (isOverdue(r) ? ' (Overdue)' : ''),
-    'Work Done': r.workDone, 'Spares / Materials': r.spares, 'Notes': r.notes
+    'HT Fault': r.linkedFaultId ? fmtFid(r.linkedFaultId) : '', 'Work Done': r.workDone, 'Spares / Materials': r.spares, 'Notes': r.notes
   };
 }
 
