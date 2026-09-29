@@ -1174,7 +1174,6 @@
     <button class="btn ghost" id="aiInsightsOpenBtn">🧠 تحليل الأعطال الذكي</button>
     <button class="btn ghost" id="riskForecastOpenBtn">📈 توقع الأعطال</button>
     <button class="btn ghost" id="allGovStatsBtn">📊 إحصائية كل المحافظات</button>
-    <button class="btn ghost" id="maintenanceOpenBtn" onclick="window.location.href='MAINTENANCE_MASTER.html'">🛠️ نظام الصيانة</button>
     <button class="btn ghost" id="sanadOpenBtn" style="background:#dc2626;color:#fff;border-color:#dc2626;">🆘 سند</button>
   </div>
 </div>
@@ -1968,27 +1967,6 @@ function esc(s){
 
 function fmtFid(id){ return 'HT-' + String(id).padStart(4,'0'); }
 
-/* Maintenance work orders (MAINTENANCE_MASTER.html) raised from a fault —
-   read from the same browser's storage so the fault row can show them. */
-function loadMaintenanceLinks(){
-  const map = {};
-  try{
-    const orders = JSON.parse(localStorage.getItem('mtRecords_v1_' + currentGov)) || [];
-    orders.forEach(o => {
-      if(!o || !o.linkedFaultId) return;
-      (map[o.linkedFaultId] = map[o.linkedFaultId] || []).push(o);
-    });
-  }catch(e){}
-  return map;
-}
-function maintenanceBadgeFor(faultId, links){
-  const orders = links[faultId];
-  if(!orders || !orders.length) return '';
-  const label = orders.map(o => 'MT-' + String(o.id).padStart(4,'0') + (o.status === 'completed' ? ' ✓' : '')).join('، ');
-  const allDone = orders.every(o => o.status === 'completed' || o.status === 'cancelled');
-  return ` <a class="gen-badge" href="MAINTENANCE_MASTER.html" style="text-decoration:none;${allDone ? 'background:rgba(55,214,122,0.14);color:#37d67a;' : ''}" title="أوامر صيانة مرتبطة: ${esc(label)}">🛠️ ${orders.length}</a>`;
-}
-
 const tbody = document.getElementById('tbody');
 
 function render(){
@@ -2009,14 +1987,13 @@ function render(){
   }
 
   tbody.innerHTML = "";
-  const mtLinks = loadMaintenanceLinks();
   if(rows.length === 0){
     tbody.innerHTML = `<tr class="empty-row"><td colspan="16">No fault records match your filters.</td></tr>`;
   }
   rows.forEach(r => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="fid">${fmtFid(r.id)}${maintenanceBadgeFor(r.id, mtLinks)}</td>
+      <td class="fid">${fmtFid(r.id)}</td>
       <td>${esc(r.engineer) || '—'}</td>
       <td>${esc(r.from)}</td>
       <td class="sstn-cell">${esc(r.sstn)}${repeatTagFor(r.sstn)}${r.generatorUsed ? ` <span class="gen-badge" title="يبعد تقريبًا ${r.generatorUsed.distanceKm} كم">⚡ ${esc(r.generatorUsed.name)}</span>` : ''}</td>
