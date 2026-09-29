@@ -1142,8 +1142,60 @@
     background:rgba(0,174,239,0.12);color:var(--e-blue);
   }
   .type-badge.preventive{background:var(--green-dim);color:var(--green);}
-  .type-badge.corrective{background:var(--amber-dim);color:var(--amber);}
   .type-badge.emergency{background:var(--red-dim);color:var(--red);}
+  .type-badge{font-size:11.5px;padding:4px 10px;}
+
+  /* ===== TWO CATEGORIES: PREVENTIVE vs EMERGENCY ===== */
+  .cat-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+  .cat-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;
+    position:relative;overflow:hidden;cursor:pointer;transition:border-color .15s ease, transform .1s ease;
+  }
+  .cat-card:hover{transform:translateY(-1px);}
+  .cat-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;}
+  .cat-card.preventive::before{background:var(--green);}
+  .cat-card.emergency::before{background:var(--red);}
+  .cat-card.preventive.active{border-color:var(--green);box-shadow:0 0 0 1px var(--green);}
+  .cat-card.emergency.active{border-color:var(--red);box-shadow:0 0 0 1px var(--red);}
+  .cat-card-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .cat-card-icon{font-size:30px;line-height:1;}
+  .cat-card-title{font-size:19px;font-weight:800;}
+  .cat-card.preventive .cat-card-title{color:var(--green);}
+  .cat-card.emergency .cat-card-title{color:var(--red);}
+  .cat-card-sub{font-size:11.5px;color:var(--mute);margin-top:2px;}
+  .cat-card-add{margin-left:auto;}
+  .cat-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .cat-stat{background:var(--panel2);border-radius:8px;padding:10px 12px;}
+  .cat-stat .v{font-size:22px;font-weight:800;line-height:1;}
+  .cat-stat .l{font-size:10.5px;color:var(--mute);margin-top:6px;font-family:'IBM Plex Mono',monospace;}
+  .cat-stat.bad .v{color:var(--red);}
+  .cat-stat.good .v{color:var(--green);}
+  .cat-stat.warn .v{color:var(--amber);}
+  button.btn.prev-add{background:#1f9d5b;}
+  button.btn.emerg-add{background:#d63a3a;}
+  .cat-tabs{display:flex;gap:8px;padding:14px 18px 0;flex-wrap:wrap;}
+  .cat-tab{
+    font-family:'Inter',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border-radius:20px;
+    border:1px solid var(--line);background:var(--panel2);color:var(--mute);cursor:pointer;
+  }
+  .cat-tab.active{color:#fff;border-color:transparent;background:var(--e-blue);}
+  .cat-tab.preventive.active{background:#1f9d5b;}
+  .cat-tab.emergency.active{background:#d63a3a;}
+  tbody tr.cat-preventive td:first-child{box-shadow:inset 4px 0 0 var(--green);}
+  tbody tr.cat-emergency td:first-child{box-shadow:inset 4px 0 0 var(--red);}
+  .cat-switch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+  .cat-switch button{
+    font-family:'Inter',sans-serif;font-size:14px;font-weight:800;padding:14px;border-radius:8px;cursor:pointer;
+    border:2px solid var(--line);background:var(--panel2);color:var(--mute);
+  }
+  .cat-switch button.preventive.active{border-color:var(--green);background:var(--green-dim);color:var(--green);}
+  .cat-switch button.emergency.active{border-color:var(--red);background:var(--red-dim);color:var(--red);}
+  .modal-head.preventive{background:linear-gradient(120deg,#0f5c38,#1f9d5b);}
+  .modal-head.emergency{background:linear-gradient(120deg,#7a1f1f,#c33);}
+  @media (max-width:900px){
+    .cat-cards{grid-template-columns:1fr;}
+    .cat-stats{grid-template-columns:repeat(2,1fr);}
+  }
   .shutdown-badge{display:inline-block;font-size:10px;font-weight:700;background:var(--red-dim);color:var(--red);border-radius:10px;padding:1px 7px;margin-left:4px;}
   .recur-badge{display:inline-block;font-size:10px;font-weight:700;background:rgba(0,174,239,0.12);color:var(--e-blue);border-radius:10px;padding:1px 7px;margin-left:4px;}
   .icon-btn.start:hover{border-color:var(--amber);color:var(--amber);}
@@ -1226,6 +1278,35 @@
 
 <div class="wrap">
 
+  <div class="cat-cards">
+    <div class="cat-card preventive" data-cat="preventive">
+      <div class="cat-card-head">
+        <span class="cat-card-icon">🛡️</span>
+        <div><div class="cat-card-title">الصيانة الوقائية</div><div class="cat-card-sub">أعمال مجدولة ودورية لمنع الأعطال</div></div>
+        <button class="btn prev-add cat-card-add" data-add="preventive">➕ إضافة وقائية</button>
+      </div>
+      <div class="cat-stats">
+        <div class="cat-stat"><div class="v" id="pTotal">0</div><div class="l">الإجمالي</div></div>
+        <div class="cat-stat warn"><div class="v" id="pPending">0</div><div class="l">مجدولة / جارية</div></div>
+        <div class="cat-stat bad"><div class="v" id="pOverdue">0</div><div class="l">⏰ متأخرة</div></div>
+        <div class="cat-stat good"><div class="v" id="pRate">0%</div><div class="l">نسبة الإنجاز</div></div>
+      </div>
+    </div>
+    <div class="cat-card emergency" data-cat="emergency">
+      <div class="cat-card-head">
+        <span class="cat-card-icon">🚨</span>
+        <div><div class="cat-card-title">الصيانة الطارئة</div><div class="cat-card-sub">أعمال مفاجئة تحتاج تدخل فوري</div></div>
+        <button class="btn emerg-add cat-card-add" data-add="emergency">➕ إضافة طارئة</button>
+      </div>
+      <div class="cat-stats">
+        <div class="cat-stat"><div class="v" id="eTotal">0</div><div class="l">الإجمالي</div></div>
+        <div class="cat-stat bad"><div class="v" id="eOpen">0</div><div class="l">🚨 مفتوحة الآن</div></div>
+        <div class="cat-stat good"><div class="v" id="eDone">0</div><div class="l">✅ منجزة</div></div>
+        <div class="cat-stat"><div class="v" id="eDur">0</div><div class="l">متوسط المدة (ساعة)</div></div>
+      </div>
+    </div>
+  </div>
+
   <div class="kpis">
     <div class="kpi"><div class="val" id="kTotal"><span class="num-part">0</span></div><div class="lbl">إجمالي أوامر الصيانة</div></div>
     <div class="kpi"><div class="val" id="kPlanned"><span class="num-part">0</span></div><div class="lbl">📅 مجدولة</div></div>
@@ -1238,7 +1319,8 @@
   </div>
 
   <div class="toolbar">
-    <button class="btn add" id="addBtn">➕ إضافة أمر صيانة</button>
+    <button class="btn prev-add" data-add="preventive">🛡️ صيانة وقائية</button>
+    <button class="btn emerg-add" data-add="emergency">🚨 صيانة طارئة</button>
     <button class="btn refresh" id="refreshBtn">🔄 تحديث</button>
     <div class="search-wrap"><span class="icn">🔍</span><input id="searchBox" placeholder="بحث بالمحطة، المعدة، الفريق، رقم التصريح..."></div>
     <input type="date" id="dateFilter" title="تصفية حسب التاريخ المخطط">
@@ -1251,7 +1333,6 @@
       <option value="cancelled">ملغاة</option>
       <option value="overdue">⏰ متأخرة</option>
     </select>
-    <select id="typeFilter" class="filter-sel"></select>
     <button class="btn ghost" id="exportBackupBtn">💾 حفظ نسخة احتياطية</button>
     <input type="file" id="fileInput" accept=".json,application/json,text/json,text/plain,*/*" style="display:none;">
     <button class="btn ghost" id="importBtn">📂 استيراد نسخة محفوظة</button>
@@ -1259,6 +1340,11 @@
 
   <div class="panel">
     <div class="panel-head"><h2>سجل أوامر الصيانة</h2><span id="recCount" style="font-size:12px;color:var(--mute);"></span></div>
+    <div class="cat-tabs">
+      <button class="cat-tab active" data-cat="">📋 الكل</button>
+      <button class="cat-tab preventive" data-cat="preventive">🛡️ الصيانة الوقائية</button>
+      <button class="cat-tab emergency" data-cat="emergency">🚨 الصيانة الطارئة</button>
+    </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px 0;">
       <button class="btn excel" id="exportExcelBtn">📤 تصدير Excel</button>
       <button class="btn pdf" id="exportPdfBtn">📄 تصدير PDF</button>
@@ -1379,7 +1465,7 @@
 <!-- ADD / EDIT MODAL -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal" style="max-width:720px;">
-    <div class="modal-head">
+    <div class="modal-head" id="modalHead">
       <h3 id="modalTitle">إضافة أمر صيانة</h3>
       <button class="modal-close" id="modalCloseBtn">✕</button>
     </div>
@@ -1399,11 +1485,16 @@
         <div class="scan-status" id="scanStatus"></div>
       </div>
 
+      <div class="cat-switch">
+        <button type="button" class="preventive" data-cat="preventive">🛡️ صيانة وقائية</button>
+        <button type="button" class="emergency" data-cat="emergency">🚨 صيانة طارئة</button>
+      </div>
+      <input type="hidden" id="m_mtType">
+
       <div class="form-grid">
         <div class="field"><label>المحطة</label><input id="m_sstn" list="stationList" placeholder="مثال: KHIT F"></div>
         <div class="field"><label>المعدة / الرقم</label><input id="m_equipment" placeholder="مثال: TR-2 / KHIT 69 / RMU FARW 43"></div>
         <div class="field"><label>نوع المعدة</label><select id="m_equipType"></select></div>
-        <div class="field"><label>نوع الصيانة</label><select id="m_mtType"></select></div>
         <div class="field"><label>الأولوية</label>
           <select id="m_priority">
             <option value="critical">حرجة</option>
@@ -1413,8 +1504,8 @@
           </select>
         </div>
         <div class="field"><label>الحالة</label><select id="m_status"></select></div>
-        <div class="field"><label>التاريخ المخطط</label><input id="m_plannedDate" type="date"></div>
-        <div class="field"><label>التكرار (للصيانة الدورية)</label><select id="m_recurrence"></select></div>
+        <div class="field"><label id="plannedDateLabel">التاريخ المخطط</label><input id="m_plannedDate" type="date"></div>
+        <div class="field" id="recurrenceField"><label>التكرار (للصيانة الدورية)</label><select id="m_recurrence"></select></div>
         <div class="field"><label>تاريخ البدء</label><input id="m_startDate" type="date"></div>
         <div class="field"><label>وقت البدء</label><input id="m_startTime" type="time"></div>
         <div class="field"><label>تاريخ الانتهاء</label><input id="m_endDate" type="date"></div>
@@ -1481,13 +1572,19 @@ const STATUSES = {
   postponed:  {ar:'مؤجلة',       en:'Postponed'},
   cancelled:  {ar:'ملغاة',       en:'Cancelled'}
 };
+// The system has exactly two kinds of maintenance.
 const MT_TYPES = {
-  preventive: {ar:'وقائية',          en:'Preventive'},
-  corrective: {ar:'تصحيحية',         en:'Corrective'},
-  emergency:  {ar:'طارئة',           en:'Emergency'},
-  inspection: {ar:'فحص / تفتيش',     en:'Inspection'},
-  testing:    {ar:'اختبارات',        en:'Testing'}
+  preventive: {ar:'صيانة وقائية', en:'Preventive', icon:'🛡️'},
+  emergency:  {ar:'صيانة طارئة',  en:'Emergency',  icon:'🚨'}
 };
+// Older records may carry the earlier five types — fold them into the two.
+function normalizeMtType(t){
+  return (t === 'emergency' || t === 'corrective') ? 'emergency' : 'preventive';
+}
+function normalizeRecords(list){
+  list.forEach(r => { if(r && typeof r === 'object') r.mtType = normalizeMtType(r.mtType); });
+  return list;
+}
 const EQUIP_TYPES = [
   'Power Transformer', 'Distribution Transformer (11/0.415 kV)', 'Switchgear / Circuit Breaker', 'RMU',
   'Cable', 'OHL', 'Protection Relay', 'Battery & Charger', 'RTU / SCADA', 'Earthing System',
@@ -1509,7 +1606,7 @@ let editingId = null;
 function loadData(){
   try{
     const parsed = JSON.parse(localStorage.getItem(storageKeyFor(currentGov)));
-    if(Array.isArray(parsed)) return parsed;
+    if(Array.isArray(parsed)) return normalizeRecords(parsed);
   }catch(e){}
   return [];
 }
@@ -1535,8 +1632,10 @@ function fmtDateLong(d){ return d.toLocaleDateString('en-GB', {day:'2-digit', mo
 // The date a work order "belongs to" for filtering and reports.
 function refDate(r){ return r.plannedDate || r.startDate || ''; }
 
+// Only scheduled (preventive) work can fall behind its planned date;
+// emergency work is tracked as "open" instead.
 function isOverdue(r){
-  return PENDING.includes(r.status) && !!r.plannedDate && r.plannedDate < todayISO();
+  return r.mtType !== 'emergency' && PENDING.includes(r.status) && !!r.plannedDate && r.plannedDate < todayISO();
 }
 
 // Duration in hours between start and end; null when either end is missing.
@@ -1565,7 +1664,7 @@ function statusPill(r){
 }
 function typeBadge(t){
   const m = MT_TYPES[t];
-  return m ? `<span class="type-badge ${t}">${m.ar}</span>` : '—';
+  return m ? `<span class="type-badge ${t}">${m.icon} ${m.ar}</span>` : '—';
 }
 function priorityBadge(p){
   const val = p || 'medium';
@@ -1582,10 +1681,8 @@ const statusEntries = Object.entries(STATUSES).map(([k, v]) => [k, v.ar]);
 const typeEntries = Object.entries(MT_TYPES).map(([k, v]) => [k, v.ar]);
 const equipEntries = EQUIP_TYPES.map(e => [e, e]);
 fillSelect('m_status', statusEntries);
-fillSelect('m_mtType', typeEntries);
 fillSelect('m_equipType', equipEntries);
 fillSelect('m_recurrence', Object.entries(RECURRENCES).map(([k, v]) => [k, v.ar]));
-fillSelect('typeFilter', typeEntries, 'كل أنواع الصيانة');
 fillSelect('cf_type', typeEntries, 'الكل');
 fillSelect('cf_equip', equipEntries, 'الكل');
 fillSelect('cf_status', statusEntries.concat([['overdue', '⏰ متأخرة']]), 'الكل');
@@ -1618,7 +1715,7 @@ function render(){
   const term = document.getElementById('searchBox').value.trim().toLowerCase();
   const dateVal = document.getElementById('dateFilter').value;
   const statusVal = document.getElementById('statusFilter').value;
-  const typeVal = document.getElementById('typeFilter').value;
+  const typeVal = categoryFilter;
 
   let rows = sortRows(data);
   if(term){
@@ -1635,6 +1732,7 @@ function render(){
   }
   rows.forEach(r => {
     const tr = document.createElement('tr');
+    tr.className = 'cat-' + r.mtType;
     tr.innerHTML = `
       <td class="fid">${fmtWid(r.id)}</td>
       <td class="sstn-cell">${esc(r.sstn) || '—'}</td>
@@ -1702,7 +1800,16 @@ function computeStats(records){
   return {total, planned: count('planned'), inprogress: count('inprogress'), completed, postponed: count('postponed'), cancelled, overdue, avgDur, rate, shutdownPending};
 }
 
+function updateCategoryCards(){
+  const p = computeStats(data.filter(r => r.mtType === 'preventive'));
+  const e = computeStats(data.filter(r => r.mtType === 'emergency'));
+  const set = (id, v) => { document.getElementById(id).textContent = v; };
+  set('pTotal', p.total); set('pPending', p.planned + p.inprogress + p.postponed); set('pOverdue', p.overdue); set('pRate', p.rate + '%');
+  set('eTotal', e.total); set('eOpen', e.planned + e.inprogress + e.postponed); set('eDone', e.completed); set('eDur', e.avgDur);
+}
+
 function updateStats(){
+  updateCategoryCards();
   const s = computeStats(data);
   animateNumber(document.querySelector('#kTotal .num-part'), s.total, 0);
   animateNumber(document.querySelector('#kPlanned .num-part'), s.planned, 0);
@@ -1723,12 +1830,16 @@ function updateStats(){
 
 function updateAlarmBanner(){
   const late = data.filter(isOverdue);
+  const openEmerg = data.filter(r => r.mtType === 'emergency' && PENDING.includes(r.status));
   const banner = document.getElementById('alarmBanner');
-  if(!late.length){ banner.style.display = 'none'; return; }
+  if(!late.length && !openEmerg.length){ banner.style.display = 'none'; return; }
   banner.style.display = 'flex';
-  document.getElementById('alarmText').textContent =
-    `⏰ ${late.length} أمر صيانة متأخر عن موعده: ` +
-    late.slice(0, 8).map(r => `${fmtWid(r.id)} ${r.sstn || ''} ${r.equipment || ''} (${r.plannedDate})`).join(' • ');
+  const parts = [];
+  if(openEmerg.length) parts.push(`🚨 ${openEmerg.length} صيانة طارئة مفتوحة: ` +
+    openEmerg.slice(0, 6).map(r => `${fmtWid(r.id)} ${r.sstn || ''} ${r.equipment || ''}`).join(' • '));
+  if(late.length) parts.push(`⏰ ${late.length} صيانة وقائية متأخرة عن موعدها: ` +
+    late.slice(0, 6).map(r => `${fmtWid(r.id)} ${r.sstn || ''} ${r.equipment || ''} (${r.plannedDate})`).join(' • '));
+  document.getElementById('alarmText').textContent = parts.join('   ||   ');
 }
 
 function renderUpcoming(){
@@ -1882,23 +1993,52 @@ function scheduleNextRecurrence(rec){
 /* ===== MODAL ===== */
 const FIELDS = ['sstn','equipment','equipType','mtType','priority','status','plannedDate','recurrence','startDate','startTime','endDate','endTime','engineer','ptw','shutdown','duration','affected','description','workDone','spares','notes'];
 
-function openModal(id){
+function openModal(id, category){
   editingId = id || null;
   const rec = id ? data.find(d => d.id === id) : null;
-  document.getElementById('modalTitle').textContent = rec ? 'تعديل أمر الصيانة ' + fmtWid(rec.id) : 'إضافة أمر صيانة';
-  const defaults = {equipType: EQUIP_TYPES[0], mtType:'preventive', priority:'medium', status:'planned', recurrence:'none', shutdown:'no', plannedDate: todayISO()};
+  const cat = rec ? rec.mtType : (category || 'preventive');
+  // Emergency work is usually already happening: start it now, high priority.
+  const defaults = cat === 'emergency'
+    ? {equipType: EQUIP_TYPES[0], mtType:'emergency', priority:'high', status:'inprogress', recurrence:'none', shutdown:'no', plannedDate: todayISO(), startDate: todayISO(), startTime: nowHHMM()}
+    : {equipType: EQUIP_TYPES[0], mtType:'preventive', priority:'medium', status:'planned', recurrence:'none', shutdown:'no', plannedDate: todayISO()};
   FIELDS.forEach(f => {
     const el = document.getElementById('m_' + f);
     const v = rec ? rec[f] : defaults[f];
     el.value = (v === null || v === undefined) ? '' : v;
     if(el.tagName === 'SELECT' && !el.value && el.options.length) el.selectedIndex = 0;
   });
+  applyModalCategory(cat);
   setEntryMode('manual');
   document.getElementById('scanPasteBox').value = '';
   setScanStatus('', '');
   document.getElementById('modalOverlay').classList.add('show');
   setTimeout(() => document.getElementById('m_sstn').focus(), 50);
 }
+
+function applyModalCategory(cat){
+  document.getElementById('m_mtType').value = cat;
+  const isEm = cat === 'emergency';
+  document.querySelectorAll('.cat-switch button').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  document.getElementById('modalHead').className = 'modal-head ' + cat;
+  document.getElementById('modalTitle').textContent = (editingId ? 'تعديل ' + fmtWid(editingId) + ' — ' : 'إضافة ') + MT_TYPES[cat].icon + ' ' + MT_TYPES[cat].ar;
+  document.getElementById('plannedDateLabel').textContent = isEm ? 'تاريخ البلاغ' : 'التاريخ المخطط';
+  document.getElementById('recurrenceField').style.display = isEm ? 'none' : '';
+  document.getElementById('m_description').placeholder = isEm
+    ? 'مثال: RMU FARW 43 tripped — cable end termination burnt, needs urgent replacement.'
+    : 'مثال: Annual preventive maintenance for TR-2 — oil test, tap changer inspection, terminal tightening.';
+  if(isEm) document.getElementById('m_recurrence').value = 'none';
+  document.getElementById('modalSaveBtn').className = 'btn ' + (isEm ? 'emerg-add' : 'prev-add');
+  document.getElementById('modalSaveBtn').textContent = isEm ? '🚨 حفظ الصيانة الطارئة' : '🛡️ حفظ الصيانة الوقائية';
+}
+document.querySelectorAll('.cat-switch button').forEach(b => b.addEventListener('click', () => {
+  const cat = b.dataset.cat;
+  applyModalCategory(cat);
+  if(!editingId && cat === 'emergency'){
+    if(document.getElementById('m_status').value === 'planned') document.getElementById('m_status').value = 'inprogress';
+    if(!document.getElementById('m_startDate').value){ document.getElementById('m_startDate').value = todayISO(); document.getElementById('m_startTime').value = nowHHMM(); }
+    if(document.getElementById('m_priority').value === 'medium') document.getElementById('m_priority').value = 'high';
+  }
+}));
 
 function closeModal(){
   document.getElementById('modalOverlay').classList.remove('show');
@@ -2000,11 +2140,8 @@ function detectEquipType(text){
 }
 function detectMtType(text){
   const t = text.toLowerCase();
-  if(/emergenc|urgent|طارئ/.test(t)) return 'emergency';
-  if(/preventive|\bpm\b|routine|periodic|annual|وقائي|دوري/.test(t)) return 'preventive';
-  if(/corrective|repair|replace|تصحيح|إصلاح|اصلاح|تبديل/.test(t)) return 'corrective';
-  if(/inspect|patrol|visual|فحص|تفتيش/.test(t)) return 'inspection';
-  if(/\btest|اختبار/.test(t)) return 'testing';
+  if(/emergenc|urgent|breakdown|corrective|repair|trip|طارئ|عاجل|تصحيح|إصلاح|اصلاح|عطل/.test(t)) return 'emergency';
+  if(/preventive|\bpm\b|routine|periodic|annual|inspect|patrol|\btest|وقائي|دوري|فحص|تفتيش|اختبار/.test(t)) return 'preventive';
   return '';
 }
 const PASTE_LABELS = [
@@ -2083,7 +2220,8 @@ document.getElementById('scanRunBtn').addEventListener('click', () => {
   const parsed = parseMaintenanceText(document.getElementById('scanPasteBox').value);
   const keys = Object.keys(parsed);
   if(!keys.length){ setScanStatus('ما قدرت أتعرف على أي بيانات — الصق النص أولاً.', 'error'); return; }
-  keys.forEach(k => { document.getElementById('m_' + k).value = parsed[k]; });
+  keys.forEach(k => { if(k !== 'mtType') document.getElementById('m_' + k).value = parsed[k]; });
+  if(parsed.mtType) applyModalCategory(parsed.mtType);
   setScanStatus('✅ تمت تعبئة: ' + keys.map(k => FIELD_LABELS_AR[k] || k).join('، ') + ' — راجع الحقول قبل الحفظ.', 'success');
 });
 
@@ -2118,7 +2256,24 @@ function printWorkOrder(id){
   printReport('Work Order / أمر عمل صيانة', fmtWid(r.id) + ' — ' + (r.sstn || ''), html);
 }
 
-document.getElementById('addBtn').addEventListener('click', () => openModal(null));
+document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', e => {
+  e.stopPropagation();
+  openModal(null, b.dataset.add);
+}));
+
+/* ===== CATEGORY FILTER (tabs above the table + the two cards) ===== */
+let categoryFilter = '';
+function setCategoryFilter(cat){
+  categoryFilter = cat || '';
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === categoryFilter));
+  document.querySelectorAll('.cat-card').forEach(c => c.classList.toggle('active', c.dataset.cat === categoryFilter));
+}
+document.querySelectorAll('.cat-tab').forEach(t => t.addEventListener('click', () => { setCategoryFilter(t.dataset.cat); render(); }));
+document.querySelectorAll('.cat-card').forEach(c => c.addEventListener('click', () => {
+  setCategoryFilter(categoryFilter === c.dataset.cat ? '' : c.dataset.cat);
+  render();
+  document.querySelector('.cat-tabs').scrollIntoView({behavior:'smooth', block:'start'});
+}));
 document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
 document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
 document.getElementById('modalSaveBtn').addEventListener('click', saveModal);
@@ -2130,7 +2285,7 @@ document.addEventListener('keydown', e => {
 });
 
 ['searchBox'].forEach(id => document.getElementById(id).addEventListener('input', render));
-['dateFilter','statusFilter','typeFilter'].forEach(id => document.getElementById(id).addEventListener('change', render));
+['dateFilter','statusFilter'].forEach(id => document.getElementById(id).addEventListener('change', render));
 document.getElementById('refreshBtn').addEventListener('click', () => {
   data = loadData();
   render();
@@ -2209,7 +2364,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
         throw new Error('not a maintenance backup');
       }
       if(!confirm('استبدال ' + data.length + ' سجل حالي في ' + govName(currentGov) + ' بـ ' + parsed.length + ' سجل من الملف؟')) return;
-      data = parsed;
+      data = normalizeRecords(parsed);
       saveData();
       logActivity('edit', 'استيراد نسخة محفوظة (' + parsed.length + ' سجل)');
       showToast('تم استيراد ' + parsed.length + ' سجل', 'success');
@@ -2427,6 +2582,15 @@ function refreshActiveReport(){
   wireReportActions();
 }
 
+function categorySummaryHtml(rows){
+  const p = computeStats(rows.filter(r => r.mtType === 'preventive'));
+  const e = computeStats(rows.filter(r => r.mtType === 'emergency'));
+  return `<div class="report-cols" style="margin-bottom:18px;">
+    <div class="kpi ok"><div class="val">🛡️ ${p.total}</div><div class="lbl">صيانة وقائية — منجزة ${p.completed} · متأخرة ${p.overdue} · إنجاز ${p.rate}%</div></div>
+    <div class="kpi danger"><div class="val">🚨 ${e.total}</div><div class="lbl">صيانة طارئة — منجزة ${e.completed} · مفتوحة ${e.planned + e.inprogress + e.postponed} · متوسط ${e.avgDur} ساعة</div></div>
+  </div>`;
+}
+
 let lastReport = null;
 function buildReport(rows, title, subtitle){
   lastReport = {rows, title, subtitle};
@@ -2444,6 +2608,7 @@ function buildReport(rows, title, subtitle){
     <div class="report-summary-head">
       <div><h3>${esc(title)} — ${esc(govName(currentGov))}</h3><div class="range-sub">${esc(subtitle)}</div></div>
     </div>
+    ${categorySummaryHtml(rows)}
     <div class="report-kpis">
       <div class="kpi"><div class="val">${s.total}</div><div class="lbl">الإجمالي</div></div>
       <div class="kpi"><div class="val">${s.planned}</div><div class="lbl">مجدولة</div></div>
@@ -2489,6 +2654,8 @@ function wireReportActions(){
       '📅 ' + lastReport.subtitle,
       '',
       'الإجمالي: ' + s.total,
+      '🛡️ صيانة وقائية: ' + lastReport.rows.filter(r => r.mtType === 'preventive').length,
+      '🚨 صيانة طارئة: ' + lastReport.rows.filter(r => r.mtType === 'emergency').length,
       '📅 مجدولة: ' + s.planned,
       '🔧 قيد التنفيذ: ' + s.inprogress,
       '✅ منجزة: ' + s.completed,
@@ -2629,7 +2796,7 @@ function switchGovernorate(gov){
   document.getElementById('searchBox').value = '';
   document.getElementById('dateFilter').value = '';
   document.getElementById('statusFilter').value = 'all';
-  document.getElementById('typeFilter').value = '';
+  setCategoryFilter('');
   render();
   renderActivity();
   showToast('تم التبديل إلى محافظة ' + govName(currentGov), 'info');
