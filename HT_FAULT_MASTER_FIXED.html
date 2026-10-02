@@ -891,6 +891,7 @@
   .toast.success{border-left-color:var(--green);}
   .toast.error{border-left-color:#ff5c5c;}
   .toast.info{border-left-color:var(--e-blue);}
+  .toast.notify{border-left-color:#d19a1a;background:rgba(209,154,26,0.08);}
   @keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
   @media (max-width:1100px){
@@ -2076,7 +2077,7 @@ function deleteRecord(id){
   const rec = data.find(d => d.id === id);
   data = data.filter(d => d.id !== id);
   saveData();
-  logActivity('del', 'Deleted ' + fmtFid(id) + (rec ? ' — ' + rec.sstn : ''));
+  logActivity('del', 'Deleted ' + fmtFid(id) + (rec ? ' — ' + rec.sstn : ''), rec && rec.engineer);
   showToast('تم حذف العطل', 'info');
   render();
 }
@@ -2098,7 +2099,7 @@ function closeFault(id){
     rec.duration = diff;
   }
   saveData();
-  logActivity('close', 'Restored ' + fmtFid(id) + ' — ' + rec.sstn);
+  logActivity('close', 'Restored ' + fmtFid(id) + ' — ' + rec.sstn, rec.engineer);
   showToast(fmtFid(id) + ' تم تحديده كمستعاد', 'success');
   render();
 }
@@ -2220,7 +2221,7 @@ document.getElementById('qr_confirmBtn').addEventListener('click', () => {
   if(engineerVal) rec.engineer = engineerVal;
   rec.status = 'restored';
   saveData();
-  logActivity('close', 'Restored ' + fmtFid(rec.id) + ' — ' + rec.sstn + (engineerVal ? (' by ' + engineerVal) : ''));
+  logActivity('close', 'Restored ' + fmtFid(rec.id) + ' — ' + rec.sstn, rec.engineer);
   showToast(fmtFid(rec.id) + ' تم تحديده كمستعاد', 'success');
   document.getElementById('quickRestoreModal').style.display = 'none';
   render();
@@ -2503,7 +2504,7 @@ document.getElementById('modalSaveBtn').addEventListener('click', () => {
     data.push(rec);
   }
   saveData();
-  logActivity(isEdit ? 'edit' : 'add', (isEdit ? 'Edited ' : 'Added ') + fmtFid(isEdit ? editingId : rec.id) + ' — ' + sstn);
+  logActivity(isEdit ? 'edit' : 'add', (isEdit ? 'Edited ' : 'Added ') + fmtFid(isEdit ? editingId : rec.id) + ' — ' + sstn, rec.engineer);
   showToast(isEdit ? 'تم تحديث العطل بنجاح' : 'تم حفظ العطل بنجاح', 'success');
   const shouldAlertGenerator = !isEdit && rec.status === 'open' && findNearestGenerator(rec.sstn);
   closeModal();
@@ -3811,11 +3812,19 @@ function showToast(message, type){
 let activityLog = [];
 try{ activityLog = JSON.parse(localStorage.getItem(activityKeyFor(currentGov))) || []; }catch(e){ activityLog = []; }
 
-function logActivity(type, detail){
-  activityLog.unshift({type, detail, ts: new Date().toISOString()});
+// `who` names the engineer/person behind the change when known (passed
+// in from the fault record's "المهندس" field at the call site) — the app
+// has no individual login, so this is the only identity we actually have.
+// Visible to everyone for now, per request; gating this to isAdmin() is
+// a one-line change (wrap the toast call and the activity panel) once
+// the real per-person login is built with the delivering company.
+function logActivity(type, detail, who){
+  const entry = {type, detail, who: who || null, ts: new Date().toISOString()};
+  activityLog.unshift(entry);
   activityLog = activityLog.slice(0, 30);
   try{ localStorage.setItem(activityKeyFor(currentGov), JSON.stringify(activityLog)); }catch(e){}
   renderActivity();
+  showToast('🔔 ' + (who ? who + ': ' : '') + detail, 'notify');
 }
 
 function timeAgo(iso){
@@ -3839,7 +3848,7 @@ function renderActivity(){
     <div class="activity-item">
       <div class="activity-dot ${a.type}"></div>
       <div>
-        <div class="activity-detail">${esc(a.detail)}</div>
+        <div class="activity-detail">${a.who ? `<b>${esc(a.who)}</b>: ` : ''}${esc(a.detail)}</div>
         <div class="activity-time">${timeAgo(a.ts)}</div>
       </div>
     </div>`).join('');
@@ -6572,7 +6581,7 @@ document.getElementById('restoreConfirmBtn').addEventListener('click', () => {
 
   data[idx] = updated;
   saveData();
-  logActivity('edit', 'تمت استعادة العطل ' + fmtFid(record.id) + ' — ' + (record.sstn || '—'));
+  logActivity('edit', 'تمت استعادة العطل ' + fmtFid(record.id) + ' — ' + (record.sstn || '—'), updated.engineer);
   showToast('تم تأكيد الاستعادة بنجاح', 'success');
   document.getElementById('restoreModal').style.display = 'none';
   render();
