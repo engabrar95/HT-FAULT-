@@ -41,6 +41,69 @@
     transition:background .25s ease,color .25s ease;
   }
 
+  /* ===== SPLASH SCREEN ===== */
+  #splashScreen{
+    position:fixed;inset:0;z-index:9999;
+    background:linear-gradient(160deg,var(--navy),var(--navy2));
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    transition:opacity .35s ease;
+  }
+  #splashScreen.splash-fade-out{opacity:0;}
+  .splash-bolt{
+    width:72px;height:72px;border-radius:18px;background:var(--e-blue);
+    display:flex;align-items:center;justify-content:center;margin-bottom:8px;
+    box-shadow:0 0 40px rgba(0,174,239,0.45);
+    animation:splashPulse 1.6s ease-in-out infinite;
+  }
+  .splash-bolt svg{width:38px;height:38px;fill:#fff;}
+  @keyframes splashPulse{
+    0%,100%{box-shadow:0 0 30px rgba(0,174,239,0.35);}
+    50%{box-shadow:0 0 50px rgba(0,174,239,0.65);}
+  }
+  .splash-title{font-size:26px;font-weight:800;color:#fff;letter-spacing:.04em;}
+  .splash-sub-ar{font-size:14.5px;color:var(--text);}
+  .splash-sub-en{font-size:11.5px;color:var(--mute);font-family:'IBM Plex Mono',monospace;margin-bottom:20px;}
+  .splash-bar{width:160px;height:3px;border-radius:3px;background:rgba(255,255,255,0.12);overflow:hidden;}
+  .splash-bar-fill{
+    width:40%;height:100%;border-radius:3px;background:var(--e-blue);
+    animation:splashBar 1.1s ease-in-out infinite;
+  }
+  @keyframes splashBar{
+    0%{transform:translateX(-120%);}
+    100%{transform:translateX(320%);}
+  }
+
+  /* ===== SIDE DRAWER ===== */
+  .drawer-toggle{
+    background:transparent;border:1px solid var(--line);color:#fff;border-radius:8px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;transition:background .12s ease;
+  }
+  .drawer-toggle:hover{background:rgba(255,255,255,0.1);}
+  .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:95;}
+  .side-drawer{
+    position:fixed;top:0;bottom:0;right:0;width:300px;max-width:85vw;z-index:96;
+    background:var(--panel);border-left:1px solid var(--line);
+    display:flex;flex-direction:column;
+    transform:translateX(100%);transition:transform .25s ease;
+    box-shadow:-8px 0 30px rgba(0,0,0,0.35);
+  }
+  .side-drawer.open{transform:translateX(0);}
+  .side-drawer-head{
+    display:flex;align-items:center;gap:12px;padding:18px 16px;
+    background:linear-gradient(120deg,var(--navy),var(--navy2));border-bottom:1px solid var(--line);
+  }
+  .side-drawer-title{font-size:15px;font-weight:800;color:#fff;}
+  .side-drawer-sub{font-size:11px;color:var(--mute);}
+  .side-drawer-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:4px;}
+  .drawer-item{
+    display:flex;align-items:center;gap:10px;text-align:right;width:100%;
+    background:transparent;border:none;color:var(--text);font-size:13.5px;
+    padding:12px 10px;border-radius:8px;cursor:pointer;transition:background .12s ease;
+  }
+  .drawer-item:hover{background:var(--panel2);}
+  .drawer-sep{height:1px;background:var(--line);margin:8px 2px;}
+
   /* ===== HEADER ===== */
   .topbar{
     background:linear-gradient(120deg,var(--navy),var(--navy2));
@@ -1054,7 +1117,8 @@
   @media print{
     @page{size: landscape; margin: 12mm;}
     .topbar, .toolbar, .kpis, .row-actions, .panel-head button, .modal-overlay,
-    .alarm-banner, .overview-grid, .toast-container, .gov-bar{display:none !important;}
+    .alarm-banner, .overview-grid, .toast-container, .gov-bar, #splashScreen,
+    .side-drawer, .drawer-overlay{display:none !important;}
     body{background:#fff;color:#000;}
     .panel{border:none;}
     thead th{background:#eee !important;color:#000 !important;}
@@ -1130,6 +1194,35 @@
 </head>
 <body>
 
+<div id="splashScreen">
+  <div class="splash-bolt"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></div>
+  <div class="splash-title">HT FAULT</div>
+  <div class="splash-sub-ar">نظام إدارة أعطال الجهد العالي</div>
+  <div class="splash-sub-en">High Tension Fault Management System</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+<script>
+  (function(){
+    var MIN_DISPLAY_MS = 900;
+    var shownAt = Date.now();
+    function hideSplash(){
+      var el = document.getElementById('splashScreen');
+      if(!el || el.dataset.hidden) return;
+      el.dataset.hidden = '1';
+      var elapsed = Date.now() - shownAt;
+      var wait = Math.max(0, MIN_DISPLAY_MS - elapsed);
+      setTimeout(function(){
+        el.classList.add('splash-fade-out');
+        setTimeout(function(){ el.style.display = 'none'; }, 350);
+      }, wait);
+    }
+    window.addEventListener('load', hideSplash);
+    // Safety net: if 'load' somehow never fires (e.g. a stalled embedded
+    // resource), don't trap the user behind the splash forever.
+    setTimeout(hideSplash, 6000);
+  })();
+</script>
+
 <div class="dashboard-print-header" id="dashboardPrintHeader">
   <img class="emblem" src="" alt="">
   <div class="letterhead-title">
@@ -1141,6 +1234,7 @@
 
 <div class="topbar">
   <div class="topbar-inner">
+    <button class="drawer-toggle" id="drawerToggleBtn" title="القائمة" aria-label="Menu">☰</button>
     <div class="bolt" id="logoSlot" title="Click to upload your company/ministry logo">
       <svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>
     </div>
@@ -1168,10 +1262,59 @@
     <span class="gov-bar-label">المحافظة:</span>
     <select id="govSelect" class="gov-select" title="اختر المحافظة"></select>
     <div class="grow"></div>
-    <button class="btn ghost" id="aiInsightsOpenBtn">🧠 تحليل الأعطال الذكي</button>
-    <button class="btn ghost" id="riskForecastOpenBtn">📈 توقع الأعطال</button>
-    <button class="btn ghost" id="allGovStatsBtn">📊 إحصائية كل المحافظات</button>
-    <button class="btn ghost" id="sanadOpenBtn" style="background:#dc2626;color:#fff;border-color:#dc2626;">🆘 سند</button>
+    <button class="btn ghost" id="aiInsightsOpenBtn" style="display:none;">🧠 تحليل الأعطال الذكي</button>
+    <button class="btn ghost" id="riskForecastOpenBtn" style="display:none;">📈 توقع الأعطال</button>
+    <button class="btn ghost" id="allGovStatsBtn" style="display:none;">📊 إحصائية كل المحافظات</button>
+    <button class="btn ghost" id="sanadOpenBtn" style="display:none;background:#dc2626;color:#fff;border-color:#dc2626;">🆘 سند</button>
+  </div>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay" style="display:none;"></div>
+<div class="side-drawer" id="sideDrawer">
+  <div class="side-drawer-head">
+    <div class="bolt" style="width:40px;height:40px;"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></div>
+    <div>
+      <div class="side-drawer-title">HT FAULT</div>
+      <div class="side-drawer-sub">نظام إدارة أعطال الجهد العالي</div>
+    </div>
+    <button class="sld-modal-close" id="drawerCloseBtn" aria-label="Close" style="margin-right:auto;">✕</button>
+  </div>
+  <div class="side-drawer-body">
+    <button class="drawer-item" id="drawerAIInsightsBtn">🧠 <span>تحليل الأعطال الذكي</span></button>
+    <button class="drawer-item" id="drawerRiskForecastBtn">📈 <span>توقع الأعطال</span></button>
+    <button class="drawer-item" id="drawerAllGovStatsBtn">📊 <span>إحصائية كل المحافظات</span></button>
+    <button class="drawer-item" id="drawerSanadBtn">🆘 <span>سند</span></button>
+    <div class="drawer-sep"></div>
+    <button class="drawer-item" id="drawerAboutBtn">ℹ️ <span>عن النظام</span></button>
+    <button class="drawer-item" id="drawerContactBtn">📞 <span>اتصل بنا</span></button>
+  </div>
+</div>
+
+<div class="sld-modal-overlay" id="aboutModal" style="display:none;">
+  <div class="sld-modal-box" style="max-width:460px;">
+    <div class="sld-modal-head">
+      <div><div class="sld-modal-title">ℹ️ عن النظام</div></div>
+      <button class="sld-modal-close" id="aboutCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="sld-modal-body" style="flex-direction:column;align-items:stretch;text-align:right;padding:22px;gap:12px;font-size:13.5px;line-height:2;color:var(--text);">
+      <p><b>HT FAULT</b> هو نظام إدارة أعطال الجهد العالي، صُمم لتسجيل ومتابعة أعطال الشبكة الكهربائية لحظة وقوعها حتى استعادة الخدمة بالكامل.</p>
+      <p>يشمل النظام: تسجيل الأعطال وربطها بالمخططات الأصلية للمحطات، إحصائيات وتقارير رسمية (PDF/Excel/طباعة)، تحليل ذكي وتوقع للأعطال بناءً على البيانات الفعلية، واقتراح أقرب مستودع مولدات عند الحاجة.</p>
+      <p style="color:var(--mute);font-size:12px;">تطوير: م. ابرار المويزري — وزارة الكهرباء والماء والطاقة المتجددة.</p>
+    </div>
+  </div>
+</div>
+
+<div class="sld-modal-overlay" id="contactModal" style="display:none;">
+  <div class="sld-modal-box" style="max-width:420px;">
+    <div class="sld-modal-head">
+      <div><div class="sld-modal-title">📞 اتصل بنا</div></div>
+      <button class="sld-modal-close" id="contactCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="sld-modal-body" style="flex-direction:column;align-items:stretch;text-align:right;padding:22px;gap:10px;font-size:13.5px;line-height:1.9;color:var(--text);">
+      <p>لأي استفسار أو مشكلة تقنية بالنظام، يرجى التواصل مع المهندسة المسؤولة:</p>
+      <p><b>م. ابرار المويزري</b></p>
+      <p style="color:var(--mute);font-size:12px;">(أضيفي رقم الهاتف أو الإيميل المفضّل هنا)</p>
+    </div>
   </div>
 </div>
 
@@ -3530,6 +3673,50 @@ document.getElementById('sanadModal').addEventListener('click', (e) => {
 document.getElementById('sanadSendBtn').addEventListener('click', sanadAsk);
 document.getElementById('sanadInput').addEventListener('keydown', (e) => {
   if(e.key === 'Enter') sanadAsk();
+});
+
+/* ===== SIDE DRAWER ===== */
+function openDrawer(){
+  document.getElementById('sideDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').style.display = 'block';
+}
+function closeDrawer(){
+  document.getElementById('sideDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').style.display = 'none';
+}
+document.getElementById('drawerToggleBtn').addEventListener('click', openDrawer);
+document.getElementById('drawerCloseBtn').addEventListener('click', closeDrawer);
+document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
+
+// Each drawer item just re-triggers the original (now-hidden) toolbar
+// button's own click handler, instead of duplicating its logic.
+function drawerAction(originalBtnId){
+  closeDrawer();
+  document.getElementById(originalBtnId).click();
+}
+document.getElementById('drawerAIInsightsBtn').addEventListener('click', () => drawerAction('aiInsightsOpenBtn'));
+document.getElementById('drawerRiskForecastBtn').addEventListener('click', () => drawerAction('riskForecastOpenBtn'));
+document.getElementById('drawerAllGovStatsBtn').addEventListener('click', () => drawerAction('allGovStatsBtn'));
+document.getElementById('drawerSanadBtn').addEventListener('click', () => drawerAction('sanadOpenBtn'));
+document.getElementById('drawerAboutBtn').addEventListener('click', () => {
+  closeDrawer();
+  document.getElementById('aboutModal').style.display = 'flex';
+});
+document.getElementById('drawerContactBtn').addEventListener('click', () => {
+  closeDrawer();
+  document.getElementById('contactModal').style.display = 'flex';
+});
+document.getElementById('aboutCloseBtn').addEventListener('click', () => {
+  document.getElementById('aboutModal').style.display = 'none';
+});
+document.getElementById('aboutModal').addEventListener('click', (e) => {
+  if(e.target.id === 'aboutModal') document.getElementById('aboutModal').style.display = 'none';
+});
+document.getElementById('contactCloseBtn').addEventListener('click', () => {
+  document.getElementById('contactModal').style.display = 'none';
+});
+document.getElementById('contactModal').addEventListener('click', (e) => {
+  if(e.target.id === 'contactModal') document.getElementById('contactModal').style.display = 'none';
 });
 
 /* ===== ALL-GOVERNORATES STATISTICS ===== */
