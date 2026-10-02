@@ -1364,6 +1364,7 @@
       </div>
       <div class="sld-modal-body" style="flex-direction:column;align-items:stretch;padding:18px;gap:14px;">
         <div class="field"><label>المهندس المسؤول عن الاستعادة</label><input id="qr_engineer" placeholder="اكتبي اسمك"></div>
+        <div class="field"><label>تاريخ الاستعادة</label><input id="qr_restore_date" type="date"></div>
         <div class="field"><label>وقت الاستعادة</label><input id="qr_restore_time" type="time"></div>
         <div class="field"><label>المدة (دقيقة)</label><input id="qr_duration" type="number"></div>
         <div class="field"><label>نوع العطل</label>
@@ -1800,6 +1801,8 @@ function govName(code){ const g = GOVERNORATES.find(x => x.code === code); retur
 function storageKeyFor(gov){ return 'htFaultRecords_v2_' + gov; }
 function activityKeyFor(gov){ return 'htFaultActivityLog_v1_' + gov; }
 function syncIdKeyFor(gov){ return 'htFaultTeamSyncId_' + gov; }
+function trMarkersKeyFor(gov){ return 'htFaultTRMarkers_v2_' + gov; }
+function stationLocationsKeyFor(gov){ return 'htFaultStationLocations_v2_' + gov; }
 
 let isFreshStorage = false;
 
@@ -1933,26 +1936,6 @@ function saveData(){
   // edit. Use the manual "💾 حفظ نسخة احتياطية" button instead when needed.
 }
 
-let lastAutoBackupAt = 0;
-function autoBackupDownload(){
-  const now = Date.now();
-  if(now - lastAutoBackupAt < 4000) return; // throttle: skip if we just backed up moments ago
-  lastAutoBackupAt = now;
-  try{
-    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'ht-fault-latest-backup.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-  }catch(e){
-    console.error('Auto-backup failed:', e);
-  }
-}
-
 function nextId(){
   return data.length ? Math.max(...data.map(d => d.id)) + 1 : 1;
 }
@@ -2082,42 +2065,16 @@ function deleteRecord(id){
   render();
 }
 
-function closeFault(id){
-  if(!canEdit()){ showToast('هذا الإجراء متاح للمشرف والأدمن فقط', 'error'); return; }
-  const rec = data.find(d => d.id === id);
-  if(!rec) return;
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2,'0');
-  const mm = String(now.getMinutes()).padStart(2,'0');
-  rec.restoreTime = hh + ':' + mm;
-  rec.status = 'restored';
-  if(rec.date && rec.time){
-    const start = new Date(rec.date + 'T' + rec.time);
-    const end = new Date(rec.date + 'T' + rec.restoreTime);
-    let diff = Math.round((end - start) / 60000);
-    if(diff < 0) diff += 1440;
-    rec.duration = diff;
-  }
-  saveData();
-  logActivity('close', 'Restored ' + fmtFid(id) + ' — ' + rec.sstn, rec.engineer);
-  showToast(fmtFid(id) + ' تم تحديده كمستعاد', 'success');
-  render();
-}
-
 /* ===== QUICK RESTORE (open → restored, fast path) ===== */
 let quickRestoreId = null;
 
 function updateQuickRestoreDuration(){
   const rec = data.find(d => d.id === quickRestoreId);
   if(!rec) return;
+  const restoreDateVal = document.getElementById('qr_restore_date').value;
   const restoreTimeVal = document.getElementById('qr_restore_time').value;
-  if(rec.date && rec.time && restoreTimeVal){
-    const start = new Date(rec.date + 'T' + rec.time);
-    const end = new Date(rec.date + 'T' + restoreTimeVal);
-    let diff = Math.round((end - start) / 60000);
-    if(diff < 0) diff += 1440;
-    document.getElementById('qr_duration').value = diff;
-  }
+  const diff = calcFaultDuration(rec.date, rec.time, restoreDateVal, restoreTimeVal);
+  if(diff !== null) document.getElementById('qr_duration').value = diff;
 }
 
 function openQuickRestore(id){
@@ -2130,6 +2087,7 @@ function openQuickRestore(id){
   const hh = String(now.getHours()).padStart(2,'0');
   const mm = String(now.getMinutes()).padStart(2,'0');
   document.getElementById('qr_engineer').value = rec.engineer || '';
+  document.getElementById('qr_restore_date').value = todayISO();
   document.getElementById('qr_restore_time').value = hh + ':' + mm;
   causeToFaultTypeFields('qr', rec.cause || '');
   const ti = rec.tripIndication || [];
@@ -2200,13 +2158,16 @@ document.getElementById('followConfirmBtn').addEventListener('click', () => {
   render();
 });
 
+document.getElementById('qr_restore_date').addEventListener('change', updateQuickRestoreDuration);
 document.getElementById('qr_restore_time').addEventListener('change', updateQuickRestoreDuration);
 document.getElementById('qr_confirmBtn').addEventListener('click', () => {
   const rec = data.find(d => d.id === quickRestoreId);
   if(!rec) return;
+  const restoreDateVal = document.getElementById('qr_restore_date').value;
   const restoreTimeVal = document.getElementById('qr_restore_time').value;
   const durationVal = parseInt(document.getElementById('qr_duration').value, 10);
   const engineerVal = document.getElementById('qr_engineer').value.trim();
+  rec.restoreDate = restoreDateVal || rec.restoreDate;
   rec.restoreTime = restoreTimeVal || rec.restoreTime;
   rec.duration = isNaN(durationVal) ? rec.duration : durationVal;
   rec.cause = faultTypeFieldsToCause('qr') || rec.cause;
@@ -2804,8 +2765,19 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
   reader.onload = () => {
     try{
       const parsed = JSON.parse(reader.result);
-      if(Array.isArray(parsed)){ data = parsed; saveData(); logActivity('add', 'Imported ' + parsed.length + ' records from file'); showToast('تم الاستيراد بنجاح — ' + parsed.length + ' سجل', 'success'); render(); }
-      else showToast('ملف غير صالح: يجب أن يكون مصفوفة JSON.', 'error');
+      if(!Array.isArray(parsed)){ showToast('ملف غير صالح: يجب أن يكون مصفوفة JSON.', 'error'); return; }
+      const looksLikeFaultRecords = parsed.every(r => r && typeof r === 'object' && 'sstn' in r && 'status' in r);
+      if(parsed.length && !looksLikeFaultRecords){
+        showToast('هذا الملف ما يحتوي سجلات أعطال (ينقصه حقول أساسية مثل المحطة/الحالة) — تأكدي إنه ملف النسخة الاحتياطية الصحيح.', 'error');
+        return;
+      }
+      const proceed = confirm(
+        '⚠️ تأكيد الاستيراد\n\n' +
+        'هذا سيستبدل كل أعطال محافظة "' + govName(currentGov) + '" الحالية (' + data.length + ' سجل) بمحتوى الملف (' + parsed.length + ' سجل).\n\n' +
+        'هذا الإجراء لا يمكن التراجع عنه إلا باستيراد نسخة احتياطية أخرى. هل تريدين المتابعة؟'
+      );
+      if(!proceed){ showToast('تم إلغاء الاستيراد', 'info'); return; }
+      data = parsed; saveData(); logActivity('add', 'Imported ' + parsed.length + ' records from file'); showToast('تم الاستيراد بنجاح — ' + parsed.length + ' سجل', 'success'); render();
     }catch(err){
       const preview = String(reader.result || '').trim().slice(0, 60).replace(/\s+/g, ' ');
       console.error('JSON import failed:', err, 'File:', file.name, 'Preview:', preview);
@@ -3497,7 +3469,8 @@ function sanadTryDataQuery(question){
   if(asksGenerator && code){
     const result = findNearestGenerator(code);
     if(!result) return 'ما قدرت ألقى إحداثيات معتمدة لمحطة ' + code + ' حاليًا.';
-    return '⚡ أقرب مستودع مولدات لمحطة ' + code + ': ' + result.name + ' — يبعد تقريبًا ' + result.distanceKm + ' كم.';
+    return '⚡ أقرب مستودع مولدات لمحطة ' + code + ': ' + result.name + ' — يبعد تقريبًا ' + result.distanceKm + ' كم.' +
+      (result.onlyKnownDepot ? ' (المستودع الوحيد المسجل حاليًا — مو بالضرورة الأقرب فعليًا)' : '');
   }
 
   const asksCount = /كم |جم |عدد/.test(q);
@@ -5143,13 +5116,30 @@ function findOriginalSheetsForStation(sstnName){
    lines up correctly whether it's shown on a small thumbnail or the
    full-size editor image.
    ===================================================================== */
-const TR_MARKERS_KEY = 'htFaultTRMarkers_v1';
+// Was a single global key shared across every governorate (so two
+// governorates with a same-named station silently overwrote each
+// other's pins) — now scoped per governorate like fault records.
+// One-time migration: the old global data almost certainly belongs to
+// FARW (the only governorate with real historical data so far), so it
+// moves there the first time this runs, instead of being discarded.
+const TR_MARKERS_KEY_LEGACY = 'htFaultTRMarkers_v1';
+(function migrateLegacyTRMarkers(){
+  try{
+    const legacy = localStorage.getItem(TR_MARKERS_KEY_LEGACY);
+    if(!legacy) return;
+    const farwKey = trMarkersKeyFor('FARW');
+    if(!localStorage.getItem(farwKey)){
+      localStorage.setItem(farwKey, legacy);
+    }
+    localStorage.removeItem(TR_MARKERS_KEY_LEGACY);
+  }catch(e){}
+})();
 
 function loadTRMarkersMap(){
-  try{ return JSON.parse(localStorage.getItem(TR_MARKERS_KEY)) || {}; }catch(e){ return {}; }
+  try{ return JSON.parse(localStorage.getItem(trMarkersKeyFor(currentGov))) || {}; }catch(e){ return {}; }
 }
 function saveTRMarkersMap(map){
-  try{ localStorage.setItem(TR_MARKERS_KEY, JSON.stringify(map)); }catch(e){}
+  try{ localStorage.setItem(trMarkersKeyFor(currentGov), JSON.stringify(map)); }catch(e){}
 }
 function getTRMarkersForStation(sstn){
   if(!sstn) return [];
@@ -5239,7 +5229,14 @@ function findNearestGenerator(sstn){
     const dist = haversineKm(lat, lon, g.lat, g.lon);
     if(dist < bestDist){ bestDist = dist; best = g; }
   });
-  return best ? {name: best.name, distanceKm: Math.round(bestDist * 10) / 10} : null;
+  if(!best) return null;
+  return {
+    name: best.name,
+    distanceKm: Math.round(bestDist * 10) / 10,
+    // True while only one depot is known network-wide — "nearest" is then
+    // just "the only one we know about", not a real comparison.
+    onlyKnownDepot: GENERATOR_LOCATIONS.length === 1
+  };
 }
 
 function showNearestGenerator(sstn){
@@ -5249,7 +5246,8 @@ function showNearestGenerator(sstn){
     return;
   }
   document.getElementById('generatorAlertText').textContent =
-    'محطة ' + sstn + ' — أقرب مستودع مولدات:\n' + result.name + '\nيبعد تقريبًا ' + result.distanceKm + ' كم';
+    'محطة ' + sstn + ' — أقرب مستودع مولدات:\n' + result.name + '\nيبعد تقريبًا ' + result.distanceKm + ' كم' +
+    (result.onlyKnownDepot ? '\n\n(المستودع الوحيد المسجل حاليًا — مو بالضرورة الأقرب فعليًا)' : '');
   document.getElementById('generatorAlertModal').style.display = 'flex';
 }
 document.getElementById('generatorAlertCloseBtn').addEventListener('click', () => {
@@ -6071,17 +6069,31 @@ function getStationCoordsEntry(sstn){
    used automatically. If neither has anything, a quick "add it" link
    shows instead — never invented, only what's actually known.
    ===================================================================== */
-const STATION_LOCATIONS_KEY = 'htFaultStationLocations_v1';
+// Was a single global key shared across every governorate — now scoped
+// per governorate like fault records, with the same one-time migration
+// of old global data into FARW (see migrateLegacyTRMarkers above).
+const STATION_LOCATIONS_KEY_LEGACY = 'htFaultStationLocations_v1';
+(function migrateLegacyStationLocations(){
+  try{
+    const legacy = localStorage.getItem(STATION_LOCATIONS_KEY_LEGACY);
+    if(!legacy) return;
+    const farwKey = stationLocationsKeyFor('FARW');
+    if(!localStorage.getItem(farwKey)){
+      localStorage.setItem(farwKey, legacy);
+    }
+    localStorage.removeItem(STATION_LOCATIONS_KEY_LEGACY);
+  }catch(e){}
+})();
 
 function loadStationLocations(){
   try{
-    const saved = localStorage.getItem(STATION_LOCATIONS_KEY);
+    const saved = localStorage.getItem(stationLocationsKeyFor(currentGov));
     return saved ? JSON.parse(saved) : {};
   }catch(e){ return {}; }
 }
 
 function saveStationLocationsMap(map){
-  try{ localStorage.setItem(STATION_LOCATIONS_KEY, JSON.stringify(map)); }catch(e){}
+  try{ localStorage.setItem(stationLocationsKeyFor(currentGov), JSON.stringify(map)); }catch(e){}
 }
 
 function getStationLocation(sstn){
@@ -6708,6 +6720,7 @@ function switchGovernorate(gov){
   try{ localStorage.setItem(GOV_KEY, gov); }catch(e){}
 
   data = loadData();
+  migrateLegacyRestoredRecords();
   editingId = null;
   selectedNetworkKey = null;
   selectedSLDNode = null;
