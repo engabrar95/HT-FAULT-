@@ -1239,7 +1239,6 @@
 
 <div class="topbar">
   <div class="topbar-inner">
-    <button class="drawer-toggle" id="drawerToggleBtn" title="القائمة" aria-label="Menu">☰</button>
     <div class="bolt" id="logoSlot" title="Click to upload your company/ministry logo">
       <svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>
     </div>
@@ -1259,6 +1258,7 @@
     </div>
     <button class="theme-toggle" id="adminLoginBtn" style="display:none;background:rgba(0,174,239,0.15);border-color:rgba(0,174,239,0.4);">🔒 تسجيل الدخول</button>
     <button class="theme-toggle" id="themeToggle">🌙 داكن</button>
+    <button class="drawer-toggle" id="drawerToggleBtn" title="القائمة" aria-label="Menu">☰</button>
   </div>
 </div>
 
@@ -1290,8 +1290,21 @@
     <button class="drawer-item" id="drawerAllGovStatsBtn">📊 <span>إحصائية كل المحافظات</span></button>
     <button class="drawer-item" id="drawerSanadBtn">🆘 <span>سند</span></button>
     <div class="drawer-sep"></div>
+    <button class="drawer-item" id="drawerActivityBtn">🔔 <span>آخر التحديثات</span></button>
     <button class="drawer-item" id="drawerAboutBtn">ℹ️ <span>عن النظام</span></button>
     <button class="drawer-item" id="drawerContactBtn">📞 <span>اتصل بنا</span></button>
+  </div>
+</div>
+
+<div class="sld-modal-overlay" id="activityModal" style="display:none;">
+  <div class="sld-modal-box" style="max-width:480px;">
+    <div class="sld-modal-head">
+      <div><div class="sld-modal-title">🔔 آخر التحديثات</div></div>
+      <button class="sld-modal-close" id="activityCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="sld-modal-body" style="flex-direction:column;align-items:stretch;text-align:right;padding:18px 22px;">
+      <div class="activity-feed" id="activityFeed" style="max-height:min(60vh,420px);"></div>
+    </div>
   </div>
 </div>
 
@@ -1697,11 +1710,7 @@
     </div>
   </div>
 
-  <div class="overview-grid" style="margin-top:22px;grid-template-columns:1.1fr 1fr 0.8fr;">
-    <div class="panel">
-      <div class="panel-head"><h2>آخر التحديثات</h2></div>
-      <div class="panel-body-inner"><div class="activity-feed" id="activityFeed"></div></div>
-    </div>
+  <div class="overview-grid" style="margin-top:22px;grid-template-columns:1fr 0.8fr;">
     <div class="panel">
       <div class="panel-head"><h2>ترتيب المهندسين</h2></div>
       <div class="panel-body-inner"><div class="rank-list" id="rankList"></div></div>
@@ -3729,6 +3738,17 @@ document.getElementById('drawerAIInsightsBtn').addEventListener('click', () => d
 document.getElementById('drawerRiskForecastBtn').addEventListener('click', () => drawerAction('riskForecastOpenBtn'));
 document.getElementById('drawerAllGovStatsBtn').addEventListener('click', () => drawerAction('allGovStatsBtn'));
 document.getElementById('drawerSanadBtn').addEventListener('click', () => drawerAction('sanadOpenBtn'));
+document.getElementById('drawerActivityBtn').addEventListener('click', () => {
+  closeDrawer();
+  renderActivity();
+  document.getElementById('activityModal').style.display = 'flex';
+});
+document.getElementById('activityCloseBtn').addEventListener('click', () => {
+  document.getElementById('activityModal').style.display = 'none';
+});
+document.getElementById('activityModal').addEventListener('click', (e) => {
+  if(e.target.id === 'activityModal') document.getElementById('activityModal').style.display = 'none';
+});
 document.getElementById('drawerAboutBtn').addEventListener('click', () => {
   closeDrawer();
   document.getElementById('aboutModal').style.display = 'flex';
