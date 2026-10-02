@@ -1163,6 +1163,11 @@
   body.printing-report #printReportRoot{display:block !important;}
   body.printing-report{background:#fff;}
   .print-report-page{font-family:Arial,sans-serif;color:#111;padding:10px;}
+  .print-watermark{
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:55%;max-width:420px;opacity:0.07;z-index:0;pointer-events:none;
+  }
+  .print-report-page .print-report-content{position:relative;z-index:1;}
   .print-report-page h1{font-size:20px;margin:0 0 2px;}
   .print-report-page .print-report-sub{color:#555;font-size:12px;margin-bottom:18px;}
   .print-report-page table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;}
@@ -2747,6 +2752,22 @@ function drawReportLetterhead(doc, titleAr, titleEn){
   return lineY + 14;
 }
 
+// Draws the Ministry of Electricity & Water logo as a large, faint
+// centered background watermark so printed/exported reports read as
+// an official document even on pages without the header logos.
+function drawReportWatermark(doc){
+  try{
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const w = pageHeight * 0.62;
+    const h = w * (600 / 800);
+    doc.saveGraphicsState();
+    doc.setGState(new doc.GState({opacity: 0.07}));
+    doc.addImage(MEW_LOGO_B64, 'JPEG', (pageWidth - w) / 2, (pageHeight - h) / 2, w, h);
+    doc.restoreGraphicsState();
+  }catch(e){}
+}
+
 function buildFaultTablePdfDoc(title, subtitle, kpis, rows){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:'landscape', unit:'pt', format:'a4'});
@@ -2784,6 +2805,7 @@ function buildFaultTablePdfDoc(title, subtitle, kpis, rows){
     columnStyles: {8:{cellWidth:110}},
     margin: {left:40, right:40},
     didDrawPage: () => {
+      drawReportWatermark(doc);
       drawArabicTextRightAligned(doc, 'م.ابرار المويزري', doc.internal.pageSize.getWidth() - 40, doc.internal.pageSize.getHeight() - 20, 8, '#969696');
     }
   });
@@ -2817,6 +2839,7 @@ function buildGovStatsPdfDoc(rangeLabelText, rows){
     alternateRowStyles: {fillColor:[245,247,250]},
     margin: {left:40, right:40},
     didDrawPage: () => {
+      drawReportWatermark(doc);
       drawArabicTextRightAligned(doc, 'م.ابرار المويزري', doc.internal.pageSize.getWidth() - 40, doc.internal.pageSize.getHeight() - 20, 8, '#969696');
     }
   });
@@ -3195,17 +3218,20 @@ function printReport(title, subtitle, contentHtml){
   const root = document.getElementById('printReportRoot');
   root.innerHTML = `
     <div class="print-report-page">
-      <div class="print-letterhead">
-        <img class="emblem" src="${KW_EMBLEM_B64}" alt="">
-        <div class="letterhead-title">
-          <div class="ar">نظام إدارة أعطال الجهد العالي</div>
-          <div class="en">HT FAULT — High Tension Fault Management System</div>
+      <img class="print-watermark" src="${MEW_LOGO_B64}" alt="">
+      <div class="print-report-content">
+        <div class="print-letterhead">
+          <img class="emblem" src="${KW_EMBLEM_B64}" alt="">
+          <div class="letterhead-title">
+            <div class="ar">نظام إدارة أعطال الجهد العالي</div>
+            <div class="en">HT FAULT — High Tension Fault Management System</div>
+          </div>
+          <img class="mew-logo" src="${MEW_LOGO_B64}" alt="">
         </div>
-        <img class="mew-logo" src="${MEW_LOGO_B64}" alt="">
+        <h1>${esc(title)}</h1>
+        <div class="print-report-sub">${esc(subtitle)} · Generated ${new Date().toLocaleString('en-GB')}</div>
+        ${contentHtml}
       </div>
-      <h1>${esc(title)}</h1>
-      <div class="print-report-sub">${esc(subtitle)} · Generated ${new Date().toLocaleString('en-GB')}</div>
-      ${contentHtml}
     </div>
     <div class="print-report-footer">م.ابرار المويزري</div>
   `;
