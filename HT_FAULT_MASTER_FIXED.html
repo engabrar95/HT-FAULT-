@@ -1159,7 +1159,7 @@
     tr{page-break-inside:avoid;}
   }
   .dashboard-print-footer{
-    display:none;position:fixed;bottom:8px;right:14px;font-size:10px;color:#555;
+    display:none;position:fixed;bottom:8px;right:14px;font-size:6px;color:#555;
     font-family:Arial,sans-serif;direction:rtl;
   }
   .dashboard-print-header, .print-letterhead{
@@ -1202,7 +1202,6 @@
   .print-signoff-col{width:200px;text-align:center;font-size:11.5px;color:#333;}
   .print-signoff-label{font-weight:700;margin-bottom:34px;}
   .print-signoff-line{border-top:1px solid #333;margin:0 14px 6px;}
-  .print-signoff-name{font-size:10.5px;color:#555;}
   .print-report-page h1{font-size:20px;margin:0 0 2px;}
   .print-report-page .print-report-sub{color:#555;font-size:12px;margin-bottom:18px;}
   .print-report-page table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;}
@@ -1210,7 +1209,7 @@
   .print-report-page th{background:#f0f0f0;color:#000;}
   .print-report-page .status-pill{padding:2px 8px;border-radius:10px;font-size:11px;background:#eee;color:#000;}
   .print-report-footer{
-    position:fixed;bottom:8px;right:14px;font-size:10px;color:#555;
+    position:fixed;bottom:8px;right:14px;font-size:6px;color:#555;
     font-family:Arial,sans-serif;direction:rtl;
   }
   .print-report-page .report-actions{display:none;}
@@ -2838,7 +2837,6 @@ function drawSignatureBlock(doc){
   doc.setLineWidth(0.6);
   drawArabicTextRightAligned(doc, 'التوقيع', rightX, y - 14, 8.5, '#555555');
   doc.line(rightX - lineW, y, rightX, y);
-  drawArabicTextRightAligned(doc, 'م. ابرار المويزري', rightX, y + 10, 8, '#777777');
 }
 
 // Places the sign-off row on the table's actual last page, once autoTable
@@ -2853,7 +2851,7 @@ function placeSignatureBlockAfterTable(doc){
   if(finalY > pageHeight - 90){
     doc.addPage();
     drawReportWatermark(doc);
-    drawArabicTextRightAligned(doc, 'م.ابرار المويزري', doc.internal.pageSize.getWidth() - 40, pageHeight - 20, 8, '#969696');
+    drawArabicTextRightAligned(doc, 'م.ابرار المويزري', doc.internal.pageSize.getWidth() - 40, pageHeight - 20, 5.5, '#969696');
   }
   drawSignatureBlock(doc);
 }
@@ -2912,7 +2910,7 @@ function buildFaultTablePdfDoc(title, subtitle, kpis, rows){
     margin: {left:40, right:40},
     didDrawPage: () => {
       drawReportWatermark(doc);
-      drawArabicTextRightAligned(doc, 'م.ابرار المويزري', doc.internal.pageSize.getWidth() - 40, doc.internal.pageSize.getHeight() - 20, 8, '#969696');
+      drawArabicTextRightAligned(doc, 'م.ابرار المويزري', doc.internal.pageSize.getWidth() - 40, doc.internal.pageSize.getHeight() - 20, 5.5, '#969696');
     }
   });
   placeSignatureBlockAfterTable(doc);
@@ -2947,7 +2945,7 @@ function buildGovStatsPdfDoc(rangeLabelText, rows){
     margin: {left:40, right:40},
     didDrawPage: () => {
       drawReportWatermark(doc);
-      drawArabicTextRightAligned(doc, 'م.ابرار المويزري', doc.internal.pageSize.getWidth() - 40, doc.internal.pageSize.getHeight() - 20, 8, '#969696');
+      drawArabicTextRightAligned(doc, 'م.ابرار المويزري', doc.internal.pageSize.getWidth() - 40, doc.internal.pageSize.getHeight() - 20, 5.5, '#969696');
     }
   });
   placeSignatureBlockAfterTable(doc);
@@ -3347,7 +3345,6 @@ function printReport(title, subtitle, contentHtml){
           <div class="print-signoff-col">
             <div class="print-signoff-label">التوقيع</div>
             <div class="print-signoff-line"></div>
-            <div class="print-signoff-name">م. ابرار المويزري</div>
           </div>
         </div>
       </div>
