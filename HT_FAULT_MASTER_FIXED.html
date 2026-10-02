@@ -3469,8 +3469,7 @@ function sanadTryDataQuery(question){
   if(asksGenerator && code){
     const result = findNearestGenerator(code);
     if(!result) return 'ما قدرت ألقى إحداثيات معتمدة لمحطة ' + code + ' حاليًا.';
-    return '⚡ أقرب مستودع مولدات لمحطة ' + code + ': ' + result.name + ' — يبعد تقريبًا ' + result.distanceKm + ' كم.' +
-      (result.onlyKnownDepot ? ' (المستودع الوحيد المسجل حاليًا — مو بالضرورة الأقرب فعليًا)' : '');
+    return '⚡ أقرب مستودع مولدات لمحطة ' + code + ': ' + result.name + ' — يبعد تقريبًا ' + result.distanceKm + ' كم.';
   }
 
   const asksCount = /كم |جم |عدد/.test(q);
@@ -5246,8 +5245,7 @@ function showNearestGenerator(sstn){
     return;
   }
   document.getElementById('generatorAlertText').textContent =
-    'محطة ' + sstn + ' — أقرب مستودع مولدات:\n' + result.name + '\nيبعد تقريبًا ' + result.distanceKm + ' كم' +
-    (result.onlyKnownDepot ? '\n\n(المستودع الوحيد المسجل حاليًا — مو بالضرورة الأقرب فعليًا)' : '');
+    'محطة ' + sstn + ' — أقرب مستودع مولدات:\n' + result.name + '\nيبعد تقريبًا ' + result.distanceKm + ' كم';
   document.getElementById('generatorAlertModal').style.display = 'flex';
 }
 document.getElementById('generatorAlertCloseBtn').addEventListener('click', () => {
