@@ -250,25 +250,6 @@
   }
   .panel-head h2{margin:0;font-size:13.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);}
   .table-scroll{overflow-x:auto;}
-  /* The main fault-records table used to force a 1660px min-width with
-     nowrap cells, so it never fit a normal screen and always needed
-     horizontal scrolling. Let free-text columns wrap instead, always —
-     not just above some breakpoint, since a zoomed-in or non-maximized
-     browser window can easily put the real viewport width below a fixed
-     cutoff, silently bringing the scrollbar straight back. Only the
-     short/badge columns (ID, MW, priority, status, actions) that would
-     look broken if wrapped stay on one line. Slightly tighter padding
-     and font-size reclaim some width so wrapping stays infrequent on
-     normal screens, instead of only kicking in on very narrow ones. */
-  .table-scroll table{min-width:0;}
-  .table-scroll thead th{padding:10px 8px;font-size:10.5px;white-space:normal;word-break:break-word;}
-  .table-scroll tbody td{padding:9px 8px;font-size:12.5px;white-space:normal;word-break:break-word;}
-  .table-scroll thead th:nth-child(1), .table-scroll thead th:nth-child(9),
-  .table-scroll thead th:nth-child(14), .table-scroll thead th:nth-child(15), .table-scroll thead th:nth-child(16),
-  .table-scroll tbody td:nth-child(1), .table-scroll tbody td:nth-child(9),
-  .table-scroll tbody td:nth-child(14), .table-scroll tbody td:nth-child(15), .table-scroll tbody td:nth-child(16){
-    white-space:nowrap;
-  }
   table{width:100%;border-collapse:collapse;min-width:1660px;}
   table.gov-stats-table{min-width:0;}
   .gov-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
