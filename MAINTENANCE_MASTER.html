@@ -1327,7 +1327,6 @@
     <select id="govSelect" class="gov-select" title="اختر المحافظة"></select>
     <div class="grow"></div>
     <button class="btn ghost" id="allGovStatsBtn">📊 إحصائية كل المحافظات</button>
-    <a class="btn ghost" id="toReportsLink" href="REPORTS_MASTER.html">📄 نظام التقارير</a>
     <button class="btn ghost" id="homeBtn">🏠 الرئيسية</button>
   </div>
 </div>
@@ -2852,7 +2851,6 @@ document.getElementById('logoFileInput').addEventListener('change', e => {
 /* ===== GOVERNORATE SWITCHER ===== */
 function updateGovBrand(){
   document.querySelector('.brand .tagline').textContent = 'نظام إدارة الصيانة — ' + govName(currentGov);
-  document.getElementById('toReportsLink').href = 'REPORTS_MASTER.html#gov=' + currentGov;
 }
 function switchGovernorate(gov){
   if(gov === currentGov) return;
