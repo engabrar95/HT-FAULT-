@@ -104,6 +104,29 @@
   .drawer-item:hover{background:var(--panel2);}
   .drawer-sep{height:1px;background:var(--line);margin:8px 2px;}
 
+  /* ===== MAINTENANCE MENU (opens the maintenance system on one of its two kinds) ===== */
+  .mt-menu{position:relative;}
+  .mt-menu-btn{background:#1f9d5b !important;border-color:#1f9d5b !important;color:#fff !important;}
+  .mt-menu-list{
+    display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:220px;z-index:60;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+  }
+  .mt-menu.open .mt-menu-list{display:block;}
+  .mt-menu-item{
+    display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:8px;text-decoration:none;
+    color:var(--text);font-size:13.5px;font-weight:700;
+  }
+  .mt-menu-item:hover{background:var(--panel2);}
+  .mt-menu-item.preventive{color:var(--green);}
+  .mt-menu-item.emergency{color:var(--red);}
+  .mt-menu-item small{display:block;font-size:10.5px;font-weight:500;color:var(--mute);}
+  .drawer-sub{display:none;flex-direction:column;gap:2px;padding:0 12px 4px 0;}
+  .drawer-sub.open{display:flex;}
+  .drawer-sub .drawer-item{padding:10px;font-size:13px;text-decoration:none;}
+  .drawer-caret{margin-right:auto;font-size:11px;color:var(--mute);transition:transform .15s ease;}
+  .drawer-item.expanded .drawer-caret{transform:rotate(180deg);}
+
   /* ===== HEADER ===== */
   .topbar{
     background:linear-gradient(120deg,var(--navy),var(--navy2));
@@ -1282,6 +1305,13 @@
     <span class="gov-bar-label">المحافظة:</span>
     <select id="govSelect" class="gov-select" title="اختر المحافظة"></select>
     <div class="grow"></div>
+    <div class="mt-menu" id="mtMenu">
+      <button class="btn ghost mt-menu-btn" id="mtMenuBtn" type="button">🛠️ الصيانة ▾</button>
+      <div class="mt-menu-list">
+        <a class="mt-menu-item preventive" data-mt-cat="preventive" href="MAINTENANCE_MASTER.html#cat=preventive">🛡️ <span>صيانة وقائية<small>أعمال مجدولة ودورية</small></span></a>
+        <a class="mt-menu-item emergency" data-mt-cat="emergency" href="MAINTENANCE_MASTER.html#cat=emergency">🚨 <span>صيانة طارئة<small>أعمال تحتاج تدخل فوري</small></span></a>
+      </div>
+    </div>
     <button class="btn ghost" id="aiInsightsOpenBtn" style="display:none;">🧠 تحليل الأعطال الذكي</button>
     <button class="btn ghost" id="riskForecastOpenBtn" style="display:none;">📈 توقع الأعطال</button>
     <button class="btn ghost" id="allGovStatsBtn" style="display:none;">📊 إحصائية كل المحافظات</button>
@@ -1300,6 +1330,12 @@
     <button class="sld-modal-close" id="drawerCloseBtn" aria-label="Close" style="margin-right:auto;">✕</button>
   </div>
   <div class="side-drawer-body">
+    <button class="drawer-item" id="drawerMaintenanceBtn">🛠️ <span>الصيانة</span><span class="drawer-caret">▾</span></button>
+    <div class="drawer-sub" id="drawerMaintenanceSub">
+      <a class="drawer-item" data-mt-cat="preventive" href="MAINTENANCE_MASTER.html#cat=preventive">🛡️ <span>صيانة وقائية</span></a>
+      <a class="drawer-item" data-mt-cat="emergency" href="MAINTENANCE_MASTER.html#cat=emergency">🚨 <span>صيانة طارئة</span></a>
+    </div>
+    <div class="drawer-sep"></div>
     <button class="drawer-item" id="drawerAIInsightsBtn">🧠 <span>تحليل الأعطال الذكي</span></button>
     <button class="drawer-item" id="drawerRiskForecastBtn">📈 <span>توقع الأعطال</span></button>
     <button class="drawer-item" id="drawerAllGovStatsBtn">📊 <span>إحصائية كل المحافظات</span></button>
@@ -3781,6 +3817,24 @@ function closeDrawer(){
   document.getElementById('drawerOverlay').style.display = 'none';
 }
 document.getElementById('drawerToggleBtn').addEventListener('click', openDrawer);
+
+/* ===== MAINTENANCE MENU =====
+   Both links open MAINTENANCE_MASTER.html on the chosen kind, in the
+   governorate currently shown here. */
+document.querySelectorAll('[data-mt-cat]').forEach(a => a.addEventListener('click', () => {
+  a.href = 'MAINTENANCE_MASTER.html#cat=' + a.dataset.mtCat + '&gov=' + currentGov;
+}));
+document.getElementById('mtMenuBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('mtMenu').classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('#mtMenu')) document.getElementById('mtMenu').classList.remove('open');
+});
+document.getElementById('drawerMaintenanceBtn').addEventListener('click', (e) => {
+  e.currentTarget.classList.toggle('expanded');
+  document.getElementById('drawerMaintenanceSub').classList.toggle('open');
+});
 document.getElementById('drawerCloseBtn').addEventListener('click', closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
 

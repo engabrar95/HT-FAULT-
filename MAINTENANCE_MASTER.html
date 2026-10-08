@@ -1270,6 +1270,7 @@
     <div class="grow"></div>
     <button class="btn ghost" id="allGovStatsBtn">📊 إحصائية كل المحافظات</button>
     <a class="btn ghost" id="toReportsLink" href="REPORTS_MASTER.html">📄 نظام التقارير</a>
+    <a class="btn ghost" href="HT_FAULT_MASTER_FIXED.html">🏠 الرئيسية</a>
   </div>
 </div>
 
@@ -2819,7 +2820,15 @@ govSel.addEventListener('change', e => switchGovernorate(e.target.value));
 updateGovBrand();
 
 renderActivity();
+// Opened from the HT page's maintenance menu: show only the chosen kind.
+(function(){
+  const m = (location.hash || '').match(/cat=(preventive|emergency)/);
+  if(m) setCategoryFilter(m[1]);
+})();
 render();
+if(categoryFilter){
+  setTimeout(() => document.querySelector('.cat-card.' + categoryFilter).scrollIntoView({block:'start'}), 50);
+}
 </script>
 
 </body>
