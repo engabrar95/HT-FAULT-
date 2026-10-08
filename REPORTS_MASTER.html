@@ -3,12 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MAINTENANCE — Maintenance Management System</title>
+<title>REPORTS — Maintenance Reports System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root{
     --navy:#071e3d;
@@ -1129,105 +1126,150 @@
     .form-grid{grid-template-columns:1fr;}
     .form-grid .span2{grid-column:span 1;}
   }
-  /* ===== MAINTENANCE-SPECIFIC ===== */
-  .bolt.mt{background:radial-gradient(circle at 30% 20%, #ffb020, #d9861a);box-shadow:0 0 18px rgba(255,176,32,0.5);}
-  .status-pill.planned{background:rgba(0,174,239,0.16);color:var(--e-blue);}
-  .status-pill.inprogress{background:var(--amber-dim);color:var(--amber);}
-  .status-pill.completed{background:var(--green-dim);color:var(--green);}
-  .status-pill.postponed{background:rgba(160,120,255,0.16);color:#b69cff;}
-  .status-pill.cancelled{background:rgba(255,255,255,0.08);color:var(--mute);}
-  .status-pill.overdue{background:var(--red-dim);color:var(--red);margin-left:4px;}
-  .type-badge{
-    display:inline-block;padding:3px 9px;border-radius:4px;font-size:10.5px;font-weight:700;
-    background:rgba(0,174,239,0.12);color:var(--e-blue);
-  }
-  .type-badge.preventive{background:var(--green-dim);color:var(--green);}
-  .type-badge.emergency{background:var(--red-dim);color:var(--red);}
-  .type-badge{font-size:11.5px;padding:4px 10px;}
-
-  /* ===== TWO CATEGORIES: PREVENTIVE vs EMERGENCY ===== */
-  .cat-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
-  .cat-card{
-    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;
-    position:relative;overflow:hidden;cursor:pointer;transition:border-color .15s ease, transform .1s ease;
-  }
-  .cat-card:hover{transform:translateY(-1px);}
-  .cat-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;}
-  .cat-card.preventive::before{background:var(--green);}
-  .cat-card.emergency::before{background:var(--red);}
-  .cat-card.preventive.active{border-color:var(--green);box-shadow:0 0 0 1px var(--green);}
-  .cat-card.emergency.active{border-color:var(--red);box-shadow:0 0 0 1px var(--red);}
-  .cat-card-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-  .cat-card-icon{font-size:30px;line-height:1;}
-  .cat-card-title{font-size:19px;font-weight:800;}
-  .cat-card.preventive .cat-card-title{color:var(--green);}
-  .cat-card.emergency .cat-card-title{color:var(--red);}
-  .cat-card-sub{font-size:11.5px;color:var(--mute);margin-top:2px;}
-  .cat-card-add{margin-left:auto;}
-  .cat-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-  .cat-stat{background:var(--panel2);border-radius:8px;padding:10px 12px;}
-  .cat-stat .v{font-size:22px;font-weight:800;line-height:1;}
-  .cat-stat .l{font-size:10.5px;color:var(--mute);margin-top:6px;font-family:'IBM Plex Mono',monospace;}
-  .cat-stat.bad .v{color:var(--red);}
-  .cat-stat.good .v{color:var(--green);}
-  .cat-stat.warn .v{color:var(--amber);}
-  button.btn.prev-add{background:#1f9d5b;}
-  button.btn.emerg-add{background:#d63a3a;}
-  .cat-tabs{display:flex;gap:8px;padding:14px 18px 0;flex-wrap:wrap;}
-  .cat-tab{
-    font-family:'Inter',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border-radius:20px;
-    border:1px solid var(--line);background:var(--panel2);color:var(--mute);cursor:pointer;
-  }
-  .cat-tab.active{color:#fff;border-color:transparent;background:var(--e-blue);}
-  .cat-tab.preventive.active{background:#1f9d5b;}
-  .cat-tab.emergency.active{background:#d63a3a;}
-  tbody tr.cat-preventive td:first-child{box-shadow:inset 4px 0 0 var(--green);}
-  tbody tr.cat-emergency td:first-child{box-shadow:inset 4px 0 0 var(--red);}
-  .cat-switch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
-  .cat-switch button{
-    font-family:'Inter',sans-serif;font-size:14px;font-weight:800;padding:14px;border-radius:8px;cursor:pointer;
-    border:2px solid var(--line);background:var(--panel2);color:var(--mute);
-  }
-  .cat-switch button.preventive.active{border-color:var(--green);background:var(--green-dim);color:var(--green);}
-  .cat-switch button.emergency.active{border-color:var(--red);background:var(--red-dim);color:var(--red);}
-  .modal-head.preventive{background:linear-gradient(120deg,#0f5c38,#1f9d5b);}
-  .modal-head.emergency{background:linear-gradient(120deg,#7a1f1f,#c33);}
-  @media (max-width:900px){
-    .cat-cards{grid-template-columns:1fr;}
-    .cat-stats{grid-template-columns:repeat(2,1fr);}
-  }
-  .shutdown-badge{display:inline-block;font-size:10px;font-weight:700;background:var(--red-dim);color:var(--red);border-radius:10px;padding:1px 7px;margin-left:4px;}
-  .recur-badge{display:inline-block;font-size:10px;font-weight:700;background:rgba(0,174,239,0.12);color:var(--e-blue);border-radius:10px;padding:1px 7px;margin-left:4px;}
-  .icon-btn.start:hover{border-color:var(--amber);color:var(--amber);}
-  .desc-cell{max-width:260px;overflow:hidden;text-overflow:ellipsis;}
+  /* ===== REPORTS SYSTEM ===== */
+  .bolt.rp{background:radial-gradient(circle at 30% 20%, #8b7bff, #5a48d6);box-shadow:0 0 18px rgba(139,123,255,0.5);}
   a.btn{
     font-family:'Inter',sans-serif;font-size:13px;font-weight:600;border-radius:6px;padding:9px 15px;
     display:flex;align-items:center;gap:7px;white-space:nowrap;text-decoration:none;
   }
   a.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
   a.btn.ghost:hover{border-color:var(--e-blue);color:var(--e-blue);}
-  .up-list{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;}
-  .up-item{
-    display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:6px;
-    background:var(--panel2);font-size:12.5px;cursor:pointer;
+  button.btn.prev-add{background:#1f9d5b;}
+  button.btn.emerg-add{background:#d63a3a;}
+  button.btn.link-btn{background:#5a48d6;}
+
+  .cat-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+  .cat-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;
+    position:relative;overflow:hidden;cursor:pointer;transition:border-color .15s ease;
   }
-  .up-item:hover{border-color:var(--e-blue);}
-  .up-item .when{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mute);min-width:88px;}
-  .up-item .what{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .up-item.late{border-color:rgba(255,92,92,0.45);}
-  .up-item.late .when{color:var(--red);font-weight:700;}
-  .kpi .val.pct small{font-size:13px;}
-  .toolbar .filter-sel{min-width:130px;}
-  .src-badge{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;background:rgba(139,123,255,0.16);color:#a99cff;border-radius:10px;padding:1px 7px;font-family:'IBM Plex Mono',monospace;}
-  .wo-sheet{font-family:Arial,sans-serif;color:#111;}
-  .wo-sheet .wo-id{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:#0a3d7c;}
-  .wo-sheet table.wo-grid{width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;}
-  .wo-sheet table.wo-grid th{width:22%;background:#f0f4f8;text-align:left;border:1px solid #ccc;padding:7px 9px;color:#000;}
-  .wo-sheet table.wo-grid td{border:1px solid #ccc;padding:7px 9px;white-space:pre-wrap;vertical-align:top;}
-  .wo-sheet .wo-box{border:1px solid #ccc;min-height:70px;padding:8px 10px;margin:4px 0 12px;font-size:12.5px;white-space:pre-wrap;}
-  .wo-sheet .wo-label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;margin-top:8px;}
-  .wo-sheet .wo-signs{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px;font-size:12px;}
-  .wo-sheet .wo-signs div{border-top:1px solid #333;padding-top:6px;text-align:center;}
+  .cat-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;}
+  .cat-card.emergency::before{background:var(--red);}
+  .cat-card.preventive::before{background:var(--green);}
+  .cat-card.emergency.active{border-color:var(--red);box-shadow:0 0 0 1px var(--red);}
+  .cat-card.preventive.active{border-color:var(--green);box-shadow:0 0 0 1px var(--green);}
+  .cat-card-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+  .cat-card-icon{font-size:30px;line-height:1;}
+  .cat-card-title{font-size:18px;font-weight:800;}
+  .cat-card.emergency .cat-card-title{color:var(--red);}
+  .cat-card.preventive .cat-card-title{color:var(--green);}
+  .cat-card-sub{font-size:11.5px;color:var(--mute);margin-top:2px;}
+  .cat-card-add{margin-left:auto;}
+  .cat-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .cat-stat{background:var(--panel2);border-radius:8px;padding:10px 12px;}
+  .cat-stat .v{font-size:22px;font-weight:800;line-height:1;}
+  .cat-stat .l{font-size:10.5px;color:var(--mute);margin-top:6px;font-family:'IBM Plex Mono',monospace;}
+  .cat-stat.bad .v{color:var(--red);}
+  .cat-stat.good .v{color:var(--green);}
+  .cat-stat.warn .v{color:var(--amber);}
+  .rp-section{display:none;}
+  .rp-section.show{display:block;}
+  .rp-table{min-width:1100px;}
+  .link-pill{display:inline-block;padding:3px 9px;border-radius:12px;font-size:10.5px;font-weight:700;background:rgba(139,123,255,0.16);color:#a99cff;font-family:'IBM Plex Mono',monospace;}
+  .link-pill.none{background:rgba(255,255,255,0.07);color:var(--mute);}
+  .link-pill.done{background:var(--green-dim);color:var(--green);}
+  .link-pill.lost{background:var(--red-dim);color:var(--red);}
+  .urgent-pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;background:var(--red-dim);color:var(--red);margin-left:4px;}
+  .icon-btn.send:hover{border-color:#a99cff;color:#a99cff;}
+  .icon-btn.print:hover{border-color:var(--green);color:var(--green);}
+  .desc-cell{max-width:260px;overflow:hidden;text-overflow:ellipsis;}
+
+  /* editors */
+  .sub-head{font-size:11.5px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 8px;}
+  .grid-editor{width:100%;border-collapse:collapse;min-width:0;}
+  .grid-editor th{background:var(--panel2);color:var(--mute);font-size:10.5px;padding:6px;text-align:left;position:static;}
+  .grid-editor td{padding:3px;border-bottom:none;white-space:normal;}
+  .grid-editor input, .grid-editor select{
+    width:100%;padding:7px 8px;border-radius:5px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:12px;
+  }
+  .grid-editor tbody tr:nth-child(even), .grid-editor tbody tr:hover{background:transparent;}
+  .grid-scroll{overflow-x:auto;}
+  .row-del{background:rgba(255,60,60,0.12);color:#ff5c5c;border:1px solid rgba(255,60,60,0.3);border-radius:5px;height:30px;width:30px;cursor:pointer;}
+  .chk-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .chk-row label{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font-size:12.5px;cursor:pointer;}
+  .chk-row input{width:auto;margin:0;}
+  .att-list{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+  .att-thumb{position:relative;width:120px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff;}
+  .att-thumb img{width:100%;height:84px;object-fit:contain;display:block;}
+  .att-thumb .cap{font-size:9.5px;color:#334;padding:3px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#f2f5f9;}
+  .att-thumb button{position:absolute;top:3px;right:3px;background:rgba(214,58,58,0.9);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:11px;}
+  .att-status{font-size:12px;color:var(--mute);margin-top:6px;min-height:16px;}
+  .modal.wide{max-width:1100px;}
+  .modal-head.emergency{background:linear-gradient(120deg,#7a1f1f,#c33);}
+  .modal-head.preventive{background:linear-gradient(120deg,#0f5c38,#1f9d5b);}
+  .sync-note{font-size:12px;background:rgba(139,123,255,0.12);color:var(--text);border:1px solid rgba(139,123,255,0.35);border-radius:6px;padding:9px 12px;margin-bottom:14px;line-height:1.7;}
+
+  /* ===== PRINTED SHEETS (official forms) ===== */
+  #printReportRoot .rp-page{background:#fff;color:#000;font-family:'Times New Roman',Times,serif;page-break-after:always;break-after:page;}
+  #printReportRoot .rp-page:last-child{page-break-after:auto;break-after:auto;}
+  .rp-page *{box-sizing:border-box;}
+  .rp-frame{border:1.5px solid #000;padding:0;}
+  /* The emergency form fills the whole portrait page, like the paper original. */
+  .rp-page.portrait-form .rp-frame{min-height:278mm;display:flex;flex-direction:column;}
+  .rp-page.portrait-form .rp-fields{flex:1;}
+  .rp-page.portrait-form .rp-field{margin:15px 0;}
+  .rp-page.portrait-form .rp-findings{min-height:70px;}
+  .rp-page.portrait-form .rp-signs b{margin-bottom:40px;}
+  .rp-page.portrait-form .rp-action .txt{min-height:90px;}
+  .rp-page .ministry{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;}
+  .rp-page .ministry .txt{white-space:nowrap;}
+  .rp-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:10px 14px;border-bottom:1.5px solid #000;}
+  .rp-head .dept{font-family:Arial,sans-serif;font-weight:700;font-size:13px;line-height:1.6;direction:rtl;text-align:right;}
+  .rp-head .ministry{display:flex;align-items:center;gap:10px;justify-content:flex-end;}
+  .rp-head .ministry .txt{text-align:center;font-family:Arial,sans-serif;font-size:11px;line-height:1.5;}
+  .rp-head .ministry .txt b{font-size:12.5px;}
+  .rp-head .emblem{height:62px;}
+  .rp-ref{text-align:center;font-family:Arial,sans-serif;font-size:11.5px;color:#c00;font-weight:700;line-height:1.4;}
+  .rp-title-box{border:1.5px solid #000;display:inline-block;padding:4px 40px;font-family:Arial,sans-serif;font-size:17px;font-weight:700;direction:rtl;}
+  .rp-fields{padding:6px 14px 0;}
+  .rp-field{display:grid;grid-template-columns:200px 1fr 200px;align-items:end;margin:9px 0;font-size:15px;}
+  .rp-field .lbl{font-weight:700;}
+  .rp-field .val{border-bottom:1.5px dotted #555;text-align:center;font-weight:700;min-height:22px;padding-bottom:2px;font-family:Arial,sans-serif;}
+  .rp-urgent{border:1.5px solid #000;color:#c00;font-family:Arial,sans-serif;font-weight:800;font-size:18px;text-align:center;padding:6px 0;margin-left:30px;}
+  .rp-eq{width:100%;border-collapse:collapse;font-size:12.5px;font-family:Arial,sans-serif;min-width:0;}
+  .rp-eq th{background:#d9d9d9;color:#000;border:1px solid #000;padding:4px;font-weight:600;position:static;text-transform:none;letter-spacing:0;}
+  .rp-eq td{border:1px solid #000;padding:5px;height:24px;text-align:center;white-space:normal;}
+  .rp-findings{margin:6px 0 0 200px;font-family:Arial,sans-serif;font-size:14px;}
+  .rp-findings div{margin:8px 0;text-decoration:underline;}
+  .rp-findings div::before{content:"■ ";text-decoration:none;display:inline-block;margin-right:6px;}
+  .rp-signs{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:18px 14px 12px;direction:rtl;font-family:Arial,sans-serif;font-size:12.5px;}
+  .rp-signs div{text-align:center;}
+  .rp-signs b{display:block;margin-bottom:26px;}
+  .rp-signs .nm{font-size:10.5px;color:#1a3a8a;min-height:14px;}
+  .rp-signs .dt{margin-top:8px;}
+  .rp-action{border-top:1.5px solid #000;padding:12px 14px;}
+  .rp-action .ttl{text-align:center;font-weight:700;font-size:16px;margin-bottom:6px;}
+  .rp-action .txt{font-family:Arial,sans-serif;font-size:15px;color:#1a3a8a;font-weight:700;min-height:60px;white-space:pre-wrap;border-bottom:1px dotted #777;direction:auto;text-align:center;padding:6px;}
+  .rp-foot{display:flex;justify-content:space-between;border-top:1.5px solid #000;padding:5px 14px;font-size:11px;font-family:Arial,sans-serif;}
+  .rp-att-page{text-align:center;}
+  .rp-att-page img{max-width:100%;max-height:180mm;object-fit:contain;}
+  .rp-att-page.portrait img{max-height:265mm;}
+  .rp-att-cap{font-family:Arial,sans-serif;font-size:10px;color:#555;margin-top:4px;}
+
+  .ep-head{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;padding:8px 10px;}
+  .ep-head .left{font-family:Arial,sans-serif;font-size:11.5px;font-weight:700;line-height:1.6;}
+  .ep-head .left u{font-size:12px;}
+  .ep-head .right{font-family:Arial,sans-serif;font-size:11.5px;font-weight:700;line-height:1.6;direction:rtl;text-align:right;}
+  .ep-head .mid{display:flex;align-items:center;gap:8px;}
+  .ep-head .mid .txt{text-align:center;font-family:Arial,sans-serif;font-size:10.5px;line-height:1.5;}
+  .ep-head .emblem{height:56px;}
+  .ep-info{display:grid;grid-template-columns:auto 1fr 1fr 1fr 1fr;gap:10px;align-items:center;padding:6px 10px;border-top:1.5px solid #000;font-family:Arial,sans-serif;font-size:11.5px;font-weight:700;}
+  .ep-info .box{border:1.5px solid #000;padding:3px 30px;font-size:13px;}
+  .ep-info .v{border-bottom:1px dotted #555;padding:0 10px;font-weight:600;}
+  .ep-table{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:11.5px;min-width:0;}
+  .ep-table th{background:#e6e6e6;color:#000;border:1px solid #000;padding:5px 4px;font-weight:700;position:static;text-transform:none;letter-spacing:0;text-align:center;white-space:normal;}
+  .ep-table td{border:1px solid #000;padding:6px 4px;text-align:center;font-weight:700;white-space:normal;height:44px;}
+  .ep-table td.rem{font-size:9.5px;font-weight:600;vertical-align:top;}
+  .ep-foot{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:6px 14px;padding:8px 10px;border-top:1.5px solid #000;font-family:Arial,sans-serif;font-size:11px;}
+  .ep-foot .kv{display:flex;gap:6px;margin:3px 0;}
+  .ep-foot .kv b{white-space:nowrap;}
+  .ep-foot .kv span{flex:1;border-bottom:1px dotted #777;min-height:14px;}
+  .ep-foot .ops b{display:block;margin-bottom:2px;}
+  .ep-foot .ops div{margin:1px 0 1px 14px;}
+
+  @media (max-width:900px){
+    .cat-cards{grid-template-columns:1fr;}
+  }
 </style>
 </head>
 <body>
@@ -1235,21 +1277,21 @@
 <div class="dashboard-print-header" id="dashboardPrintHeader">
   <img class="emblem" src="" alt="">
   <div class="letterhead-title">
-    <div class="ar">نظام إدارة الصيانة</div>
-    <div class="en">MAINTENANCE — Maintenance Management System</div>
+    <div class="ar">نظام تقارير الصيانة</div>
+    <div class="en">MAINTENANCE REPORTS</div>
   </div>
   <img class="mew-logo" src="" alt="">
 </div>
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="bolt mt" id="logoSlot" title="Click to upload your company/ministry logo">
-      <svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+    <div class="bolt rp" id="logoSlot" title="Click to upload your company/ministry logo">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 13h8v2H8v-2zm0 4h8v2H8v-2zm0-8h3v2H8V9z"/></svg>
     </div>
     <input type="file" id="logoFileInput" accept="image/*" style="display:none;">
     <div class="brand">
-      <h1>MAINTENANCE</h1>
-      <div class="tagline">نظام إدارة الصيانة</div>
+      <h1>REPORTS</h1>
+      <div class="tagline">نظام تقارير الصيانة</div>
     </div>
     <div class="grow"></div>
     <div class="hdr-clock" id="hdrClock">—</div>
@@ -1268,274 +1310,224 @@
     <span class="gov-bar-label">المحافظة:</span>
     <select id="govSelect" class="gov-select" title="اختر المحافظة"></select>
     <div class="grow"></div>
-    <button class="btn ghost" id="allGovStatsBtn">📊 إحصائية كل المحافظات</button>
-    <a class="btn ghost" id="toReportsLink" href="REPORTS_MASTER.html">📄 نظام التقارير</a>
+    <button class="btn ghost" id="settingsBtn">⚙️ البيانات الثابتة</button>
+    <a class="btn ghost" id="toMaintenanceLink" href="MAINTENANCE_MASTER.html">🛠️ نظام الصيانة</a>
   </div>
-</div>
-
-<div class="alarm-banner" id="alarmBanner" style="display:none;">
-  <span class="alarm-icon">⏰</span>
-  <span class="alarm-ticker-wrap"><span class="alarm-text" id="alarmText"></span></span>
 </div>
 
 <div class="wrap">
 
   <div class="cat-cards">
-    <div class="cat-card preventive" data-cat="preventive">
-      <div class="cat-card-head">
-        <span class="cat-card-icon">🛡️</span>
-        <div><div class="cat-card-title">الصيانة الوقائية</div><div class="cat-card-sub">أعمال مجدولة ودورية لمنع الأعطال</div></div>
-        <button class="btn prev-add cat-card-add" data-add="preventive">➕ إضافة وقائية</button>
-      </div>
-      <div class="cat-stats">
-        <div class="cat-stat"><div class="v" id="pTotal">0</div><div class="l">الإجمالي</div></div>
-        <div class="cat-stat warn"><div class="v" id="pPending">0</div><div class="l">مجدولة / جارية</div></div>
-        <div class="cat-stat bad"><div class="v" id="pOverdue">0</div><div class="l">⏰ متأخرة</div></div>
-        <div class="cat-stat good"><div class="v" id="pRate">0%</div><div class="l">نسبة الإنجاز</div></div>
-      </div>
-    </div>
-    <div class="cat-card emergency" data-cat="emergency">
+    <div class="cat-card emergency" data-sec="emergency">
       <div class="cat-card-head">
         <span class="cat-card-icon">🚨</span>
-        <div><div class="cat-card-title">الصيانة الطارئة</div><div class="cat-card-sub">أعمال مفاجئة تحتاج تدخل فوري</div></div>
-        <button class="btn emerg-add cat-card-add" data-add="emergency">➕ إضافة طارئة</button>
+        <div><div class="cat-card-title">تقارير الصيانة الطارئة</div><div class="cat-card-sub">Report for Substation Maintenance Section — بلاغ إلى قسم الصيانة والوقاية</div></div>
+        <button class="btn emerg-add cat-card-add" id="addReportBtn">➕ تقرير طارئ</button>
       </div>
       <div class="cat-stats">
-        <div class="cat-stat"><div class="v" id="eTotal">0</div><div class="l">الإجمالي</div></div>
-        <div class="cat-stat bad"><div class="v" id="eOpen">0</div><div class="l">🚨 مفتوحة الآن</div></div>
-        <div class="cat-stat good"><div class="v" id="eDone">0</div><div class="l">✅ منجزة</div></div>
-        <div class="cat-stat"><div class="v" id="eDur">0</div><div class="l">متوسط المدة (ساعة)</div></div>
+        <div class="cat-stat"><div class="v" id="sRepTotal">0</div><div class="l">التقارير</div></div>
+        <div class="cat-stat bad"><div class="v" id="sRepOpen">0</div><div class="l">بانتظار الإجراء</div></div>
+        <div class="cat-stat good"><div class="v" id="sRepDone">0</div><div class="l">✅ تم الإجراء</div></div>
       </div>
     </div>
-  </div>
-
-  <div class="kpis">
-    <div class="kpi"><div class="val" id="kTotal"><span class="num-part">0</span></div><div class="lbl">إجمالي أوامر الصيانة</div></div>
-    <div class="kpi"><div class="val" id="kPlanned"><span class="num-part">0</span></div><div class="lbl">📅 مجدولة</div></div>
-    <div class="kpi warn"><div class="val" id="kProgress"><span class="num-part">0</span></div><div class="lbl">🔧 قيد التنفيذ</div></div>
-    <div class="kpi ok"><div class="val" id="kDone"><span class="num-part">0</span></div><div class="lbl">✅ منجزة</div></div>
-    <div class="kpi danger"><div class="val" id="kOverdue"><span class="num-part">0</span></div><div class="lbl">⏰ متأخرة</div></div>
-    <div class="kpi ok"><div class="val pct" id="kRate"><span class="num-part">0</span><small> %</small></div><div class="lbl">نسبة الإنجاز</div></div>
-    <div class="kpi"><div class="val" id="kDur"><span class="num-part">0</span><small> hr</small></div><div class="lbl">متوسط مدة التنفيذ</div></div>
-    <div class="kpi danger"><div class="val" id="kShutdown"><span class="num-part">0</span></div><div class="lbl">🔌 أعمال بفصل (غير منجزة)</div></div>
+    <div class="cat-card preventive" data-sec="preventive">
+      <div class="cat-card-head">
+        <span class="cat-card-icon">🛡️</span>
+        <div><div class="cat-card-title">برنامج الصيانة السنوية</div><div class="cat-card-sub">Switching Operations Emergency Programme (EDN) — Annual Maintenance</div></div>
+        <button class="btn prev-add cat-card-add" id="addProgBtn">➕ برنامج أسبوعي</button>
+      </div>
+      <div class="cat-stats">
+        <div class="cat-stat"><div class="v" id="sProgTotal">0</div><div class="l">البرامج</div></div>
+        <div class="cat-stat warn"><div class="v" id="sProgRows">0</div><div class="l">الأعمال</div></div>
+        <div class="cat-stat good"><div class="v" id="sProgDone">0</div><div class="l">✅ أعمال منجزة</div></div>
+      </div>
+    </div>
   </div>
 
   <div class="toolbar">
-    <button class="btn prev-add" data-add="preventive">🛡️ صيانة وقائية</button>
-    <button class="btn emerg-add" data-add="emergency">🚨 صيانة طارئة</button>
-    <button class="btn refresh" id="refreshBtn">🔄 تحديث</button>
-    <div class="search-wrap"><span class="icn">🔍</span><input id="searchBox" placeholder="بحث بالمحطة، المعدة، الفريق، رقم التصريح..."></div>
-    <input type="date" id="dateFilter" title="تصفية حسب التاريخ المخطط">
-    <select id="statusFilter" class="filter-sel">
-      <option value="all">كل الحالات</option>
-      <option value="planned">مجدولة</option>
-      <option value="inprogress">قيد التنفيذ</option>
-      <option value="completed">منجزة</option>
-      <option value="postponed">مؤجلة</option>
-      <option value="cancelled">ملغاة</option>
-      <option value="overdue">⏰ متأخرة</option>
-    </select>
+    <div class="search-wrap"><span class="icn">🔍</span><input id="searchBox" placeholder="بحث بالرقم، المنطقة، المحطة، الدائرة..."></div>
     <button class="btn ghost" id="exportBackupBtn">💾 حفظ نسخة احتياطية</button>
-    <input type="file" id="fileInput" accept=".json,application/json,text/json,text/plain,*/*" style="display:none;">
+    <input type="file" id="fileInput" accept=".json,application/json,text/plain,*/*" style="display:none;">
     <button class="btn ghost" id="importBtn">📂 استيراد نسخة محفوظة</button>
   </div>
 
-  <div class="panel">
-    <div class="panel-head"><h2>سجل أوامر الصيانة</h2><span id="recCount" style="font-size:12px;color:var(--mute);"></span></div>
-    <div class="cat-tabs">
-      <button class="cat-tab active" data-cat="">📋 الكل</button>
-      <button class="cat-tab preventive" data-cat="preventive">🛡️ الصيانة الوقائية</button>
-      <button class="cat-tab emergency" data-cat="emergency">🚨 الصيانة الطارئة</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px 0;">
-      <button class="btn excel" id="exportExcelBtn">📤 تصدير Excel</button>
-      <button class="btn pdf" id="exportPdfBtn">📄 تصدير PDF</button>
-      <button class="btn print" id="printBtn">🖨️ طباعة</button>
-    </div>
+  <div class="panel rp-section show" id="secEmergency">
+    <div class="panel-head"><h2>🚨 تقارير الصيانة الطارئة</h2><span id="repCount" style="font-size:12px;color:var(--mute);"></span></div>
     <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>رقم الأمر</th>
-            <th>المحطة</th>
-            <th>المعدة</th>
-            <th>نوع المعدة</th>
-            <th>نوع الصيانة</th>
-            <th>وصف العمل</th>
-            <th>المهندس / الفريق</th>
-            <th>التاريخ المخطط</th>
-            <th>البدء</th>
-            <th>الانتهاء</th>
-            <th>المدة (ساعة)</th>
-            <th>رقم التصريح</th>
-            <th>الأولوية</th>
-            <th>الحالة</th>
-            <th>الإجراءات</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
+      <table class="rp-table">
+        <thead><tr>
+          <th>الرقم المرجعي</th><th>التاريخ</th><th>المنطقة</th><th>المحطة</th><th>المحطة الرئيسية</th>
+          <th>Findings</th><th>نظام الصيانة</th><th>Action Taken</th><th>الإجراءات</th>
+        </tr></thead>
+        <tbody id="repBody"></tbody>
       </table>
     </div>
-    <div class="table-footer">
-      <span id="footCount">0 records</span>
-      <span>يتم حفظ البيانات تلقائيًا في هذا المتصفح</span>
+  </div>
+
+  <div class="panel rp-section" id="secPreventive">
+    <div class="panel-head"><h2>🛡️ برامج الصيانة السنوية (EDN)</h2><span id="progCount" style="font-size:12px;color:var(--mute);"></span></div>
+    <div class="table-scroll">
+      <table class="rp-table">
+        <thead><tr>
+          <th>الأسبوع</th><th>المجموعة</th><th>من</th><th>إلى</th><th>المحطات</th>
+          <th>عدد الأعمال</th><th>نظام الصيانة</th><th>الإجراءات</th>
+        </tr></thead>
+        <tbody id="progBody"></tbody>
+      </table>
     </div>
   </div>
 
-  <div class="overview-grid" style="margin-top:22px;grid-template-columns:1.2fr 1fr 0.8fr;">
-    <div class="panel">
-      <div class="panel-head"><h2>⏰ المتأخرة والقادمة (7 أيام)</h2></div>
-      <div class="panel-body-inner"><div id="upcomingList" class="up-list"></div></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>ترتيب الفرق / المهندسين</h2></div>
-      <div class="panel-body-inner rank-list" id="rankingList"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>توزيع الحالة</h2></div>
-      <div class="panel-body-inner" id="donutContainer"></div>
-    </div>
-  </div>
-
-  <div class="overview-grid" style="grid-template-columns:1fr 1fr 1fr;">
-    <div class="panel">
-      <div class="panel-head"><h2>حسب نوع الصيانة</h2></div>
-      <div class="panel-body-inner" id="byTypeBars"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>حسب نوع المعدة</h2></div>
-      <div class="panel-body-inner" id="byEquipBars"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>آخر النشاطات</h2></div>
-      <div class="panel-body-inner activity-feed" id="activityFeed"></div>
-    </div>
-  </div>
-
-  <!-- ===== REPORTS ===== -->
-  <div class="panel" style="margin-top:22px;">
-    <div class="panel-head"><h2>التقارير والتحليلات</h2></div>
-    <div class="panel-body-inner">
-      <div class="report-tabs">
-        <button class="rtab active" data-mode="weekly">📅 تقرير أسبوعي</button>
-        <button class="rtab" data-mode="monthly">🗓️ تقرير شهري</button>
-        <button class="rtab" data-mode="custom">🎯 تقرير مخصص</button>
-      </div>
-      <div class="range-nav" id="rangeNav">
-        <button class="btn ghost sm" id="prevRangeBtn">◀ السابق</button>
-        <div class="range-label" id="rangeLabel">—</div>
-        <button class="btn ghost sm" id="nextRangeBtn">التالي ▶</button>
-      </div>
-      <div class="custom-filters" id="customFilters" style="display:none;">
-        <div class="form-grid">
-          <div class="field"><label>من تاريخ</label><input type="date" id="cf_from"></div>
-          <div class="field"><label>إلى تاريخ</label><input type="date" id="cf_to"></div>
-          <div class="field"><label>المحطة / يحتوي على</label><input id="cf_sstn" placeholder="مثال: KHIT"></div>
-          <div class="field"><label>يحتوي اسم المهندس / الفريق</label><input id="cf_engineer" placeholder="مثال: أحمد"></div>
-          <div class="field"><label>نوع الصيانة</label><select id="cf_type"></select></div>
-          <div class="field"><label>نوع المعدة</label><select id="cf_equip"></select></div>
-          <div class="field"><label>الحالة</label><select id="cf_status"></select></div>
-        </div>
-        <div style="margin-top:14px;display:flex;gap:10px;">
-          <button class="btn add" id="generateCustomBtn">📊 إنشاء التقرير</button>
-          <button class="btn ghost" id="clearCustomBtn">مسح الفلاتر</button>
-        </div>
-      </div>
-      <div id="reportOutput" class="report-output"></div>
-    </div>
-  </div>
-
-  <footer class="page-footer">MAINTENANCE — نظام إدارة الصيانة</footer>
+  <footer class="page-footer">REPORTS — نظام تقارير الصيانة</footer>
 </div>
 
 <div id="printReportRoot" style="display:none;"></div>
-<div class="dashboard-print-footer" id="dashboardPrintFooter">م.ابرار المويزري</div>
+<style id="pageSizeStyle"></style>
 
-<!-- ALL GOVERNORATES STATS -->
-<div class="sld-modal-overlay" id="govStatsModal" style="display:none;">
-  <div class="sld-modal-box" style="max-width:1000px;">
-    <div class="sld-modal-head">
-      <div><div class="sld-modal-title">📊 إحصائية الصيانة — كل المحافظات</div><div class="sld-modal-sub">من البيانات المحفوظة على هذا الجهاز</div></div>
-      <button class="sld-modal-close" id="govStatsCloseBtn" aria-label="Close">✕</button>
+<!-- EMERGENCY REPORT MODAL -->
+<div class="modal-overlay" id="repModal">
+  <div class="modal wide" style="max-width:860px;">
+    <div class="modal-head emergency">
+      <h3 id="repModalTitle">🚨 تقرير صيانة طارئة</h3>
+      <button class="modal-close" data-close="repModal">✕</button>
     </div>
-    <div class="sld-modal-body" style="display:block;background:var(--bg);padding:18px;">
-      <div id="govStatsGrid" class="gov-stats-grid"></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>الرقم المرجعي (المكتوب مع الـ QR)</label><input id="r_refNo" placeholder="مثال: 202625403000057"></div>
+        <div class="field"><label>تاريخ الرقم المرجعي</label><input id="r_refDate" type="date"></div>
+        <div class="field"><label>Date — التاريخ</label><input id="r_date" type="date"></div>
+        <div class="field"><label>Urgent</label>
+          <select id="r_urgent"><option value="yes">نعم — Urgent</option><option value="no">لا</option></select>
+        </div>
+        <div class="field"><label>Area Name — المنطقة</label><input id="r_area" placeholder="مثال: الصليبيه"></div>
+        <div class="field"><label>SubStation Name — المحطة</label><input id="r_sstn" placeholder="مثال: DMC PUMPING NEW"></div>
+        <div class="field"><label>Major Name — المحطة الرئيسية</label><input id="r_major" list="stationList" placeholder="مثال: SULB - H"></div>
+        <div class="field"><label>Type of Switch Gear</label><input id="r_switchgear" placeholder="مثال: IEPC"></div>
+        <div class="field"><label>Last Maintenance Date</label><input id="r_lastMaint" type="date"></div>
+        <div class="field"><label>Reported By</label><input id="r_reportedBy" placeholder="مثال: Bobby"></div>
+      </div>
+
+      <div class="sub-head">Equipment Affected — المعدات المتأثرة</div>
+      <div class="grid-scroll">
+        <table class="grid-editor"><thead><tr><th>Transformer Name</th><th>Type</th><th>Serial No.</th><th></th></tr></thead><tbody id="r_eqRows"></tbody></table>
+      </div>
+      <button type="button" class="btn ghost sm" id="r_eqAdd" style="margin-top:8px;">➕ إضافة معدة</button>
+
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="field span2"><label>Findings — الملاحظات (كل ملاحظة في سطر)</label><textarea id="r_findings" rows="4" placeholder="Battery charger failure&#10;Battery output low voltage"></textarea></div>
+        <div class="field span2"><label>Action Taken — الإجراء المتخذ (يتعبى تلقائي من نظام الصيانة لما ينجز العمل)</label><textarea id="r_actionTaken" rows="3" placeholder="مثال: تم عمل الصيانة للبطارية"></textarea></div>
+        <div class="field"><label>تاريخ التنفيذ</label><input id="r_actionDate" type="date"></div>
+        <div class="field"><label>إعداد</label><input id="r_preparedBy" placeholder="مثال: Boby"></div>
+      </div>
+
+      <div class="sub-head">المرفقات — المخطط أحادي الخط، الخريطة (صور أو PDF)</div>
+      <input type="file" id="r_attInput" accept="image/*,application/pdf" multiple style="display:none;">
+      <button type="button" class="btn ghost sm" id="r_attBtn">📎 إرفاق ملفات</button>
+      <div class="att-status" id="r_attStatus"></div>
+      <div class="att-list" id="r_attList"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" data-close="repModal">إلغاء</button>
+      <button class="btn emerg-add" id="repSaveBtn">💾 حفظ</button>
+      <button class="btn link-btn" id="repSaveSendBtn">🔗 حفظ وإرسال لنظام الصيانة</button>
     </div>
   </div>
 </div>
 
-<!-- ADD / EDIT MODAL -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal" style="max-width:720px;">
-    <div class="modal-head" id="modalHead">
-      <h3 id="modalTitle">إضافة أمر صيانة</h3>
-      <button class="modal-close" id="modalCloseBtn">✕</button>
+<!-- WEEKLY PROGRAMME MODAL -->
+<div class="modal-overlay" id="progModal">
+  <div class="modal wide">
+    <div class="modal-head preventive">
+      <h3 id="progModalTitle">🛡️ برنامج الصيانة السنوية</h3>
+      <button class="modal-close" data-close="progModal">✕</button>
     </div>
     <div class="modal-body">
-
-      <div class="entry-mode-toggle">
-        <button class="mode-btn active" id="modeManualBtn">✍️ إدخال يدوي</button>
-        <button class="mode-btn" id="modeScanBtn">📋 لصق وتعبئة تلقائية</button>
+      <div class="form-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="field"><label>Week No.</label><input id="p_weekNo" placeholder="42"></div>
+        <div class="field"><label>The Group</label><input id="p_group" list="groupList" placeholder="Group 1"></div>
+        <div class="field"><label>From</label><input id="p_from" type="date"></div>
+        <div class="field"><label>To</label><input id="p_to" type="date"></div>
       </div>
 
-      <div class="scan-panel" id="scanPanel" style="display:none;">
-        <label style="display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;">الصق نص طلب / تقرير الصيانة هنا (من واتساب، إيميل، إلخ)</label>
-        <textarea id="scanPasteBox" rows="8" placeholder="S.Stn : KHIT F&#10;Equipment : TR-2 (11/0.415 kV)&#10;Type : Preventive maintenance&#10;Date : 05/10/2026  08:00 hrs&#10;PTW : PTW-2026-0142&#10;Team : Eng. Ahmad, Eng. Salem&#10;Shutdown : KHIT 69&#10;Work : Oil test, tap changer inspection." style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:12px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);resize:vertical;"></textarea>
-        <div class="scan-actions">
-          <button class="btn add" id="scanRunBtn">✨ تحليل وتعبئة النموذج</button>
-        </div>
-        <div class="scan-status" id="scanStatus"></div>
+      <div class="sub-head">الأعمال — كل سطر عمل واحد</div>
+      <div class="grid-scroll">
+        <table class="grid-editor" style="min-width:1000px;">
+          <thead><tr><th style="width:120px;">Date</th><th>Major S/S</th><th style="width:60px;">Bay</th><th>Circuit Name</th><th style="width:55px;">Block</th><th style="width:50px;">kV</th><th style="width:70px;">S/G Make</th><th style="width:95px;">Time From</th><th style="width:95px;">Time To</th><th style="width:80px;">State</th><th>Details / Remarks</th><th></th></tr></thead>
+          <tbody id="p_rows"></tbody>
+        </table>
+      </div>
+      <button type="button" class="btn ghost sm" id="p_rowAdd" style="margin-top:8px;">➕ إضافة عمل</button>
+
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="field"><label>Preparation — الإعداد</label><input id="p_prepName" placeholder="الاسم"></div>
+        <div class="field"><label>ملاحظة تحت الإعداد</label><input id="p_prepNote" placeholder="مثال: تم إعلام المستهلكين المهمين"></div>
+        <div class="field"><label>Supervision — الإشراف</label><input id="p_supName" placeholder="الاسم"></div>
+        <div class="field"><label>Supervision Phone</label><input id="p_supPhone"></div>
+      </div>
+      <div class="sub-head">Operation / DMS Engineer</div>
+      <div class="chk-row">
+        <label><input type="checkbox" id="p_consumerNotified"> (1) Consumer Notified</label>
+        <label><input type="checkbox" id="p_cableRerouting"> (2) Cable Rerouting</label>
+        <label><input type="checkbox" id="p_ssChange"> (3) S/S Change of Location</label>
       </div>
 
-      <div class="cat-switch">
-        <button type="button" class="preventive" data-cat="preventive">🛡️ صيانة وقائية</button>
-        <button type="button" class="emergency" data-cat="emergency">🚨 صيانة طارئة</button>
-      </div>
-      <input type="hidden" id="m_mtType">
+      <div class="sub-head">المرفقات — مخططات المحطات (صور أو PDF)</div>
+      <input type="file" id="p_attInput" accept="image/*,application/pdf" multiple style="display:none;">
+      <button type="button" class="btn ghost sm" id="p_attBtn">📎 إرفاق ملفات</button>
+      <div class="att-status" id="p_attStatus"></div>
+      <div class="att-list" id="p_attList"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" data-close="progModal">إلغاء</button>
+      <button class="btn prev-add" id="progSaveBtn">💾 حفظ</button>
+      <button class="btn link-btn" id="progSaveSendBtn">🔗 حفظ وإرسال لنظام الصيانة</button>
+    </div>
+  </div>
+</div>
 
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:760px;">
+    <div class="modal-head"><h3>⚙️ البيانات الثابتة — تطلع في كل تقرير</h3><button class="modal-close" data-close="settingsModal">✕</button></div>
+    <div class="modal-body">
+      <div class="sync-note">تنكتب مرة وحدة وتنحفظ على هذا الجهاز. اللي تخليه فاضي يطلع في التقرير كخط فاضي يتعبى باليد.</div>
+      <div class="sub-head">رأس الورقة</div>
       <div class="form-grid">
-        <div class="field"><label>المحطة</label><input id="m_sstn" list="stationList" placeholder="مثال: KHIT F"></div>
-        <div class="field"><label>المعدة / الرقم</label><input id="m_equipment" placeholder="مثال: TR-2 / KHIT 69 / RMU FARW 43"></div>
-        <div class="field"><label>نوع المعدة</label><select id="m_equipType"></select></div>
-        <div class="field"><label>الأولوية</label>
-          <select id="m_priority">
-            <option value="critical">حرجة</option>
-            <option value="high">عالية</option>
-            <option value="medium" selected>متوسطة</option>
-            <option value="low">منخفضة</option>
-          </select>
-        </div>
-        <div class="field"><label>الحالة</label><select id="m_status"></select></div>
-        <div class="field"><label id="plannedDateLabel">التاريخ المخطط</label><input id="m_plannedDate" type="date"></div>
-        <div class="field" id="recurrenceField"><label>التكرار (للصيانة الدورية)</label><select id="m_recurrence"></select></div>
-        <div class="field"><label>تاريخ البدء</label><input id="m_startDate" type="date"></div>
-        <div class="field"><label>وقت البدء</label><input id="m_startTime" type="time"></div>
-        <div class="field"><label>تاريخ الانتهاء</label><input id="m_endDate" type="date"></div>
-        <div class="field"><label>وقت الانتهاء</label><input id="m_endTime" type="time"></div>
-        <div class="field"><label>المهندس / فريق العمل</label><input id="m_engineer" placeholder="مثال: م. أحمد الفضلي، فريق الصيانة B"></div>
-        <div class="field"><label>رقم تصريح العمل (PTW)</label><input id="m_ptw" placeholder="مثال: PTW-2026-0142"></div>
-        <div class="field"><label>يتطلب فصل (Shutdown)؟</label>
-          <select id="m_shutdown">
-            <option value="no">لا</option>
-            <option value="yes">نعم</option>
-          </select>
-        </div>
-        <div class="field"><label>المدة (ساعة)</label><input id="m_duration" type="number" step="0.1" placeholder="تلقائي من البدء والانتهاء"></div>
-        <div class="field span2"><label>المغذيات / المستهلكون المتأثرون بالفصل</label><input id="m_affected" placeholder="مثال: KHIT 69، جزء من بلوك 7 خيطان"></div>
-        <div class="field span2"><label>وصف العمل المطلوب</label><textarea id="m_description" placeholder="مثال: Annual preventive maintenance for TR-2 — oil test, tap changer inspection, terminal tightening."></textarea></div>
-        <div class="field span2"><label>العمل المنجز</label><textarea id="m_workDone" placeholder="مثال: Oil sample taken, BDV OK. Cleaned bushings. Tightened LV terminals."></textarea></div>
-        <div class="field span2"><label>قطع الغيار / المواد المستخدمة</label><input id="m_spares" placeholder="مثال: 2 × HT fuse 40A، زيت محولات 20 لتر"></div>
-        <div class="field span2"><label>ملاحظات</label><textarea id="m_notes" placeholder="ملاحظات اختيارية"></textarea></div>
+        <div class="field"><label>السطر 1</label><input id="s_dept1"></div>
+        <div class="field"><label>السطر 2 (المراقبة)</label><input id="s_dept2" placeholder="يتعبى تلقائي باسم المحافظة إذا تركته فاضي"></div>
+        <div class="field"><label>السطر 3</label><input id="s_dept3"></div>
+        <div class="field"><label>سطر البرنامج الأسبوعي</label><input id="s_dept4"></div>
+      </div>
+      <div class="sub-head">تواقيع تقرير الصيانة الطارئة</div>
+      <div class="form-grid">
+        <div class="field"><label>عن رئيس قسم التشغيل</label><input id="s_opHead"></div>
+        <div class="field"><label>مراقب المحافظة</label><input id="s_controller"></div>
+        <div class="field"><label>مدير إدارة شبكات التوزيع</label><input id="s_distDirector"></div>
+        <div class="field"><label>رئيس قسم الصيانة والوقاية</label><input id="s_mtHead"></div>
+      </div>
+      <div class="sub-head">البرنامج الأسبوعي</div>
+      <div class="form-grid">
+        <div class="field"><label>Maint. Engineer</label><input id="s_mtEng"></div>
+        <div class="field"><label>Maint. Engineer Phone</label><input id="s_mtEngPhone"></div>
+        <div class="field"><label>Section Head Engr</label><input id="s_secHead"></div>
+        <div class="field"><label>Section Head Phone</label><input id="s_secHeadPhone"></div>
+        <div class="field"><label>Director</label><input id="s_director"></div>
+        <div class="field"><label>Director Phone</label><input id="s_directorPhone"></div>
+        <div class="field"><label>JAB DCC</label><input id="s_jabDcc"></div>
+        <div class="field"><label>JAH DCC</label><input id="s_jahDcc"></div>
+        <div class="field"><label>FAR Tawary</label><input id="s_farTawary"></div>
+        <div class="field"><label>Call Center</label><input id="s_callCenter"></div>
+        <div class="field"><label>EDN Maintenance</label><input id="s_ednMaint"></div>
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn ghost" id="modalCancelBtn">إلغاء</button>
-      <button class="btn add" id="modalSaveBtn">حفظ أمر الصيانة</button>
+      <button class="btn ghost" data-close="settingsModal">إلغاء</button>
+      <button class="btn add" id="settingsSaveBtn">حفظ</button>
     </div>
   </div>
 </div>
 
 <datalist id="stationList"></datalist>
+<datalist id="groupList"><option value="Group 1"><option value="Group 2"><option value="Group 3"></datalist>
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
@@ -1546,10 +1538,14 @@ const MEW_LOGO_B64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/4Q2LRXh
 const STATION_COORDS = {"JBAH 10Y":[29.34702,47.77413],"SGRE A":[29.20274,47.0584],"SLKT D":[29.30815,47.86133],"MINB W/C":[28.95364,48.1166],"SSBH A":[29.08015,48.10643],"AIRP N":[29.24569,47.97275],"WAFR Q":[28.60199,48.01445],"SUPS":[29.56428,48.16798],"FARW B":[29.27594,47.95802],"FARW N":[29.29134,47.95927],"JALB M":[29.26878,47.90865],"ISHB A":[29.27921,47.93404],"KHIT D":[29.26871,47.98061],"ARDY C":[29.28496,47.90524],"WJLB E":[29.23284,47.89731],"KHIT B":[29.29206,47.97568],"RASS E":[29.33451,48.09135],"SHKH D":[29.33325,47.92852],"JABR F":[29.3244,48.02055],"EMBS A":[29.36557,48.01764],"OGAL F":[29.16113,48.10538],"SLMY Z":[29.28248,47.53904],"SWBR B":[29.378,47.98178],"DOHA A":[29.36497,47.7994],"BNED A":[29.38038,47.99874],"SHUB B":[28.9828,48.11938],"SHUB C":[28.97306,48.12258],"HAWL J":[29.34489,48.01798],"SSPS":[29.03227,48.15405],"SBAH 3Z":[28.74632,48.07045],"OGAL G":[29.17192,48.09744],"DAIH M":[29.35372,48.01514],"DSMA  A":[29.36573,47.99714],"BNED B":[29.3715,48.00552],"BNED C":[29.37834,47.99805],"SHRQ A":[29.3819,47.99244],"WABM 1C":[29.24561,47.8444],"WABM 1F":[29.227,47.86123],"WABM 1D":[29.24738,47.85367],"WABM 1B":[29.23613,47.84676],"WABM 1E":[29.23909,47.85738],"KNPC W":[28.71667,48.34098],"WABM 1A":[29.22793,47.84455],"DASM M":[29.38774,47.99084],"SHRQ B":[29.38367,47.98203],"TOWN D":[29.38028,47.98579],"TOWN E":[29.37828,47.98857],"MGWA A":[29.3766,47.99572],"GBLT A":[29.37203,47.99203],"SWBR A":[29.37439,47.98051],"TOWN C":[29.37731,47.97743],"JBLA M":[29.36922,47.96656],"KIFN A":[29.34326,47.96853],"NUZH M":[29.34092,47.99095],"AHJB A":[29.38389,47.98778],"SHKN A":[29.33057,47.95002],"MASL H":[29.23726,48.09226],"NWSB M":[28.54262,48.38786],"SHKN B":[29.33321,47.93142],"ABHF C":[29.1335,48.11599],"KHLD A":[29.32739,47.97144],"AMIR M":[29.37766,47.96716],"JBLA A":[29.37099,47.97139],"NIGT M":[29.3621,47.96736],"KIFN M":[29.33527,47.95203],"WTIA  A":[29.36591,47.9638],"JABR E":[29.31989,48.02841],"JABR P":[29.31789,48.03588],"JABR Q":[29.31392,48.03251],"MAIR A":[28.96006,47.82259],"AHMD C":[29.098,48.0573],"JABR M":[29.32782,48.03009],"JABR D":[29.31577,48.02228],"JABR B":[29.32199,48.01963],"JABR C":[29.32622,48.03834],"MISH M":[29.277,48.07149],"MISH P":[29.28003,48.0617],"MISH Q":[29.27363,48.04868],"SLAM A":[29.29283,48.01287],"JAHR AW":[29.30995,47.66949],"SABD W":[29.29949,47.72422],"JAHR X":[29.29585,47.69646],"ABUHALIFA D":[29.1279,48.11818],"SSUR B":[29.27276,48.01706],"SSUR A":[29.27377,48.01356],"ZSPS":[28.70633,48.37198],"BAYN N":[29.29326,48.05938],"HAWL F":[29.33301,48.01208],"SALM G":[29.3226,48.05162],"SALM D":[29.32828,48.0548],"SALM Q-NEW":[29.32736,48.06659],"SALM F":[29.3398,48.0793],"EHAW B":[29.33789,48.03736],"HAWL G":[29.33156,48.02518],"HAWL E":[29.33363,48.01863],"EMBS B":[29.35476,48.02622],"HITN A":[29.28508,48.0136],"HITN D":[29.27857,48.02188],"MISH A":[29.27411,48.06367],"SHDA A":[29.26743,48.02805],"SDIQ D":[29.29099,47.99886],"BAYN P":[29.30734,48.03754],"HILL M":[29.36536,47.97184],"BAYN M":[29.29793,48.05225],"BAYN A":[29.30949,48.04179],"SSSM E":[29.22997,48.07442],"AHMD N":[29.08703,48.07796],"SALW D":[29.30112,48.08193],"RUMT B":[29.31727,48.06855],"SLAM B":[29.29883,48.02235],"ABSL M":[29.351,47.99261],"FINT M":[29.17369,48.11574],"SLBY M":[29.32052,47.75365],"ABSL A":[29.35259,47.98267],"TOWN W":[29.36445,47.98605],"MRGB A":[29.36611,47.97982],"GBLT W":[29.36015,47.97001],"SHAM M":[29.3507,47.97376],"JABR N":[29.31774,48.01447],"SHAM N":[29.35079,47.95935],"DEPS":[29.37371,47.79085],"SHAM A":[29.3484,47.95822],"SHKH A":[29.35215,47.9477],"SHKH M":[29.34816,47.94089],"KIFN B":[29.34659,47.9556],"FAIH M":[29.33413,47.97427],"QADS A":[29.34983,48.00216],"SURH A":[29.30962,48.00269],"SAAP A":[29.05323,48.15067],"HAWL A":[29.33921,48.0001],"SHUB A":[29.05853,48.11053],"RAWD M":[29.32943,47.99963],"MRGB E":[29.36506,47.98492],"JHWT M":[29.3234,47.73078],"SURH M":[29.31716,47.99858],"WAFR":[28.59947,48.03981],"MNGF C":[29.10098,48.12977],"QURT M":[29.31871,47.98367],"SABH A":[29.11514,48.10603],"RAWD A":[29.32971,48.0048],"EDLY A":[29.32898,47.98312],"KHLD B":[29.33062,47.97004],"FMIL A":[29.34613,47.93361],"UNIV B":[29.33963,47.92151],"UNIV A":[29.33693,47.91609],"RSCH A":[29.33418,47.90575],"UNIV M":[29.33235,47.90679],"SHKH W":[29.32465,47.91342],"JBAH AW":[29.34864,47.78015],"SBSM D":[29.24535,48.06353],"SDOH A":[29.30553,47.80191],"SLBY E":[29.29278,47.72188],"SLKT A":[29.31439,47.86299],"SASC 2Z":[28.64053,48.34164],"SBSM A":[29.24869,48.07512],"MHBL B":[29.14334,48.11736],"SALW M":[29.29757,48.0762],"RASS B":[29.32537,48.08647],"WAFR 1A":[28.59958,48.01745],"RASS NM":[29.33585,48.08525],"MGSH A":[29.02035,47.5639],"PORT A":[29.35068,47.91508],"SBSM B":[29.25183,48.05401],"SBSM E":[29.25708,48.08387],"SBSM C":[29.25586,48.07748],"HAWL N":[29.33856,48.03088],"HAWL B":[29.33909,48.01976],"HAWL M":[29.34195,48.00826],"RASS A":[29.3414,48.09075],"HAWL C":[29.34948,48.01695],"MINB M":[28.96281,48.16233],"OYON B":[29.33412,47.65565],"NASM B":[29.32079,47.68324],"JABR W":[29.30479,48.01997],"QASR M":[29.33565,47.69873],"BG35 A":[29.23671,47.41757],"SLKT C":[29.30364,47.86432],"FAHL A":[29.07293,48.13703],"PLJT M":[29.34813,48.0907],"SMBK M":[29.3331,48.06371],"EHAW A":[29.33993,48.04531],"JABR A":[29.30558,48.0192],"JBAH 3Y":[29.35411,47.7578],"SALW A":[29.28654,48.07655],"OGAL B":[29.18061,48.10913],"SALW B":[29.30696,48.08451],"RDTN A":[29.87098,47.68031],"ZHRA  A":[29.26904,47.9907],"QASR NM":[29.33549,47.69908],"TIMA C":[29.32036,47.67004],"ZHRA B":[29.27872,47.98721],"SALM E":[29.32942,48.0829],"SALM N":[29.33947,48.07281],"HAWL D":[29.33232,48.01258],"DOHA B":[29.31847,47.8287],"SALW N":[29.30108,48.08137],"SALW P":[29.30145,48.0661],"SALM P":[29.34401,48.08466],"SALM A":[29.3092,48.05441],"PHPT A":[29.30372,47.88821],"KIFN W":[29.34334,47.96805],"MGSH C":[29.01741,47.56782],"SHKN M":[29.32253,47.93544],"WAFR Z":[28.60717,48.0062],"SALW Q":[29.28023,48.08274],"PEE3 M":[29.2518,47.82257],"MRGB D":[29.36471,47.98523],"FARW P":[29.26761,47.96003],"SALW C":[29.2758,48.08544],"RASS M":[29.33611,48.08499],"SALM Q":[29.32754,48.06689],"SALM W":[29.30965,48.0554],"MTCM M":[29.36663,47.96795],"MNCM M":[29.36423,47.97815],"FINT D":[29.17413,48.08361],"MARF A":[29.00155,48.15096],"SHUB W":[29.03858,48.11946],"UMQR P":[29.03562,47.46035],"PCCM A":[29.02091,48.13869],"FINT AE":[29.18504,48.06054],"WAFR P":[28.61491,48.01738],"DOHA N":[29.30815,47.82043],"MARF B":[29.00628,48.13913],"BRGN B":[28.99477,47.98478],"SSBH B":[29.0813,48.10368],"AHRF A":[29.05952,48.13459],"MASL E":[29.24515,48.08878],"SBAH 2G":[28.79885,48.05363],"MASL G":[29.24034,48.08951],"SBHN N":[29.22995,48.00336],"DWPS":[29.36709,47.78959],"JAHR A":[29.3388,47.64696],"OL2K W":[29.02877,48.14072],"RDTN E":[29.89826,47.67942],"AHPT A":[29.13793,48.09419],"JBAH AY":[29.36157,47.76458],"FINT F":[29.16272,48.11485],"MAGW A":[29.127,47.9967],"KCFC A":[29.02802,48.14768],"SHND B":[29.04535,48.15091],"MHBL D":[29.15317,48.1207],"FNTS G":[29.23184,48.08982],"UMQR Q":[29.09264,47.59908],"SJAH A":[29.30876,47.68499],"UNIV E":[29.24973,47.89414],"DEJEG A":[29.26219,47.95561],"CLPR B":[29.2769,47.85183],"SBHN A":[29.23397,48.01669],"SBSM F":[29.26256,48.08374],"CLPR A":[29.28634,47.85349],"UNIV G":[29.25907,47.90903],"UNIV K":[29.26239,47.90452],"HAWL H":[29.337,48.03119],"HAWL I":[29.34018,48.01841],"UNIV J":[29.26062,47.9068],"UNIV D":[29.24889,47.90988],"FINT Z":[29.18498,48.05937],"FINT W":[29.1863,48.06082],"SSSM H":[29.23806,48.07231],"SSSM AW":[29.20654,48.0772],"MASL D":[29.23009,48.10013],"TIMA B":[29.33027,47.67287],"FNTS J":[29.21867,48.09418],"LPGP M":[29.04997,48.14915],"SBAH 3F":[28.77106,48.0555],"SBAH 1C":[28.79652,48.09001],"AHMD B":[29.0873,48.04881],"SDOH C":[29.30169,47.79216],"SBAH 1D":[28.7841,48.0911],"SBAH 2D":[28.80151,48.07794],"SBAH 1F":[28.77563,48.07266],"SBAH 4I":[28.77715,48.05628],"SBAH 1H":[28.79652,48.08493],"ANDL M":[29.30362,47.87809],"SBAH 4H":[28.76812,48.04433],"SBAH 4F":[28.75382,48.04772],"MARF W":[29.00128,48.14879],"SBAH 1Z":[28.81038,48.09883],"SSSM A":[29.21269,48.06581],"OYON A":[29.32484,47.66055],"SBAH 3G":[28.76297,48.06298],"SBAH 3J":[28.7787,48.06604],"MNZR N":[28.71488,48.36668],"SBAH 2E":[28.79069,48.0751],"SBAH 2Z":[28.8104,48.0638],"FNTS C":[29.18503,48.08126],"SBAH 4Z":[28.76658,48.02608],"WAFR 1B":[28.60802,48.02438],"KHPR F":[28.67495,48.36051],"BRGN C":[28.95094,47.88659],"AHMD E":[29.1051,48.07349],"SASC G":[28.67472,48.36106],"RDTN X":[29.82784,47.69077],"SBAH 4B":[28.78676,48.04577],"RDTN W":[29.87486,47.65788],"KNPC A":[29.03248,48.15115],"BG15 B":[29.21807,48.01719],"SBAH 4A":[28.7785,48.03236],"MNGF D":[29.11442,48.13455],"SBAH 4D":[28.76663,48.03434],"SBAH 2K":[28.79065,48.04166],"FHPT A":[29.26865,47.90234],"CMNT A":[29.03804,48.14958],"ABFT C":[29.20346,48.09591],"KHPR E":[28.68293,48.3568],"SLBY N":[29.24812,47.70375],"FNTS H":[29.22728,48.08729],"DOHA M":[29.31279,47.81961],"JAHR P":[29.35254,47.67233],"SARD F":[29.27183,47.94313],"UMQR M":[28.85584,47.72583],"ARDY D":[29.28164,47.88771],"RABA A":[29.28703,47.9432],"FARW M":[29.28028,47.9486],"WJLB A":[29.24487,47.90409],"JALB N":[29.25525,47.93292],"JALB A":[29.26319,47.9243],"SAASC I":[28.67776,48.34813],"KHIT M":[29.27553,47.97019],"AIRP B":[29.18741,47.96986],"JALB C":[29.2615,47.91257],"JWTP":[29.30882,47.92154],"KHIT A":[29.26073,47.99192],"FARW D":[29.28468,47.9549],"MINB D":[28.97006,48.10064],"ARDY W":[29.29665,47.90678],"EARD A":[29.27734,47.91447],"SHTF M":[29.04422,48.12597],"WJLB F":[29.23206,47.90925],"MINB E":[28.98624,48.1322],"RIQE C":[29.30801,47.8893],"KHIT C":[29.28297,47.97098],"FRDS NN":[29.28188,47.87221],"SLBC M":[29.16232,47.78918],"JALB E":[29.24706,47.938],"KHIT E":[29.29645,47.96779],"ARAI A":[29.30979,47.93761],"ARDY B":[29.29251,47.89575],"RIQE A":[29.30444,47.91282],"JALB NM":[29.26846,47.90868],"JALB D":[29.25284,47.92406],"JALB B":[29.25819,47.94043],"WJLB G":[29.24168,47.91609],"SLBY B":[29.27078,47.84057],"SASC 4Z":[28.65018,48.35603],"AIRP M":[29.25361,47.97151],"AIRP A":[29.25145,47.94806],"EXHB M":[29.26243,47.96669],"FARW Q":[29.27856,47.96485],"TIMA A":[29.32548,47.69306],"WJLB H":[29.24303,47.9256],"FARW A":[29.27492,47.95241],"WJLB B":[29.24819,47.89038],"NAVY N":[28.73186,48.28108],"SARD G":[29.27258,47.93361],"FARW C":[29.27983,47.96379],"MINB C":[28.9795,48.08734],"SBNR C":[29.2733,47.87099],"SBNR B":[29.27323,47.88194],"MHBL A":[29.15447,48.11651],"SHPS":[29.35149,47.94033],"WMSH A":[29.27762,48.04589],"JEWN C":[29.31398,47.92461],"JEWN A":[29.31016,47.89468],"SHKH C":[29.3551,47.9554],"UMHN C":[28.96269,48.14843],"TOWN A":[29.36885,47.96691],"SHPT B":[29.32278,47.90977],"ARDY E":[29.29309,47.91771],"AHMD D":[29.0766,48.07381],"FINT A":[29.18528,48.06144],"KHRN M":[28.66635,48.38388],"UNIV C":[29.25566,47.91754],"FAHL C":[29.09387,48.13621],"QURT B":[29.31082,47.98761],"WJLB W":[29.24,47.89066],"KHRN Z":[28.63025,48.31913],"WJLB C":[29.25211,47.87793],"ARAI M":[29.31868,47.9455],"KHIT F":[29.29097,47.97094],"KHIT P":[29.27131,47.98453],"RDTV M":[29.95638,47.67884],"WAFR 1G":[28.60658,48.02971],"QURT A":[29.31211,47.98784],"SBHN B":[29.22451,48.0163],"YARK M":[29.31133,47.97111],"YARK A":[29.30853,47.96349],"ARAI C":[29.3047,47.93874],"MNZR M":[28.738,48.36737],"SNPS":[29.03529,48.15367],"SHPT A":[29.32394,47.8996],"SJAH H":[29.30059,47.71422],"JBAH 8Y":[29.35858,47.77533],"FAHD A":[29.12889,48.1019],"ARAI B":[29.31088,47.94858],"FINT C":[29.17066,48.0733],"SSUR W":[29.28571,48.00377],"FINT E":[29.16647,48.08477],"SBNR D":[29.27762,47.90285],"RIQE D":[29.30759,47.92125],"MASL I":[29.23538,48.0875],"FRRD A":[29.30226,47.97019],"OMAR W":[29.29905,47.9259],"OMAR AE":[29.29779,47.92647],"MNGF E":[29.10308,48.12976],"OMAR A":[29.29849,47.92624],"FRRD W":[29.30233,47.971],"FRRD M":[29.30149,47.97071],"MASL C":[29.21293,48.0961],"AHMD M":[29.09476,48.07838],"ARAI D":[29.30529,47.9426],"MINB F":[28.99433,48.12453],"SALM B":[29.33108,48.07197],"SDIQ A":[29.29726,47.98208],"SHDA B":[29.27313,48.03273],"MINB G":[29.00422,48.11363],"SDIQ B":[29.29315,47.99374],"SDIQ E":[29.28893,47.98481],"SDIQ F":[29.28718,47.99794],"SDIQ C":[29.30001,47.99132],"SRRD A":[29.26676,48.06271],"SRRD W":[29.2667,48.06179],"FNTS A":[29.2031,48.06858],"SDIQ W":[29.30348,47.99739],"NFIN A":[29.19,48.11211],"QURT N":[29.3024,47.99735],"RUMT A":[29.31643,48.07969],"SALM M":[29.32859,48.04674],"JABR Z":[29.30371,48.02111],"SLBY W":[29.20656,47.80643],"QURN W":[29.22056,48.05177],"SLAM C":[29.2923,48.0177],"SBNR A":[29.27192,47.89454],"DOHA W/C":[29.30764,47.81939],"KHIT N":[29.28283,47.98092],"KOCE A":[29.12223,48.13451],"ARAI E":[29.31905,47.94521],"SBSM G":[29.24892,48.08568],"RIQE B":[29.2996,47.90495],"WJLB D":[29.24661,47.91327],"SHKN C":[29.32575,47.93549],"JEWN M":[29.31969,47.91923],"SHPT G":[29.31554,47.89214],"ZAHR E":[29.2751,48.00759],"SHSN M":[29.03353,48.12705],"SALM X":[29.33147,48.07222],"SALM I":[29.32323,48.05674],"SALM C":[29.33623,48.05899],"JEWN B":[29.31165,47.91502],"AMIR E":[29.38501,47.99009],"UNIV W":[29.26091,47.87459],"UNIV H":[29.24886,47.9123],"SBHN C":[29.23464,48.00444],"WAFR N":[28.56182,48.01104],"TRAN M":[29.52711,47.66192],"SJAH E":[29.31206,47.72458],"SLKT E":[29.29907,47.85552],"MASL F":[29.24216,48.08508],"MINB N":[29.00529,48.12925],"FRDS NM":[29.29375,47.86585],"HADY M":[29.15063,48.09005],"MINB P":[28.94907,48.15662],"BG15 A":[28.91253,48.1563],"JBAH 2Y":[29.36078,47.75535],"ENTC M":[29.35363,47.8115],"MINB B":[28.99496,48.11345],"MASL J":[29.2336,48.0944],"UMHN B":[28.95116,48.14909],"RDTN M":[29.87031,47.68049],"FAHL D":[29.0944,48.12132],"SSSM B":[29.22135,48.06662],"MHBL C":[29.14572,48.12516],"ARDY A":[29.29354,47.85406],"KAZM A":[29.39741,47.67299],"SSSM D":[29.23653,48.06147],"MASL A":[29.19471,48.10775],"JAHR M":[29.34956,47.66449],"MIDL B":[29.22719,48.02674],"MIDL A":[29.24738,48.0419],"OGAL C":[29.17621,48.09765],"OGAL A":[29.16535,48.10581],"SABH NM":[29.09224,48.1132],"KHRN A":[28.66261,48.27824],"SHUB X":[29.05873,48.1096],"WAIR M":[29.38295,47.54478],"AHMD A":[29.13782,48.08369],"AHMD W":[29.13884,48.0838],"WAFR AE":[28.5836,48.05846],"MNZR A":[28.73258,48.28121],"KHPR D":[28.67969,48.29992],"MNGF A":[29.11177,48.12051],"FAHL F":[29.08295,48.13716],"ABHF B":[29.12333,48.11853],"DAHR B":[29.15477,48.06868],"DAHR A":[29.16649,48.06303],"DUBY M":[28.93634,48.19693],"MINB A":[28.94872,48.173],"WAFR B":[28.61359,47.91707],"MNZR WC":[28.73341,48.26324],"MNZR B":[28.71519,48.36679],"ABDL M":[30.07756,47.69729],"SALM H":[29.33121,48.05138],"JBAH 11Y":[29.34313,47.7751],"BG06 A":[29.62272,47.7492],"FAHL E":[29.08761,48.12748],"AHRF C":[29.04846,48.11546],"RIGA A":[29.15532,48.10493],"RIGA NM":[29.13503,48.10423],"FAHD B":[29.13341,48.10365],"KHPR B":[28.66511,48.36204],"SBHN E":[29.22773,48.00803],"KHPR A":[28.66962,48.36794],"FAHD C":[29.12312,48.10377],"SLBY C":[29.28071,47.83464],"FINT B":[29.17806,48.12011],"RIGA OM":[29.13535,48.10415],"SABH OM":[29.0924,48.11352],"JBAH 7Y":[29.35612,47.78116],"FNTS B":[29.1846,48.07193],"FAHL G":[29.08099,48.1147],"SHSW A":[29.03263,48.151],"BRGN A":[28.93074,47.9673],"AHRF B":[29.05876,48.12474],"FNTS Z":[29.21227,48.09779],"OGAL D":[29.17365,48.10081],"SBHN D":[29.24086,48.00283],"ABFT B":[29.20682,48.09895],"ABFT D":[29.19858,48.10157],"ABFT F":[29.1869,48.10572],"FNTS I":[29.22643,48.09151],"SBAH 2H":[28.79067,48.06485],"SBAH 2B":[28.80337,48.05968],"ARDY G":[29.28091,47.9141],"RDTN C":[29.83092,47.774],"FNTS D":[29.19482,48.08136],"SBAH 2A":[28.80997,48.04945],"SAAP B":[29.02309,48.15693],"SASC C":[28.66285,48.36168],"FNTS F":[29.18982,48.09015],"SLCL A":[29.02402,48.15127],"KNPC B":[29.03276,48.15115],"ABHF A":[29.13576,48.12563],"JBAH 1Y":[29.35918,47.74998],"UMQR N":[29.0287,47.56338],"AIRP E":[29.20443,47.99685],"AIRP D":[29.20558,47.98534],"AMON A":[29.02596,48.15603],"AIRP SW":[29.20599,47.98512],"SJAH C":[29.30765,47.70406],"SDOH B":[29.29776,47.80142],"UMQR A":[28.89577,47.61701],"SASC 1Z":[28.63519,48.32548],"MNGF B":[29.11047,48.13058],"SBAH 3I":[28.76422,48.08044],"FAHL B":[29.07669,48.12537],"NAVY M":[28.86026,48.27673],"SSSM C":[29.22581,48.05959],"RDTN B":[29.83779,47.78779],"KHIT NM":[29.2756,47.97057],"UMHN A":[28.95821,48.16613],"WAFR M":[28.55902,48.09848],"JBAH AX":[29.34424,47.73721],"TRAN N":[29.50005,47.65838],"WAFR 1C":[28.5906,48.0191],"JBAH 14Y":[29.34077,47.75616],"JBAH E":[29.33311,47.75866],"JBAH 4Y":[29.3509,47.75735],"SLBY A":[29.20566,47.80516],"SLKT B":[29.31199,47.84654],"SJAH B":[29.31365,47.69535],"SABD I":[29.31916,47.71611],"FRDS N":[29.28214,47.87199],"JBAH 4X":[29.34782,47.74706],"MGSH D":[29.05421,47.57869],"SJAH F":[29.31326,47.70916],"JBAH 3X":[29.35409,47.74401],"MPFM M":[29.13807,47.21651],"MGSH E":[28.89105,47.71802],"JAHR C":[29.35632,47.66632],"JBAH 13Y":[29.34569,47.7613],"QASR A":[29.34031,47.6916],"NASM A":[29.31684,47.68726],"SJAH D":[29.3016,47.70457],"JBAH 7X":[29.34831,47.73686],"SABR B":[29.78509,47.83206],"JBAH A":[29.32454,47.77636],"SABD A":[29.30463,47.72479],"JBAH 5Y":[29.35443,47.77094],"JAHR D":[29.34373,47.67015],"JBAH B":[29.32937,47.7686],"FRDS A":[29.29092,47.87279],"SJAH G":[29.3062,47.71871],"RDTV N":[29.95736,47.67698],"UMQR  B ( SUG- B)":[28.82719,47.70103],"SLKT G":[29.33428,47.81216],"RDTN D":[29.8869,47.69989],"SLKT I":[29.32262,47.80341],"SABD C":[29.31225,47.72814],"JBAH D":[29.34077,47.76858],"FRDS M":[29.29424,47.86581],"SLKT H":[29.3216,47.81832],"ABDL A":[30.06342,47.74321],"MGSH B":[28.88495,47.71584],"SLBY Z":[29.20705,47.80557],"UMSH M":[29.87167,47.7236],"SWDC A":[29.66747,47.97115],"SABD B":[29.30459,47.73301],"JBAH 5X":[29.3416,47.74895],"JBAH 1X":[29.34233,47.74038],"ABDY M":[29.04577,47.72028],"RTQA A":[30.0723,47.47229],"SLWT A":[29.25057,47.71626],"SHAG A":[29.20168,47.29951],"SABR A":[29.81998,47.81147],"SLBY D":[29.28962,47.81809],"SLKT M":[29.30874,47.88265],"SABD E":[29.32227,47.74281],"KABD M":[29.14459,47.76857],"MUTL M":[29.40133,47.64133],"JAHR B":[29.33631,47.7188],"SLKT F":[29.32862,47.80084],"SABD H":[29.32489,47.72398],"QASR B":[29.34793,47.68842],"SABD D":[29.3181,47.73933],"SABD G":[29.32195,47.73103],"JBAH C":[29.33603,47.78127],"SABD F":[29.3257,47.73592],"ZSPN":[28.71752,48.37477],"PORT B":[29.35117,47.91468],"ABFT A":[29.19465,48.04918],"AIRP C":[29.25148,47.96962],"ABFT Z":[29.18562,48.10199],"ABDL N":[30.07803,47.69496],"DAIH A":[29.36006,48.02222],"ABFT E":[29.19496,48.10155]};
 
 /* =====================================================================
-   MAINTENANCE — نظام إدارة الصيانة
-   A standalone system, fully separate from HT FAULT: records are
-   maintenance work orders, and every setting and record lives under its
-   own mt* localStorage keys.
+   REPORTS — نظام تقارير الصيانة
+   Two official forms, linked with the maintenance system
+   (MAINTENANCE_MASTER.html, same site so it shares this browser's storage):
+   - Emergency report ("Report for Substation Maintenance Section"): sent to
+     maintenance as an emergency work order; when that order is completed,
+     its "work done" comes back here as the report's Action Taken.
+   - Weekly Annual Maintenance programme (EDN): each row is sent as a
+     preventive work order, and the printed "State" column follows it.
    ===================================================================== */
 const GOVERNORATES = [
   {code:'FARW', name:'الفروانية'},
@@ -1559,750 +1555,688 @@ const GOVERNORATES = [
   {code:'JAH',  name:'الجهراء'},
   {code:'MAB',  name:'مبارك الكبير'}
 ];
-const GOV_NAME_EN = {FARW:'Farwaniya', CAP:'Capital', HAW:'Hawalli', AHM:'Ahmadi', JAH:'Jahra', MAB:'Mubarak Al-Kabeer'};
-const GOV_KEY = 'mtGovernorate';
+const GOV_KEY = 'rpGovernorate';
 let currentGov = 'FARW';
 try{ currentGov = localStorage.getItem(GOV_KEY) || 'FARW'; }catch(e){ currentGov = 'FARW'; }
 (function(){
-  // Arriving from the reports system's link keeps the same governorate.
+  // Arriving from the maintenance system's link keeps the same governorate.
   const m = (location.hash || '').match(/gov=([A-Z]+)/);
-  if(m && ['FARW','CAP','HAW','AHM','JAH','MAB'].includes(m[1])){
+  if(m && GOVERNORATES.some(g => g.code === m[1])){
     currentGov = m[1];
     try{ localStorage.setItem(GOV_KEY, currentGov); }catch(e){}
   }
 })();
 function govName(code){ const g = GOVERNORATES.find(x => x.code === code); return g ? g.name : code; }
-function storageKeyFor(gov){ return 'mtRecords_v1_' + gov; }
-function activityKeyFor(gov){ return 'mtActivityLog_v1_' + gov; }
+const repKeyFor = gov => 'rpReports_v1_' + gov;
+const progKeyFor = gov => 'rpProgrammes_v1_' + gov;
+const SETTINGS_KEY = 'rpSettings_v1';
+// Maintenance system storage (read and written for the link).
+const mtKeyFor = gov => 'mtRecords_v1_' + gov;
+const mtActivityKeyFor = gov => 'mtActivityLog_v1_' + gov;
 
-const STATUSES = {
-  planned:    {ar:'مجدولة',      en:'Planned'},
-  inprogress: {ar:'قيد التنفيذ', en:'In Progress'},
-  completed:  {ar:'منجزة',       en:'Completed'},
-  postponed:  {ar:'مؤجلة',       en:'Postponed'},
-  cancelled:  {ar:'ملغاة',       en:'Cancelled'}
+const MT_STATUS = {
+  planned:'Planned', inprogress:'In Progress', completed:'Completed', postponed:'Postponed', cancelled:'Cancelled'
 };
-// The system has exactly two kinds of maintenance.
-const MT_TYPES = {
-  preventive: {ar:'صيانة وقائية', en:'Preventive', icon:'🛡️'},
-  emergency:  {ar:'صيانة طارئة',  en:'Emergency',  icon:'🚨'}
+const MT_STATUS_AR = {
+  planned:'مجدولة', inprogress:'قيد التنفيذ', completed:'منجزة', postponed:'مؤجلة', cancelled:'ملغاة'
 };
-// Older records may carry the earlier five types — fold them into the two.
-function normalizeMtType(t){
-  return (t === 'emergency' || t === 'corrective') ? 'emergency' : 'preventive';
-}
-function normalizeRecords(list){
-  list.forEach(r => { if(r && typeof r === 'object') r.mtType = normalizeMtType(r.mtType); });
-  return list;
-}
-const EQUIP_TYPES = [
-  'Power Transformer', 'Distribution Transformer (11/0.415 kV)', 'Switchgear / Circuit Breaker', 'RMU',
-  'Cable', 'OHL', 'Protection Relay', 'Battery & Charger', 'RTU / SCADA', 'Earthing System',
-  'Building / Civil', 'Other'
-];
-const RECURRENCES = {
-  none:       {ar:'بدون تكرار', months:0},
-  monthly:    {ar:'شهري',       months:1},
-  quarterly:  {ar:'كل 3 أشهر',  months:3},
-  semiannual: {ar:'كل 6 أشهر',  months:6},
-  annual:     {ar:'سنوي',       months:12}
-};
-// Not finished yet — these count toward "overdue" once the planned date passes.
-const PENDING = ['planned', 'inprogress', 'postponed'];
-
-let data = loadData();
-let editingId = null;
-
-function loadData(){
-  try{
-    const parsed = JSON.parse(localStorage.getItem(storageKeyFor(currentGov)));
-    if(Array.isArray(parsed)) return normalizeRecords(parsed);
-  }catch(e){}
-  return [];
-}
-
-function saveData(){
-  try{ localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(data)); }catch(e){}
-}
-
-function nextId(){ return data.length ? Math.max(...data.map(d => d.id)) + 1 : 1; }
 
 function esc(s){
   return (s ?? "").toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-
-function fmtWid(id){ return 'MT-' + String(id).padStart(4,'0'); }
-
 function pad2(n){ return String(n).padStart(2,'0'); }
 function toISO(d){ return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()); }
 function todayISO(){ return toISO(new Date()); }
-function nowHHMM(){ const n = new Date(); return pad2(n.getHours()) + ':' + pad2(n.getMinutes()); }
-function fmtDateLong(d){ return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}); }
-
-// The date a work order "belongs to" for filtering and reports.
-function refDate(r){ return r.plannedDate || r.startDate || ''; }
-
-// Only scheduled (preventive) work can fall behind its planned date;
-// emergency work is tracked as "open" instead.
-function isOverdue(r){
-  return r.mtType !== 'emergency' && PENDING.includes(r.status) && !!r.plannedDate && r.plannedDate < todayISO();
-}
-
-// Duration in hours between start and end; null when either end is missing.
-function calcDurationHours(sDate, sTime, eDate, eTime){
-  if(!sDate || !eDate) return null;
-  const start = new Date(sDate + 'T' + (sTime || '00:00'));
-  const end = new Date(eDate + 'T' + (eTime || '00:00'));
-  const diff = (end - start) / 3600000;
-  if(isNaN(diff) || diff < 0) return null;
-  return Math.round(diff * 10) / 10;
-}
-
-function addMonthsISO(iso, months){
+function fmtDMY(iso){ if(!iso) return ''; const [y,m,d] = iso.split('-'); return d + '-' + m + '-' + y; }
+function fmtYMDslash(iso){ return iso ? iso.replace(/-/g, '/') : ''; }
+function fmtLongDate(iso){
+  if(!iso) return '';
   const d = new Date(iso + 'T00:00');
-  const day = d.getDate();
-  d.setDate(1);
-  d.setMonth(d.getMonth() + months);
-  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-  d.setDate(Math.min(day, lastDay));
-  return toISO(d);
+  return d.toLocaleDateString('en-GB', {weekday:'long'}) + ', ' + d.getDate() + ' ' + d.toLocaleDateString('en-GB', {month:'long'}) + ', ' + d.getFullYear();
+}
+function fmt12h(hhmm){
+  if(!hhmm) return '';
+  let [h, m] = hhmm.split(':').map(Number);
+  const ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return pad2(h) + ':' + pad2(m) + ' ' + ap;
+}
+function fmtRid(id){ return 'RPT-' + String(id).padStart(4,'0'); }
+function fmtPid(id){ return 'EDN-' + String(id).padStart(4,'0'); }
+function fmtWid(id){ return 'MT-' + String(id).padStart(4,'0'); }
+
+function readJSON(key, fallback){
+  try{ const v = JSON.parse(localStorage.getItem(key)); return v ?? fallback; }catch(e){ return fallback; }
+}
+// Returns false (and warns) when the browser's storage is full — attachments are the usual cause.
+function writeJSON(key, value){
+  try{ localStorage.setItem(key, JSON.stringify(value)); return true; }
+  catch(e){
+    showToast('⚠️ ما انحفظ — مساحة التخزين في المتصفح امتلت. احذف بعض المرفقات أو خذ نسخة احتياطية.', 'error');
+    return false;
+  }
 }
 
-function statusPill(r){
-  const s = STATUSES[r.status] || STATUSES.planned;
-  return `<span class="status-pill ${esc(r.status)}">${s.ar}</span>` + (isOverdue(r) ? '<span class="status-pill overdue">متأخرة</span>' : '');
-}
-function typeBadge(t){
-  const m = MT_TYPES[t];
-  return m ? `<span class="type-badge ${t}">${m.icon} ${m.ar}</span>` : '—';
-}
-function priorityBadge(p){
-  const val = p || 'medium';
-  return `<span class="priority-badge ${val}">${val.charAt(0).toUpperCase() + val.slice(1)}</span>`;
-}
+let reports = readJSON(repKeyFor(currentGov), []);
+let programmes = readJSON(progKeyFor(currentGov), []);
+const DEFAULT_SETTINGS = {
+  dept1:'إدارة شبكات التوزيع الكهربائية', dept2:'', dept3:'طوارئ عبدالله المبارك', dept4:'برنامج عمليات قسم التشغيل',
+  opHead:'', controller:'', distDirector:'', mtHead:'',
+  mtEng:'', mtEngPhone:'', secHead:'', secHeadPhone:'', director:'', directorPhone:'',
+  jabDcc:'', jahDcc:'', farTawary:'', callCenter:'', ednMaint:''
+};
+let settings = Object.assign({}, DEFAULT_SETTINGS, readJSON(SETTINGS_KEY, {}));
+const saveReports = () => writeJSON(repKeyFor(currentGov), reports);
+const savePrograms = () => writeJSON(progKeyFor(currentGov), programmes);
+const nextIdIn = list => list.length ? Math.max(...list.map(x => x.id || 0)) + 1 : 1;
+function deptLine2(){ return settings.dept2 || ('مراقبة محافظة ' + govName(currentGov)); }
 
-/* ===== SELECT OPTIONS ===== */
-function fillSelect(id, entries, allLabel){
-  const el = document.getElementById(id);
-  el.innerHTML = (allLabel ? `<option value="">${allLabel}</option>` : '') +
-    entries.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
-}
-const statusEntries = Object.entries(STATUSES).map(([k, v]) => [k, v.ar]);
-const typeEntries = Object.entries(MT_TYPES).map(([k, v]) => [k, v.ar]);
-const equipEntries = EQUIP_TYPES.map(e => [e, e]);
-fillSelect('m_status', statusEntries);
-fillSelect('m_equipType', equipEntries);
-fillSelect('m_recurrence', Object.entries(RECURRENCES).map(([k, v]) => [k, v.ar]));
-fillSelect('cf_type', typeEntries, 'الكل');
-fillSelect('cf_equip', equipEntries, 'الكل');
-fillSelect('cf_status', statusEntries.concat([['overdue', '⏰ متأخرة']]), 'الكل');
+/* ===== LINK WITH THE MAINTENANCE SYSTEM ===== */
+function loadMt(){ const l = readJSON(mtKeyFor(currentGov), []); return Array.isArray(l) ? l : []; }
+function findMt(id){ return id ? loadMt().find(o => o.id === id) : null; }
 
-document.getElementById('stationList').innerHTML =
-  Object.keys(typeof STATION_COORDS !== 'undefined' ? STATION_COORDS : {}).sort()
-    .map(s => `<option value="${esc(s)}">`).join('');
-
-/* ===== TABLE ===== */
-const tbody = document.getElementById('tbody');
-
-function matchesStatus(r, statusVal){
-  if(!statusVal || statusVal === 'all') return true;
-  if(statusVal === 'overdue') return isOverdue(r);
-  return r.status === statusVal;
+function detectEquipType(text){
+  const t = (text || '').toLowerCase();
+  if(/batter|charger|بطاري|شاحن/.test(t)) return 'Battery & Charger';
+  if(/\brmu\b|ring main/.test(t)) return 'RMU';
+  if(/transformer|\btr\s*-?\d|\bltr|محول/.test(t)) return /0\.415|\bltr|local|distribution/.test(t) ? 'Distribution Transformer (11/0.415 kV)' : 'Power Transformer';
+  if(/breaker|switchgear|\bcb\b|قاطع/.test(t)) return 'Switchgear / Circuit Breaker';
+  if(/relay|protection|ريليه|حماية/.test(t)) return 'Protection Relay';
+  if(/\brtu\b|scada/.test(t)) return 'RTU / SCADA';
+  if(/\bohl\b|overhead/.test(t)) return 'OHL';
+  if(/cable|كيبل|feeder/.test(t)) return 'Cable';
+  return 'Switchgear / Circuit Breaker';
 }
 
-function sortRows(rows){
-  // Overdue first, then pending by nearest planned date, then the rest newest first.
-  const rank = r => isOverdue(r) ? 0 : (PENDING.includes(r.status) ? 1 : 2);
-  return rows.slice().sort((a, b) => {
-    const ra = rank(a), rb = rank(b);
-    if(ra !== rb) return ra - rb;
-    if(ra < 2) return refDate(a).localeCompare(refDate(b));
-    return (refDate(b) + (b.startTime||'')).localeCompare(refDate(a) + (a.startTime||''));
+// Adds new maintenance orders in one write; returns the created ids.
+function createMtOrders(templates){
+  const list = loadMt();
+  const log = readJSON(mtActivityKeyFor(currentGov), []);
+  const ids = [];
+  templates.forEach(t => {
+    const id = list.length ? Math.max(...list.map(o => o.id || 0)) + 1 : 1;
+    list.push(Object.assign({
+      id, sstn:'', equipment:'', equipType:'Other', mtType:'preventive', priority:'medium', status:'planned',
+      plannedDate: todayISO(), recurrence:'none', startDate:'', startTime:'', endDate:'', endTime:'',
+      engineer:'', ptw:'', shutdown:'no', duration:null, affected:'', description:'', workDone:'', spares:'', notes:'',
+      createdAt: new Date().toISOString()
+    }, t, {id}));
+    log.unshift({type:'add', detail:'إضافة ' + fmtWid(id) + ' من نظام التقارير — ' + (t.source ? t.source.label : ''), ts:new Date().toISOString()});
+    ids.push(id);
   });
+  if(!writeJSON(mtKeyFor(currentGov), list)) return null;
+  writeJSON(mtActivityKeyFor(currentGov), log.slice(0, 30));
+  return ids;
+}
+
+function sendReportToMaintenance(rep){
+  const existing = findMt(rep.linkedMtId);
+  if(existing){ showToast('هذا التقرير مرسل من قبل كـ ' + fmtWid(existing.id), 'info'); return; }
+  const findings = (rep.findings || '').split('\n').map(s => s.trim()).filter(Boolean);
+  const eq = (rep.equipment || []).filter(e => e.name || e.type || e.serial);
+  const ids = createMtOrders([{
+    sstn: (rep.sstn || rep.major || '').toUpperCase(),
+    equipment: eq.length ? eq.map(e => [e.name, e.type, e.serial ? 'S/N ' + e.serial : ''].filter(Boolean).join(' ')).join('، ') : (rep.switchgear ? 'Switchgear ' + rep.switchgear : ''),
+    equipType: detectEquipType(findings.join(' ') + ' ' + eq.map(e => e.name + ' ' + e.type).join(' ')),
+    mtType: 'emergency', priority: rep.urgent === 'no' ? 'high' : 'critical', status: 'planned',
+    plannedDate: rep.date || todayISO(),
+    affected: rep.area || '',
+    description: findings.join(' — ') || 'Report ' + (rep.refNo || fmtRid(rep.id)),
+    notes: ['تقرير ' + (rep.refNo || fmtRid(rep.id)), rep.major ? 'Major: ' + rep.major : '', rep.reportedBy ? 'Reported by: ' + rep.reportedBy : ''].filter(Boolean).join(' · '),
+    source: {kind:'report', id: rep.id, label: '📄 ' + (rep.refNo || fmtRid(rep.id))}
+  }]);
+  if(!ids) return;
+  rep.linkedMtId = ids[0];
+  saveReports();
+  showToast('🔗 انرسل لنظام الصيانة كصيانة طارئة ' + fmtWid(ids[0]), 'success');
+}
+
+function sendProgrammeToMaintenance(prog){
+  const pending = prog.rows.filter(r => (r.major || r.circuit) && !findMt(r.mtId));
+  if(!pending.length){ showToast('كل أعمال هذا البرنامج مرسلة لنظام الصيانة', 'info'); return; }
+  const label = 'EDN W' + (prog.weekNo || '?') + ' ' + (prog.group || '');
+  const ids = createMtOrders(pending.map(r => ({
+    sstn: (r.major || '').toUpperCase(),
+    equipment: [r.circuit, r.bay ? 'Bay ' + r.bay : ''].filter(Boolean).join(' — '),
+    equipType: detectEquipType(r.circuit + ' ' + (r.remarks || '')) === 'Battery & Charger' ? 'Battery & Charger' : 'Switchgear / Circuit Breaker',
+    mtType: 'preventive', status: 'planned', plannedDate: r.date || prog.from || todayISO(),
+    startTime: r.timeFrom || '', engineer: settings.mtEng || '',
+    shutdown: 'yes', affected: r.circuit || '',
+    description: 'Annual Maintenance — ' + [r.kv ? r.kv + ' kV' : '', r.make, r.circuit].filter(Boolean).join(' ') + (r.remarks ? ' — ' + r.remarks : ''),
+    notes: 'برنامج الأسبوع ' + (prog.weekNo || '') + ' — ' + (prog.group || '') + (r.block ? ' — Block ' + r.block : ''),
+    source: {kind:'programme', id: prog.id, label: '📄 ' + label.trim()}
+  })));
+  if(!ids) return;
+  pending.forEach((r, i) => { r.mtId = ids[i]; });
+  savePrograms();
+  showToast('🔗 انرسل ' + ids.length + ' عمل لنظام الصيانة كصيانة وقائية', 'success');
+}
+
+// Pulls completed work back from maintenance: Action Taken for reports.
+function syncFromMaintenance(){
+  let changed = false;
+  reports.forEach(rep => {
+    const mt = findMt(rep.linkedMtId);
+    if(mt && mt.status === 'completed' && !rep.actionTaken && (mt.workDone || '').trim()){
+      rep.actionTaken = mt.workDone.trim();
+      rep.actionDate = rep.actionDate || mt.endDate || '';
+      changed = true;
+    }
+  });
+  if(changed) saveReports();
+}
+
+function linkPill(mtId){
+  if(!mtId) return '<span class="link-pill none">غير مرسل</span>';
+  const mt = findMt(mtId);
+  if(!mt) return `<span class="link-pill lost" title="الأمر انحذف من نظام الصيانة">${fmtWid(mtId)} محذوف</span>`;
+  return `<span class="link-pill ${mt.status === 'completed' ? 'done' : ''}">${fmtWid(mt.id)} · ${MT_STATUS_AR[mt.status] || mt.status}</span>`;
+}
+function rowState(r){
+  if(r.state) return r.state;
+  const mt = findMt(r.mtId);
+  return mt ? (MT_STATUS[mt.status] || '') : '';
+}
+
+/* ===== LISTS ===== */
+let activeSection = 'emergency';
+function setSection(sec){
+  activeSection = sec;
+  document.querySelectorAll('.cat-card').forEach(c => c.classList.toggle('active', c.dataset.sec === sec));
+  document.getElementById('secEmergency').classList.toggle('show', sec === 'emergency');
+  document.getElementById('secPreventive').classList.toggle('show', sec === 'preventive');
 }
 
 function render(){
+  syncFromMaintenance();
   const term = document.getElementById('searchBox').value.trim().toLowerCase();
-  const dateVal = document.getElementById('dateFilter').value;
-  const statusVal = document.getElementById('statusFilter').value;
-  const typeVal = categoryFilter;
 
-  let rows = sortRows(data);
-  if(term){
-    rows = rows.filter(r => [fmtWid(r.id), r.sstn, r.equipment, r.equipType, r.engineer, r.ptw, r.description, r.workDone, r.affected, r.spares, r.notes]
-      .join(' ').toLowerCase().includes(term));
-  }
-  if(dateVal) rows = rows.filter(r => refDate(r) === dateVal);
-  rows = rows.filter(r => matchesStatus(r, statusVal));
-  if(typeVal) rows = rows.filter(r => r.mtType === typeVal);
-
-  tbody.innerHTML = '';
-  if(rows.length === 0){
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="15">${data.length ? 'لا توجد أوامر صيانة مطابقة للفلاتر.' : 'لا توجد أوامر صيانة بعد — اضغط "➕ إضافة أمر صيانة" للبدء.'}</td></tr>`;
-  }
-  rows.forEach(r => {
-    const tr = document.createElement('tr');
-    tr.className = 'cat-' + r.mtType;
-    tr.innerHTML = `
-      <td class="fid">${fmtWid(r.id)}${r.source ? `<span class="src-badge" title="من نظام التقارير">${esc(r.source.label)}</span>` : ''}</td>
+  const reps = reports.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id - a.id)
+    .filter(r => !term || [r.refNo, fmtRid(r.id), r.area, r.sstn, r.major, r.findings, r.reportedBy, r.actionTaken].join(' ').toLowerCase().includes(term));
+  const rb = document.getElementById('repBody');
+  rb.innerHTML = reps.length ? reps.map(r => `
+    <tr class="${r.actionTaken ? '' : ''}">
+      <td class="fid">${esc(r.refNo || fmtRid(r.id))}${r.urgent !== 'no' ? '<span class="urgent-pill">URGENT</span>' : ''}</td>
+      <td>${esc(fmtDMY(r.date)) || '—'}</td>
+      <td>${esc(r.area) || '—'}</td>
       <td class="sstn-cell">${esc(r.sstn) || '—'}</td>
-      <td>${esc(r.equipment) || '—'}</td>
-      <td>${esc(r.equipType) || '—'}</td>
-      <td>${typeBadge(r.mtType)}${(r.recurrence && r.recurrence !== 'none') ? `<span class="recur-badge" title="تكرار">🔁 ${esc(RECURRENCES[r.recurrence] ? RECURRENCES[r.recurrence].ar : r.recurrence)}</span>` : ''}</td>
-      <td class="desc-cell" title="${esc(r.description)}">${esc(r.description) || '—'}</td>
-      <td>${esc(r.engineer) || '—'}</td>
-      <td>${esc(r.plannedDate) || '—'}</td>
-      <td>${r.startDate ? esc(r.startDate + ' ' + (r.startTime || '')) : '—'}</td>
-      <td>${r.endDate ? esc(r.endDate + ' ' + (r.endTime || '')) : '—'}</td>
-      <td>${(r.duration || r.duration === 0) ? r.duration : '—'}</td>
-      <td>${esc(r.ptw) || '—'}${r.shutdown === 'yes' ? '<span class="shutdown-badge" title="يتطلب فصل">🔌 فصل</span>' : ''}</td>
-      <td>${priorityBadge(r.priority)}</td>
-      <td>${statusPill(r)}</td>
-      <td>
-        <div class="row-actions">
-          ${(r.status === 'planned' || r.status === 'postponed') ? `<button class="icon-btn start" data-id="${r.id}" title="بدء التنفيذ">▶️</button>` : ''}
-          ${PENDING.includes(r.status) ? `<button class="icon-btn close-fault" data-id="${r.id}" title="تحديد كمنجزة">✔️</button>` : ''}
-          <button class="icon-btn edit" data-id="${r.id}" title="تعديل">✏️</button>
-          <button class="icon-btn wo-print" data-id="${r.id}" title="طباعة أمر العمل">🖨️</button>
-          <button class="icon-btn del" data-id="${r.id}" title="حذف">🗑️</button>
-        </div>
-      </td>`;
-    tbody.appendChild(tr);
-  });
+      <td>${esc(r.major) || '—'}</td>
+      <td class="desc-cell" title="${esc(r.findings)}">${esc((r.findings || '').split('\n').filter(Boolean).join(' • ')) || '—'}</td>
+      <td>${linkPill(r.linkedMtId)}</td>
+      <td class="desc-cell">${r.actionTaken ? '✅ ' + esc(r.actionTaken) : '<span style="color:var(--amber);">⏳ بانتظار الإجراء</span>'}</td>
+      <td><div class="row-actions">
+        <button class="icon-btn print" data-act="print-rep" data-id="${r.id}" title="طباعة التقرير">🖨️</button>
+        <button class="icon-btn edit" data-act="edit-rep" data-id="${r.id}" title="تعديل">✏️</button>
+        ${findMt(r.linkedMtId) ? '' : `<button class="icon-btn send" data-act="send-rep" data-id="${r.id}" title="إرسال لنظام الصيانة">🔗</button>`}
+        <button class="icon-btn del" data-act="del-rep" data-id="${r.id}" title="حذف">🗑️</button>
+      </div></td>
+    </tr>`).join('') : `<tr class="empty-row"><td colspan="9">${reports.length ? 'لا توجد نتائج.' : 'لا توجد تقارير بعد — اضغط "➕ تقرير طارئ".'}</td></tr>`;
 
-  tbody.querySelectorAll('.edit').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.id))));
-  tbody.querySelectorAll('.wo-print').forEach(b => b.addEventListener('click', () => printWorkOrder(parseInt(b.dataset.id))));
-  tbody.querySelectorAll('.del').forEach(b => b.addEventListener('click', () => deleteRecord(parseInt(b.dataset.id))));
-  tbody.querySelectorAll('.start').forEach(b => b.addEventListener('click', () => startWork(parseInt(b.dataset.id))));
-  tbody.querySelectorAll('.close-fault').forEach(b => b.addEventListener('click', () => completeWork(parseInt(b.dataset.id))));
+  const progs = programmes.slice().sort((a, b) => (b.from || '').localeCompare(a.from || '') || b.id - a.id)
+    .filter(p => !term || [fmtPid(p.id), p.weekNo, p.group, ...p.rows.map(r => r.major + ' ' + r.circuit + ' ' + r.remarks)].join(' ').toLowerCase().includes(term));
+  const pb = document.getElementById('progBody');
+  pb.innerHTML = progs.length ? progs.map(p => {
+    const sent = p.rows.filter(r => findMt(r.mtId));
+    const done = sent.filter(r => findMt(r.mtId).status === 'completed').length;
+    const majors = [...new Set(p.rows.map(r => r.major).filter(Boolean))].join('، ');
+    const pill = !sent.length ? '<span class="link-pill none">غير مرسل</span>'
+      : `<span class="link-pill ${done === p.rows.length ? 'done' : ''}">${sent.length}/${p.rows.length} مرسل · ${done} منجز</span>`;
+    return `<tr>
+      <td class="fid">${esc(p.weekNo) || '—'}</td>
+      <td>${esc(p.group) || '—'}</td>
+      <td>${esc(p.from) || '—'}</td>
+      <td>${esc(p.to) || '—'}</td>
+      <td class="desc-cell" title="${esc(majors)}">${esc(majors) || '—'}</td>
+      <td>${p.rows.length}</td>
+      <td>${pill}</td>
+      <td><div class="row-actions">
+        <button class="icon-btn print" data-act="print-prog" data-id="${p.id}" title="طباعة البرنامج">🖨️</button>
+        <button class="icon-btn edit" data-act="edit-prog" data-id="${p.id}" title="تعديل">✏️</button>
+        ${sent.length < p.rows.length ? `<button class="icon-btn send" data-act="send-prog" data-id="${p.id}" title="إرسال لنظام الصيانة">🔗</button>` : ''}
+        <button class="icon-btn del" data-act="del-prog" data-id="${p.id}" title="حذف">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('') : `<tr class="empty-row"><td colspan="8">${programmes.length ? 'لا توجد نتائج.' : 'لا توجد برامج بعد — اضغط "➕ برنامج أسبوعي".'}</td></tr>`;
 
-  document.getElementById('recCount').textContent = rows.length + ' معروض';
-  document.getElementById('footCount').textContent = data.length + ' إجمالي السجلات';
-  updateStats();
-  refreshActiveReport();
+  document.getElementById('repCount').textContent = reps.length + ' معروض';
+  document.getElementById('progCount').textContent = progs.length + ' معروض';
+  const allRows = programmes.flatMap(p => p.rows);
+  document.getElementById('sRepTotal').textContent = reports.length;
+  document.getElementById('sRepOpen').textContent = reports.filter(r => !r.actionTaken).length;
+  document.getElementById('sRepDone').textContent = reports.filter(r => r.actionTaken).length;
+  document.getElementById('sProgTotal').textContent = programmes.length;
+  document.getElementById('sProgRows').textContent = allRows.length;
+  document.getElementById('sProgDone').textContent = allRows.filter(r => { const m = findMt(r.mtId); return m && m.status === 'completed'; }).length;
 }
 
-function animateNumber(el, endValue, decimals){
-  const startVal = parseFloat(el.dataset.val || '0');
-  const startTime = performance.now();
-  function step(now){
-    const p = Math.min((now - startTime) / 450, 1);
-    const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = (startVal + (endValue - startVal) * eased).toFixed(decimals);
-    if(p < 1) requestAnimationFrame(step);
-    else el.dataset.val = endValue;
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if(!b) return;
+  const id = parseInt(b.dataset.id);
+  const rep = reports.find(r => r.id === id);
+  const prog = programmes.find(p => p.id === id);
+  switch(b.dataset.act){
+    case 'print-rep': printEmergencyReport(rep); break;
+    case 'edit-rep': openReportModal(id); break;
+    case 'send-rep': sendReportToMaintenance(rep); render(); break;
+    case 'del-rep':
+      if(!confirm('حذف التقرير ' + (rep.refNo || fmtRid(id)) + '؟ (أمر الصيانة المرتبط يظل في نظام الصيانة)')) return;
+      reports = reports.filter(r => r.id !== id); saveReports(); render(); showToast('تم حذف التقرير', 'info'); break;
+    case 'print-prog': printProgramme(prog); break;
+    case 'edit-prog': openProgModal(id); break;
+    case 'send-prog': sendProgrammeToMaintenance(prog); render(); break;
+    case 'del-prog':
+      if(!confirm('حذف برنامج الأسبوع ' + (prog.weekNo || '') + '؟ (أوامر الصيانة المرتبطة تظل في نظام الصيانة)')) return;
+      programmes = programmes.filter(p => p.id !== id); savePrograms(); render(); showToast('تم حذف البرنامج', 'info'); break;
   }
-  requestAnimationFrame(step);
-}
-
-function computeStats(records){
-  const count = s => records.filter(r => r.status === s).length;
-  const total = records.length;
-  const completed = count('completed');
-  const cancelled = count('cancelled');
-  const overdue = records.filter(isOverdue).length;
-  const durations = records.filter(r => r.status === 'completed' && r.duration > 0).map(r => r.duration);
-  const avgDur = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length * 10) / 10 : 0;
-  // Cancelled orders are excluded so they don't drag the completion rate down.
-  const base = total - cancelled;
-  const rate = base ? Math.round(completed / base * 100) : 0;
-  const shutdownPending = records.filter(r => r.shutdown === 'yes' && PENDING.includes(r.status)).length;
-  return {total, planned: count('planned'), inprogress: count('inprogress'), completed, postponed: count('postponed'), cancelled, overdue, avgDur, rate, shutdownPending};
-}
-
-function updateCategoryCards(){
-  const p = computeStats(data.filter(r => r.mtType === 'preventive'));
-  const e = computeStats(data.filter(r => r.mtType === 'emergency'));
-  const set = (id, v) => { document.getElementById(id).textContent = v; };
-  set('pTotal', p.total); set('pPending', p.planned + p.inprogress + p.postponed); set('pOverdue', p.overdue); set('pRate', p.rate + '%');
-  set('eTotal', e.total); set('eOpen', e.planned + e.inprogress + e.postponed); set('eDone', e.completed); set('eDur', e.avgDur);
-}
-
-function updateStats(){
-  updateCategoryCards();
-  const s = computeStats(data);
-  animateNumber(document.querySelector('#kTotal .num-part'), s.total, 0);
-  animateNumber(document.querySelector('#kPlanned .num-part'), s.planned, 0);
-  animateNumber(document.querySelector('#kProgress .num-part'), s.inprogress, 0);
-  animateNumber(document.querySelector('#kDone .num-part'), s.completed, 0);
-  animateNumber(document.querySelector('#kOverdue .num-part'), s.overdue, 0);
-  animateNumber(document.querySelector('#kRate .num-part'), s.rate, 0);
-  animateNumber(document.querySelector('#kDur .num-part'), s.avgDur, 1);
-  animateNumber(document.querySelector('#kShutdown .num-part'), s.shutdownPending, 0);
-
-  updateAlarmBanner();
-  renderUpcoming();
-  renderRanking();
-  renderDonut(s);
-  document.getElementById('byTypeBars').innerHTML = barsHtml(groupCount(data, r => MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].ar : ''));
-  document.getElementById('byEquipBars').innerHTML = barsHtml(groupCount(data, r => r.equipType));
-}
-
-function updateAlarmBanner(){
-  const late = data.filter(isOverdue);
-  const openEmerg = data.filter(r => r.mtType === 'emergency' && PENDING.includes(r.status));
-  const banner = document.getElementById('alarmBanner');
-  if(!late.length && !openEmerg.length){ banner.style.display = 'none'; return; }
-  banner.style.display = 'flex';
-  const parts = [];
-  if(openEmerg.length) parts.push(`🚨 ${openEmerg.length} صيانة طارئة مفتوحة: ` +
-    openEmerg.slice(0, 6).map(r => `${fmtWid(r.id)} ${r.sstn || ''} ${r.equipment || ''}`).join(' • '));
-  if(late.length) parts.push(`⏰ ${late.length} صيانة وقائية متأخرة عن موعدها: ` +
-    late.slice(0, 6).map(r => `${fmtWid(r.id)} ${r.sstn || ''} ${r.equipment || ''} (${r.plannedDate})`).join(' • '));
-  document.getElementById('alarmText').textContent = parts.join('   ||   ');
-}
-
-function renderUpcoming(){
-  const today = todayISO();
-  const limit = toISO(new Date(Date.now() + 7 * 86400000));
-  const list = data.filter(r => PENDING.includes(r.status) && r.plannedDate && r.plannedDate <= limit)
-    .sort((a, b) => a.plannedDate.localeCompare(b.plannedDate));
-  const el = document.getElementById('upcomingList');
-  if(!list.length){
-    el.innerHTML = '<div class="activity-empty">لا توجد أعمال متأخرة أو مجدولة خلال 7 أيام.</div>';
-    return;
-  }
-  el.innerHTML = list.map(r => `
-    <div class="up-item ${r.plannedDate < today ? 'late' : ''}" data-id="${r.id}">
-      <span class="when">${r.plannedDate === today ? 'اليوم' : esc(r.plannedDate)}</span>
-      <span class="fid">${fmtWid(r.id)}</span>
-      <span class="what">${esc(r.sstn || '—')} — ${esc(r.equipment || r.equipType || '')}</span>
-      ${typeBadge(r.mtType)}
-    </div>`).join('');
-  el.querySelectorAll('.up-item').forEach(i => i.addEventListener('click', () => openModal(parseInt(i.dataset.id))));
-}
-
-function renderRanking(){
-  const counts = {};
-  data.filter(r => r.status === 'completed').forEach(r => {
-    (r.engineer || '').split(/[،,]/).map(s => s.trim()).filter(Boolean).forEach(n => { counts[n] = (counts[n] || 0) + 1; });
-  });
-  const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
-  const el = document.getElementById('rankingList');
-  if(!rows.length){ el.innerHTML = '<div class="activity-empty">يظهر الترتيب بعد إنجاز أوامر صيانة بأسماء الفرق.</div>'; return; }
-  const max = rows[0][1];
-  const medals = ['🥇', '🥈', '🥉'];
-  el.innerHTML = rows.map(([n, c], i) => `
-    <div class="rank-row">
-      <span class="rank-medal">${medals[i] || (i + 1)}</span>
-      <span class="rank-name">${esc(n)}</span>
-      <div class="rank-bar-track"><div class="rank-bar-fill" style="width:${(c / max * 100).toFixed(0)}%"></div></div>
-      <span class="rank-count">${c}</span>
-    </div>`).join('');
-}
-
-function renderDonut(s){
-  const container = document.getElementById('donutContainer');
-  const parts = [
-    ['planned', s.planned, 'var(--e-blue)'],
-    ['inprogress', s.inprogress, 'var(--amber)'],
-    ['completed', s.completed, 'var(--green)'],
-    ['postponed', s.postponed, '#b69cff'],
-    ['cancelled', s.cancelled, 'var(--mute)']
-  ];
-  if(!s.total){ container.innerHTML = '<div class="activity-empty">لا توجد بيانات بعد.</div>'; return; }
-  const c = 2 * Math.PI * 40;
-  let offset = 0;
-  const arcs = parts.filter(p => p[1] > 0).map(([, v, col]) => {
-    const len = v / s.total * c;
-    const arc = `<circle cx="50" cy="50" r="40" fill="none" stroke="${col}" stroke-width="14"
-      stroke-dasharray="${len.toFixed(2)} ${(c - len).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}" transform="rotate(-90 50 50)"/>`;
-    offset += len;
-    return arc;
-  }).join('');
-  container.innerHTML = `
-    <div class="donut-wrap">
-      <svg width="110" height="110" viewBox="0 0 100 100">${arcs}
-        <text x="50" y="55" text-anchor="middle" font-size="18" font-weight="700" fill="var(--text)">${s.total}</text>
-      </svg>
-      <div class="donut-legend">
-        ${parts.map(([k, v, col]) => `<div><span class="sw" style="background:${col};"></span>${STATUSES[k].ar} — ${v}</div>`).join('')}
-      </div>
-    </div>`;
-}
-
-function groupCount(records, keyFn){
-  const out = {};
-  records.forEach(r => { const k = (keyFn(r) || '').trim(); if(k) out[k] = (out[k] || 0) + 1; });
-  return out;
-}
-
-function barsHtml(obj){
-  const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]);
-  if(!entries.length) return '<div class="no-data">لا توجد بيانات.</div>';
-  const max = entries[0][1];
-  return entries.map(([k, v]) => `
-    <div class="rbar-row">
-      <span title="${esc(k)}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(k)}</span>
-      <div class="rbar-track"><div class="rbar-fill" style="width:${(v / max * 100).toFixed(0)}%"></div></div>
-      <span class="rbar-val">${v}</span>
-    </div>`).join('');
-}
-
-/* ===== ACTIONS ===== */
-function deleteRecord(id){
-  if(!confirm('حذف أمر الصيانة ' + fmtWid(id) + '؟ لا يمكن التراجع.')) return;
-  const rec = data.find(d => d.id === id);
-  data = data.filter(d => d.id !== id);
-  saveData();
-  logActivity('del', 'حذف ' + fmtWid(id) + (rec ? ' — ' + (rec.sstn || '') : ''));
-  showToast('تم حذف أمر الصيانة', 'info');
-  render();
-}
-
-function startWork(id){
-  const rec = data.find(d => d.id === id);
-  if(!rec) return;
-  rec.status = 'inprogress';
-  if(!rec.startDate){ rec.startDate = todayISO(); rec.startTime = nowHHMM(); }
-  saveData();
-  logActivity('edit', 'بدء تنفيذ ' + fmtWid(id) + ' — ' + (rec.sstn || ''));
-  showToast(fmtWid(id) + ' قيد التنفيذ الآن', 'success');
-  render();
-}
-
-function completeWork(id){
-  const rec = data.find(d => d.id === id);
-  if(!rec) return;
-  const workDone = prompt('العمل المنجز (اختياري):', rec.workDone || '');
-  if(workDone === null) return;
-  rec.workDone = workDone.trim();
-  rec.status = 'completed';
-  if(!rec.startDate){ rec.startDate = rec.plannedDate || todayISO(); }
-  rec.endDate = todayISO();
-  rec.endTime = nowHHMM();
-  const dur = calcDurationHours(rec.startDate, rec.startTime, rec.endDate, rec.endTime);
-  if(dur !== null) rec.duration = dur;
-  const next = scheduleNextRecurrence(rec);
-  saveData();
-  logActivity('close', 'إنجاز ' + fmtWid(id) + ' — ' + (rec.sstn || ''));
-  showToast(fmtWid(id) + ' تم تحديده كمنجز' + (next ? ' — وتمت جدولة الدورة القادمة ' + fmtWid(next.id) : ''), 'success');
-  render();
-}
-
-// When a recurring order is completed, create the next cycle automatically
-// (once — nextScheduledId stops a re-save from creating duplicates).
-function scheduleNextRecurrence(rec){
-  const rc = RECURRENCES[rec.recurrence];
-  if(!rc || !rc.months || rec.nextScheduledId) return null;
-  const base = rec.plannedDate || rec.endDate || todayISO();
-  const next = {
-    id: nextId(), sstn: rec.sstn, equipment: rec.equipment, equipType: rec.equipType, mtType: rec.mtType,
-    priority: rec.priority, status: 'planned', plannedDate: addMonthsISO(base, rc.months),
-    startDate: '', startTime: '', endDate: '', endTime: '', duration: null,
-    engineer: rec.engineer, ptw: '', shutdown: rec.shutdown, affected: rec.affected,
-    description: rec.description, workDone: '', spares: '', recurrence: rec.recurrence,
-    notes: 'دورة تلقائية بعد ' + fmtWid(rec.id), createdAt: new Date().toISOString()
-  };
-  data.push(next);
-  rec.nextScheduledId = next.id;
-  logActivity('add', 'جدولة تلقائية ' + fmtWid(next.id) + ' بتاريخ ' + next.plannedDate);
-  return next;
-}
-
-/* ===== MODAL ===== */
-const FIELDS = ['sstn','equipment','equipType','mtType','priority','status','plannedDate','recurrence','startDate','startTime','endDate','endTime','engineer','ptw','shutdown','duration','affected','description','workDone','spares','notes'];
-
-function openModal(id, category){
-  editingId = id || null;
-  const rec = id ? data.find(d => d.id === id) : null;
-  const cat = rec ? rec.mtType : (category || 'preventive');
-  // Emergency work is usually already happening: start it now, high priority.
-  const defaults = cat === 'emergency'
-    ? {equipType: EQUIP_TYPES[0], mtType:'emergency', priority:'high', status:'inprogress', recurrence:'none', shutdown:'no', plannedDate: todayISO(), startDate: todayISO(), startTime: nowHHMM()}
-    : {equipType: EQUIP_TYPES[0], mtType:'preventive', priority:'medium', status:'planned', recurrence:'none', shutdown:'no', plannedDate: todayISO()};
-  FIELDS.forEach(f => {
-    const el = document.getElementById('m_' + f);
-    const v = rec ? rec[f] : defaults[f];
-    el.value = (v === null || v === undefined) ? '' : v;
-    if(el.tagName === 'SELECT' && !el.value && el.options.length) el.selectedIndex = 0;
-  });
-  applyModalCategory(cat);
-  setEntryMode('manual');
-  document.getElementById('scanPasteBox').value = '';
-  setScanStatus('', '');
-  document.getElementById('modalOverlay').classList.add('show');
-  setTimeout(() => document.getElementById('m_sstn').focus(), 50);
-}
-
-function applyModalCategory(cat){
-  document.getElementById('m_mtType').value = cat;
-  const isEm = cat === 'emergency';
-  document.querySelectorAll('.cat-switch button').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
-  document.getElementById('modalHead').className = 'modal-head ' + cat;
-  document.getElementById('modalTitle').textContent = (editingId ? 'تعديل ' + fmtWid(editingId) + ' — ' : 'إضافة ') + MT_TYPES[cat].icon + ' ' + MT_TYPES[cat].ar;
-  document.getElementById('plannedDateLabel').textContent = isEm ? 'تاريخ البلاغ' : 'التاريخ المخطط';
-  document.getElementById('recurrenceField').style.display = isEm ? 'none' : '';
-  document.getElementById('m_description').placeholder = isEm
-    ? 'مثال: RMU FARW 43 tripped — cable end termination burnt, needs urgent replacement.'
-    : 'مثال: Annual preventive maintenance for TR-2 — oil test, tap changer inspection, terminal tightening.';
-  if(isEm) document.getElementById('m_recurrence').value = 'none';
-  document.getElementById('modalSaveBtn').className = 'btn ' + (isEm ? 'emerg-add' : 'prev-add');
-  document.getElementById('modalSaveBtn').textContent = isEm ? '🚨 حفظ الصيانة الطارئة' : '🛡️ حفظ الصيانة الوقائية';
-}
-document.querySelectorAll('.cat-switch button').forEach(b => b.addEventListener('click', () => {
-  const cat = b.dataset.cat;
-  applyModalCategory(cat);
-  if(!editingId && cat === 'emergency'){
-    if(document.getElementById('m_status').value === 'planned') document.getElementById('m_status').value = 'inprogress';
-    if(!document.getElementById('m_startDate').value){ document.getElementById('m_startDate').value = todayISO(); document.getElementById('m_startTime').value = nowHHMM(); }
-    if(document.getElementById('m_priority').value === 'medium') document.getElementById('m_priority').value = 'high';
-  }
-}));
-
-function closeModal(){
-  document.getElementById('modalOverlay').classList.remove('show');
-  editingId = null;
-}
-
-function autoDuration(){
-  const g = f => document.getElementById('m_' + f).value;
-  const dur = calcDurationHours(g('startDate'), g('startTime'), g('endDate'), g('endTime'));
-  if(dur !== null) document.getElementById('m_duration').value = dur;
-}
-['startDate','startTime','endDate','endTime'].forEach(f => document.getElementById('m_' + f).addEventListener('change', autoDuration));
-
-function saveModal(){
-  const rec = {};
-  FIELDS.forEach(f => { rec[f] = document.getElementById('m_' + f).value.trim(); });
-  rec.sstn = rec.sstn.toUpperCase();
-  rec.duration = rec.duration === '' ? null : parseFloat(rec.duration);
-  if(!rec.sstn && !rec.equipment){ showToast('أدخل المحطة أو المعدة على الأقل', 'error'); return; }
-  if(!rec.plannedDate && !rec.startDate){ showToast('أدخل التاريخ المخطط أو تاريخ البدء', 'error'); return; }
-  if(rec.status === 'completed' && !rec.endDate){ rec.endDate = todayISO(); rec.endTime = rec.endTime || nowHHMM(); }
-  if(rec.status === 'inprogress' && !rec.startDate){ rec.startDate = todayISO(); rec.startTime = rec.startTime || nowHHMM(); }
-  if(rec.duration === null){
-    const dur = calcDurationHours(rec.startDate, rec.startTime, rec.endDate, rec.endTime);
-    if(dur !== null) rec.duration = dur;
-  }
-
-  let saved;
-  if(editingId){
-    const idx = data.findIndex(d => d.id === editingId);
-    saved = Object.assign({}, data[idx], rec);
-    data[idx] = saved;
-    logActivity(rec.status === 'completed' ? 'close' : 'edit', 'تعديل ' + fmtWid(editingId) + ' — ' + (rec.sstn || ''));
-  } else {
-    saved = Object.assign({id: nextId(), createdAt: new Date().toISOString()}, rec);
-    data.push(saved);
-    logActivity('add', 'إضافة ' + fmtWid(saved.id) + ' — ' + (rec.sstn || '') + ' ' + (rec.equipment || ''));
-  }
-  const next = saved.status === 'completed' ? scheduleNextRecurrence(saved) : null;
-  saveData();
-  showToast('تم حفظ ' + fmtWid(saved.id) + (next ? ' — وتمت جدولة الدورة القادمة ' + fmtWid(next.id) : ''), 'success');
-  closeModal();
-  render();
-}
-
-/* ===== PASTE & AUTO-FILL =====
-   Reads "Label : value" lines (English or Arabic) from a pasted WhatsApp /
-   email message. Unlabelled lines continue the previous field, and if no
-   label is recognised at all the whole text becomes the work description. */
-function setEntryMode(mode){
-  document.getElementById('modeManualBtn').classList.toggle('active', mode === 'manual');
-  document.getElementById('modeScanBtn').classList.toggle('active', mode === 'scan');
-  document.getElementById('scanPanel').style.display = mode === 'scan' ? 'block' : 'none';
-}
-function setScanStatus(text, cls){
-  const el = document.getElementById('scanStatus');
-  el.textContent = text;
-  el.className = 'scan-status' + (cls ? ' ' + cls : '');
-}
-document.getElementById('modeManualBtn').addEventListener('click', () => setEntryMode('manual'));
-document.getElementById('modeScanBtn').addEventListener('click', () => {
-  setEntryMode('scan');
-  setTimeout(() => document.getElementById('scanPasteBox').focus(), 30);
 });
 
-function normalizeArabicDigits(str){
-  return str.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-}
-function parseDateIn(text){
-  let m = text.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
-  if(m) return m[1] + '-' + pad2(m[2]) + '-' + pad2(m[3]);
-  m = text.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);
-  if(m){
-    const y = m[3].length === 2 ? '20' + m[3] : m[3];
-    return y + '-' + pad2(m[2]) + '-' + pad2(m[1]); // day/month/year, as written locally
+document.querySelectorAll('.cat-card').forEach(c => c.addEventListener('click', e => {
+  if(e.target.closest('button')) return;
+  setSection(c.dataset.sec);
+}));
+document.getElementById('searchBox').addEventListener('input', render);
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
+function openModalEl(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target === o) closeModal(o.id); }));
+document.addEventListener('keydown', e => { if(e.key === 'Escape') document.querySelectorAll('.modal-overlay.show').forEach(o => closeModal(o.id)); });
+
+/* ===== ATTACHMENTS (images, or PDF pages rendered to images) =====
+   Downscaled to JPEG so a few diagrams fit in the browser's storage. */
+let pdfJsPromise = null;
+function loadPdfJs(){
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(!pdfJsPromise){
+    pdfJsPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = () => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        resolve(window.pdfjsLib);
+      };
+      s.onerror = () => { pdfJsPromise = null; reject(new Error('pdf.js')); };
+      document.head.appendChild(s);
+    });
   }
-  return '';
+  return pdfJsPromise;
 }
-function parseTimeIn(text){
-  let m = text.match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b(?![-\/.]\d)/);
-  if(m) return pad2(m[1]) + ':' + m[2];
-  m = text.match(/\b([01]\d|2[0-3])([0-5]\d)\s*hrs?\b/i);
-  if(m) return m[1] + ':' + m[2];
-  return '';
+function canvasToJpeg(canvas){ return canvas.toDataURL('image/jpeg', 0.72); }
+function imageFileToDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, 1800 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(canvasToJpeg(c));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image')); };
+    img.src = url;
+  });
 }
-function detectEquipType(text){
-  const t = text.toLowerCase();
-  if(/\brmu\b|r\/m\b|ring main/.test(t)) return 'RMU';
-  if(/transformer|\btr\s*-?\d|\bltr|محول/.test(t)) return /0\.415|\bltr|local|distribution|توزيع/.test(t) ? 'Distribution Transformer (11/0.415 kV)' : 'Power Transformer';
-  if(/breaker|switchgear|\bcb\b|قاطع|لوحة/.test(t)) return 'Switchgear / Circuit Breaker';
-  if(/relay|protection|ريليه|حماية/.test(t)) return 'Protection Relay';
-  if(/batter|charger|بطاري|شاحن/.test(t)) return 'Battery & Charger';
-  if(/\brtu\b|scada|سكادا/.test(t)) return 'RTU / SCADA';
-  if(/\bohl\b|overhead|خط هوائي/.test(t)) return 'OHL';
-  if(/cable|كيبل|كابل/.test(t)) return 'Cable';
-  if(/earth|grounding|تأريض/.test(t)) return 'Earthing System';
-  if(/feeder|مغذي/.test(t)) return 'Cable';
-  return '';
+async function pdfFileToDataUrls(file, onProgress){
+  const pdfjs = await loadPdfJs();
+  const pdf = await pdfjs.getDocument({data: await file.arrayBuffer()}).promise;
+  const out = [];
+  for(let i = 1; i <= pdf.numPages; i++){
+    onProgress(i, pdf.numPages);
+    const page = await pdf.getPage(i);
+    const base = page.getViewport({scale:1});
+    const viewport = page.getViewport({scale: 1800 / Math.max(base.width, base.height)});
+    const c = document.createElement('canvas');
+    c.width = Math.round(viewport.width); c.height = Math.round(viewport.height);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    await page.render({canvasContext: ctx, viewport}).promise;
+    out.push({name: file.name + ' — ' + i, src: canvasToJpeg(c)});
+  }
+  return out;
 }
-function detectMtType(text){
-  const t = text.toLowerCase();
-  if(/emergenc|urgent|breakdown|corrective|repair|trip|طارئ|عاجل|تصحيح|إصلاح|اصلاح|عطل/.test(t)) return 'emergency';
-  if(/preventive|\bpm\b|routine|periodic|annual|inspect|patrol|\btest|وقائي|دوري|فحص|تفتيش|اختبار/.test(t)) return 'preventive';
-  return '';
-}
-const PASTE_LABELS = [
-  ['workDone', /^(work\s*done|done|action\s*taken|العمل المنجز|المنجز|تم عمل)$/i],
-  ['sstn', /^(s\.?\s*stn|s\/s|sub\s*station|station|المحطة|محطة)$/i],
-  ['equipment', /^(equipment|equip\.?|asset|المعدة|معدة|الجهاز)$/i],
-  ['mtType', /^(type|maint(enance)?\s*type|نوع الصيانة|النوع)$/i],
-  ['plannedDate', /^(date|planned\s*date|schedule[d]?|التاريخ|تاريخ|الموعد)$/i],
-  ['startTime', /^(time|start\s*time|الوقت|وقت|وقت البدء)$/i],
-  ['ptw', /^(ptw|ptw\s*no\.?|permit|permit\s*no\.?|تصريح|رقم التصريح)$/i],
-  ['engineer', /^(team|engineer|eng\.?|by|crew|الفريق|المهندس|فريق العمل)$/i],
-  ['shutdown', /^(shutdown|outage|isolation|فصل|الفصل)$/i],
-  ['description', /^(work|job|scope|description|details|task|الوصف|العمل|وصف العمل|المطلوب)$/i],
-  ['spares', /^(spares?|materials?|parts|قطع الغيار|المواد)$/i],
-  ['notes', /^(notes?|remarks?|ملاحظات|ملاحظة)$/i],
-  ['priority', /^(priority|الأولوية|الاولوية)$/i]
-];
-function parseMaintenanceText(raw){
-  const text = normalizeArabicDigits(raw || '');
-  const found = {};
-  let current = null;
-  text.split(/\r?\n/).forEach(line => {
-    const trimmed = line.trim();
-    if(!trimmed) return;
-    const m = trimmed.match(/^([^:：\-–]{1,30}?)\s*[:：\-–]\s*(.*)$/);
-    const hit = m && PASTE_LABELS.find(([, re]) => re.test(m[1].trim().replace(/\s+/g, ' ')));
-    if(hit){
-      current = hit[0];
-      found[current] = (found[current] ? found[current] + ' ' : '') + m[2].trim();
-    } else if(current){
-      found[current] += '\n' + trimmed;
-    } else {
-      found._free = (found._free ? found._free + '\n' : '') + trimmed;
+function wireAttachments(prefix, getList){
+  const input = document.getElementById(prefix + '_attInput');
+  const status = document.getElementById(prefix + '_attStatus');
+  document.getElementById(prefix + '_attBtn').addEventListener('click', () => input.click());
+  input.addEventListener('change', async () => {
+    const files = [...input.files];
+    input.value = '';
+    for(const f of files){
+      try{
+        if(f.type === 'application/pdf' || /\.pdf$/i.test(f.name)){
+          const pages = await pdfFileToDataUrls(f, (i, n) => { status.textContent = '⏳ ' + f.name + ' — صفحة ' + i + ' من ' + n; });
+          getList().push(...pages);
+        } else {
+          status.textContent = '⏳ ' + f.name;
+          getList().push({name: f.name, src: await imageFileToDataUrl(f)});
+        }
+      }catch(err){
+        showToast('تعذر قراءة ' + f.name + (err.message === 'pdf.js' ? ' — تأكد من الاتصال بالإنترنت لقراءة ملفات PDF' : ''), 'error');
+      }
     }
+    status.textContent = '';
+    renderAttachments(prefix, getList());
   });
+}
+function renderAttachments(prefix, list){
+  const el = document.getElementById(prefix + '_attList');
+  el.innerHTML = list.map((a, i) => `
+    <div class="att-thumb"><img src="${a.src}" alt=""><div class="cap" title="${esc(a.name)}">${esc(a.name)}</div>
+    <button type="button" data-att-del="${i}" title="حذف">✕</button></div>`).join('');
+  el.querySelectorAll('[data-att-del]').forEach(b => b.addEventListener('click', () => {
+    list.splice(parseInt(b.dataset.attDel), 1);
+    renderAttachments(prefix, list);
+  }));
+}
 
-  const out = {};
-  if(found.sstn) out.sstn = found.sstn.replace(/\.$/, '').toUpperCase();
-  if(found.equipment) out.equipment = found.equipment.replace(/\.$/, '');
-  if(found.engineer) out.engineer = found.engineer.replace(/\.$/, '');
-  if(found.description) out.description = found.description;
-  if(found.workDone) out.workDone = found.workDone;
-  if(found.spares) out.spares = found.spares;
-  if(found.notes) out.notes = found.notes;
-  if(found._free) out.description = out.description ? out.description + '\n' + found._free : found._free;
+/* ===== EMERGENCY REPORT FORM ===== */
+const REP_FIELDS = ['refNo','refDate','date','urgent','area','sstn','major','switchgear','lastMaint','reportedBy','findings','actionTaken','actionDate','preparedBy'];
+let editingRepId = null;
+let repAttachments = [];
+wireAttachments('r', () => repAttachments);
 
-  const dateSrc = found.plannedDate || text;
-  const d = parseDateIn(dateSrc);
-  if(d) out.plannedDate = d;
-  const t = parseTimeIn(found.startTime || found.plannedDate || '');
-  if(t) out.startTime = t;
+function eqRowHtml(e){
+  return `<tr><td><input data-k="name" value="${esc(e.name)}"></td><td><input data-k="type" value="${esc(e.type)}"></td><td><input data-k="serial" value="${esc(e.serial)}"></td>
+    <td><button type="button" class="row-del" title="حذف">✕</button></td></tr>`;
+}
+function addEqRow(e){
+  const tb = document.getElementById('r_eqRows');
+  tb.insertAdjacentHTML('beforeend', eqRowHtml(e || {}));
+  tb.lastElementChild.querySelector('.row-del').addEventListener('click', ev => ev.target.closest('tr').remove());
+}
+document.getElementById('r_eqAdd').addEventListener('click', () => addEqRow());
 
-  const ptw = found.ptw || ((text.match(/\bPTW[\s#:no.-]*([A-Z0-9][A-Z0-9\/-]{2,})/i) || [])[1] || '');
-  if(ptw) out.ptw = ptw.replace(/\.$/, '');
+function openReportModal(id){
+  editingRepId = id || null;
+  const r = id ? reports.find(x => x.id === id) : null;
+  const def = {date: todayISO(), refDate: todayISO(), urgent:'yes', area:'', preparedBy:''};
+  REP_FIELDS.forEach(f => { document.getElementById('r_' + f).value = r ? (r[f] ?? '') : (def[f] ?? ''); });
+  document.getElementById('r_eqRows').innerHTML = '';
+  ((r && r.equipment && r.equipment.length) ? r.equipment : [{}]).forEach(addEqRow);
+  repAttachments = r ? (r.attachments || []).slice() : [];
+  renderAttachments('r', repAttachments);
+  document.getElementById('repModalTitle').textContent = r ? '🚨 تعديل التقرير ' + (r.refNo || fmtRid(r.id)) : '🚨 تقرير صيانة طارئة جديد';
+  document.getElementById('repSaveSendBtn').style.display = (r && findMt(r.linkedMtId)) ? 'none' : '';
+  openModalEl('repModal');
+}
 
-  if(found.shutdown !== undefined){
-    const v = found.shutdown.trim();
-    if(/^(no|none|nil|n\/a|لا|لا يوجد|بدون)\.?$/i.test(v)) out.shutdown = 'no';
-    else { out.shutdown = 'yes'; if(v && !/^(yes|required|نعم|مطلوب)\.?$/i.test(v)) out.affected = v; }
+function saveReportForm(andSend){
+  const rec = {};
+  REP_FIELDS.forEach(f => { rec[f] = document.getElementById('r_' + f).value.trim(); });
+  rec.equipment = [...document.querySelectorAll('#r_eqRows tr')].map(tr => {
+    const o = {}; tr.querySelectorAll('input').forEach(i => { o[i.dataset.k] = i.value.trim(); }); return o;
+  }).filter(e => e.name || e.type || e.serial);
+  rec.attachments = repAttachments.slice();
+  if(!rec.sstn && !rec.major){ showToast('اكتب اسم المحطة أو المحطة الرئيسية على الأقل', 'error'); return; }
+  let rep;
+  if(editingRepId){
+    rep = Object.assign(reports.find(x => x.id === editingRepId), rec);
+  } else {
+    rep = Object.assign({id: nextIdIn(reports), createdAt: new Date().toISOString(), linkedMtId: null}, rec);
+    reports.push(rep);
   }
-
-  const mt = detectMtType(found.mtType || text);
-  if(mt) out.mtType = mt;
-  const eq = detectEquipType((found.equipment || '') + ' ' + (found.description || '') + ' ' + (found.mtType || ''));
-  if(eq) out.equipType = eq;
-
-  const pr = (found.priority || '').toLowerCase();
-  if(/critical|urgent|حرج|عاجل/.test(pr)) out.priority = 'critical';
-  else if(/high|عالي/.test(pr)) out.priority = 'high';
-  else if(/low|منخفض/.test(pr)) out.priority = 'low';
-  else if(/medium|normal|متوسط/.test(pr)) out.priority = 'medium';
-  return out;
+  if(!saveReports()) return;
+  closeModal('repModal');
+  showToast('تم حفظ التقرير ' + (rep.refNo || fmtRid(rep.id)), 'success');
+  if(andSend) sendReportToMaintenance(rep);
+  setSection('emergency');
+  render();
 }
-const FIELD_LABELS_AR = {sstn:'المحطة', equipment:'المعدة', equipType:'نوع المعدة', mtType:'نوع الصيانة', plannedDate:'التاريخ', startTime:'الوقت', ptw:'التصريح', engineer:'الفريق', shutdown:'الفصل', affected:'المتأثرون', description:'الوصف', workDone:'العمل المنجز', spares:'قطع الغيار', notes:'ملاحظات', priority:'الأولوية'};
-document.getElementById('scanRunBtn').addEventListener('click', () => {
-  const parsed = parseMaintenanceText(document.getElementById('scanPasteBox').value);
-  const keys = Object.keys(parsed);
-  if(!keys.length){ setScanStatus('ما قدرت أتعرف على أي بيانات — الصق النص أولاً.', 'error'); return; }
-  keys.forEach(k => { if(k !== 'mtType') document.getElementById('m_' + k).value = parsed[k]; });
-  if(parsed.mtType) applyModalCategory(parsed.mtType);
-  setScanStatus('✅ تمت تعبئة: ' + keys.map(k => FIELD_LABELS_AR[k] || k).join('، ') + ' — راجع الحقول قبل الحفظ.', 'success');
+document.getElementById('addReportBtn').addEventListener('click', e => { e.stopPropagation(); openReportModal(null); });
+document.getElementById('repSaveBtn').addEventListener('click', () => saveReportForm(false));
+document.getElementById('repSaveSendBtn').addEventListener('click', () => saveReportForm(true));
+
+/* ===== WEEKLY PROGRAMME FORM ===== */
+const PROG_FIELDS = ['weekNo','group','from','to','prepName','prepNote','supName','supPhone'];
+const PROG_CHECKS = ['consumerNotified','cableRerouting','ssChange'];
+const ROW_KEYS = ['date','major','bay','circuit','block','kv','make','timeFrom','timeTo','state','remarks'];
+let editingProgId = null;
+let progAttachments = [];
+wireAttachments('p', () => progAttachments);
+
+function progRowHtml(r){
+  const inp = (k, type, extra) => `<td><input data-k="${k}" ${type ? 'type="' + type + '"' : ''} value="${esc(r[k])}" ${extra || ''}></td>`;
+  return `<tr data-mt="${r.mtId || ''}">${inp('date','date')}${inp('major','','list="stationList"')}${inp('bay')}${inp('circuit')}${inp('block')}${inp('kv')}${inp('make')}${inp('timeFrom','time')}${inp('timeTo','time')}${inp('state','','placeholder="تلقائي"')}${inp('remarks')}
+    <td><button type="button" class="row-del" title="حذف">✕</button></td></tr>`;
+}
+function addProgRow(r){
+  const tb = document.getElementById('p_rows');
+  const prev = tb.lastElementChild;
+  // A new row continues from the previous one: next day, same times and kV.
+  if(!r){
+    r = {kv:'11', timeFrom:'00:00', timeTo:'04:00', date: document.getElementById('p_from').value || ''};
+    if(prev){
+      const get = k => prev.querySelector(`[data-k="${k}"]`).value;
+      r.kv = get('kv'); r.timeFrom = get('timeFrom'); r.timeTo = get('timeTo');
+      if(get('date')){ const d = new Date(get('date') + 'T00:00'); d.setDate(d.getDate() + 1); r.date = toISO(d); }
+    }
+  }
+  tb.insertAdjacentHTML('beforeend', progRowHtml(r));
+  tb.lastElementChild.querySelector('.row-del').addEventListener('click', ev => ev.target.closest('tr').remove());
+}
+document.getElementById('p_rowAdd').addEventListener('click', () => addProgRow());
+
+function openProgModal(id){
+  editingProgId = id || null;
+  const p = id ? programmes.find(x => x.id === id) : null;
+  const def = {prepNote:'تم إعلام المستهلكين المهمين', group:'Group 1', from: todayISO()};
+  PROG_FIELDS.forEach(f => { document.getElementById('p_' + f).value = p ? (p[f] ?? '') : (def[f] ?? ''); });
+  PROG_CHECKS.forEach(f => { document.getElementById('p_' + f).checked = p ? !!p[f] : false; });
+  document.getElementById('p_rows').innerHTML = '';
+  if(p && p.rows.length) p.rows.forEach(addProgRow); else addProgRow();
+  progAttachments = p ? (p.attachments || []).slice() : [];
+  renderAttachments('p', progAttachments);
+  document.getElementById('progModalTitle').textContent = p ? '🛡️ تعديل برنامج الأسبوع ' + (p.weekNo || '') : '🛡️ برنامج صيانة سنوية جديد';
+  openModalEl('progModal');
+}
+
+function saveProgForm(andSend){
+  const rec = {};
+  PROG_FIELDS.forEach(f => { rec[f] = document.getElementById('p_' + f).value.trim(); });
+  PROG_CHECKS.forEach(f => { rec[f] = document.getElementById('p_' + f).checked; });
+  rec.rows = [...document.querySelectorAll('#p_rows tr')].map(tr => {
+    const o = {mtId: parseInt(tr.dataset.mt) || null};
+    tr.querySelectorAll('input').forEach(i => { o[i.dataset.k] = i.value.trim(); });
+    return o;
+  }).filter(r => r.major || r.circuit);
+  rec.attachments = progAttachments.slice();
+  if(!rec.rows.length){ showToast('أضف عمل واحد على الأقل (المحطة أو الدائرة)', 'error'); return; }
+  if(!rec.from) rec.from = rec.rows.map(r => r.date).filter(Boolean).sort()[0] || '';
+  if(!rec.to) rec.to = rec.rows.map(r => r.date).filter(Boolean).sort().pop() || '';
+  let prog;
+  if(editingProgId){
+    prog = Object.assign(programmes.find(x => x.id === editingProgId), rec);
+  } else {
+    prog = Object.assign({id: nextIdIn(programmes), createdAt: new Date().toISOString()}, rec);
+    programmes.push(prog);
+  }
+  if(!savePrograms()) return;
+  closeModal('progModal');
+  showToast('تم حفظ برنامج الأسبوع ' + (prog.weekNo || ''), 'success');
+  if(andSend) sendProgrammeToMaintenance(prog);
+  setSection('preventive');
+  render();
+}
+document.getElementById('addProgBtn').addEventListener('click', e => { e.stopPropagation(); openProgModal(null); });
+document.getElementById('progSaveBtn').addEventListener('click', () => saveProgForm(false));
+document.getElementById('progSaveSendBtn').addEventListener('click', () => saveProgForm(true));
+
+/* ===== SETTINGS ===== */
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  Object.keys(DEFAULT_SETTINGS).forEach(k => { document.getElementById('s_' + k).value = settings[k] || ''; });
+  openModalEl('settingsModal');
+});
+document.getElementById('settingsSaveBtn').addEventListener('click', () => {
+  Object.keys(DEFAULT_SETTINGS).forEach(k => { settings[k] = document.getElementById('s_' + k).value.trim(); });
+  if(!writeJSON(SETTINGS_KEY, settings)) return;
+  closeModal('settingsModal');
+  showToast('تم حفظ البيانات الثابتة', 'success');
 });
 
-/* ===== PRINTABLE WORK ORDER (one sheet for the field team) ===== */
-function printWorkOrder(id){
-  const r = data.find(d => d.id === id);
-  if(!r) return;
-  const row = (label, val) => `<tr><th>${label}</th><td>${esc(val) || '—'}</td></tr>`;
+/* ===== PRINTING (official layouts) ===== */
+function printPages(html, orientation){
+  document.getElementById('pageSizeStyle').textContent = `@media print{ @page{ size: A4 ${orientation}; margin: 8mm; } }`;
+  const root = document.getElementById('printReportRoot');
+  root.innerHTML = html;
+  document.body.classList.add('printing-report');
+  const cleanup = () => {
+    document.body.classList.remove('printing-report');
+    root.innerHTML = '';
+    document.getElementById('pageSizeStyle').textContent = '';
+    window.removeEventListener('afterprint', cleanup);
+  };
+  window.addEventListener('afterprint', cleanup);
+  // Wait for the attachment images to decode so they are on the printed pages.
+  const imgs = [...root.querySelectorAll('img')];
+  Promise.all(imgs.map(i => i.complete ? null : new Promise(r => { i.onload = i.onerror = r; }))).then(() => {
+    setTimeout(() => {
+      try{ window.print(); }catch(err){ showToast('تعذر فتح نافذة الطباعة على هذا المتصفح.', 'error'); }
+      setTimeout(cleanup, 1500);
+    }, 100);
+  });
+}
+function attachmentPages(list, orientation){
+  return (list || []).map(a => `<div class="rp-page rp-att-page ${orientation}"><img src="${a.src}" alt=""><div class="rp-att-cap">${esc(a.name)}</div></div>`).join('');
+}
+function ministryBlock(){
+  return `<div class="ministry"><div class="txt">وزارة الكهرباء والماء والطاقة المتجددة<br><b>Ministry of Electricity &amp; Water &amp; Renewable Energy</b><br>State of Kuwait | دولة الكويت</div>
+    <img class="emblem" src="${KW_EMBLEM_B64}" alt=""></div>`;
+}
+
+function printEmergencyReport(r){
+  const field = (lbl, val) => `<div class="rp-field"><span class="lbl">${lbl}</span><span class="val">${esc(val)}</span><span></span></div>`;
+  const eq = (r.equipment && r.equipment.length ? r.equipment : [{}]);
+  const findings = (r.findings || '').split('\n').map(s => s.trim()).filter(Boolean);
+  const sign = (title, name) => `<div><b>${title}</b><div class="nm">${esc(name)}</div><div class="dt">التاريخ:- ...... / ...... / ......</div></div>`;
+  const now = new Date();
+  const printed = pad2(now.getDate()) + '-' + pad2(now.getMonth() + 1) + '-' + String(now.getFullYear()).slice(2) + ' ' + now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
   const html = `
-    <div class="wo-sheet">
-      <div class="wo-id">${fmtWid(r.id)}${r.source ? ' · ' + esc(r.source.label) : ''}</div>
-      <table class="wo-grid">
-        ${row('Governorate / المحافظة', govName(currentGov))}
-        ${row('Substation / المحطة', r.sstn)}
-        ${row('Equipment / المعدة', [r.equipment, r.equipType].filter(Boolean).join(' — '))}
-        ${row('Maintenance Type / نوع الصيانة', MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].en + ' / ' + MT_TYPES[r.mtType].ar : '')}
-        ${row('Priority / الأولوية', r.priority)}
-        ${row('Status / الحالة', STATUSES[r.status] ? STATUSES[r.status].en + ' / ' + STATUSES[r.status].ar : '')}
-        ${row('Planned Date / التاريخ المخطط', r.plannedDate)}
-        ${row('Start / البدء', ((r.startDate || '') + ' ' + (r.startTime || '')).trim())}
-        ${row('End / الانتهاء', ((r.endDate || '') + ' ' + (r.endTime || '')).trim())}
-        ${row('PTW No. / رقم التصريح', r.ptw)}
-        ${row('Shutdown / الفصل', r.shutdown === 'yes' ? 'Yes / نعم' + (r.affected ? ' — ' + r.affected : '') : 'No / لا')}
-        ${row('Team / الفريق', r.engineer)}
-      </table>
-      <div class="wo-label">Work Description / وصف العمل</div><div class="wo-box">${esc(r.description)}</div>
-      <div class="wo-label">Work Done / العمل المنجز</div><div class="wo-box">${esc(r.workDone)}</div>
-      <div class="wo-label">Spares & Materials / قطع الغيار والمواد</div><div class="wo-box" style="min-height:40px;">${esc(r.spares)}</div>
-      <div class="wo-label">Notes / ملاحظات</div><div class="wo-box" style="min-height:40px;">${esc(r.notes)}</div>
-      <div class="wo-signs"><div>Issued by / المُصدر</div><div>Executed by / المنفذ</div><div>Approved by / المعتمد</div></div>
-    </div>`;
-  printReport('Work Order / أمر عمل صيانة', fmtWid(r.id) + ' — ' + (r.sstn || ''), html);
+  <div class="rp-page portrait-form"><div class="rp-frame">
+    <div class="rp-head">
+      <div class="dept" style="order:1;">${esc(settings.dept1)}<br>${esc(deptLine2())}<br>${esc(settings.dept3)}</div>
+      <div class="rp-ref" style="order:2;">${esc(r.refNo || fmtRid(r.id))}<br>${esc(fmtYMDslash(r.refDate))}</div>
+      <div style="order:3;">${ministryBlock()}</div>
+    </div>
+    <div style="text-align:center;padding:10px 0 4px;"><span class="rp-title-box">تقرير إلى قسم الصيانة والوقاية</span></div>
+    <div class="rp-fields">
+      <div class="rp-field" style="grid-template-columns:200px 1fr;"><span class="lbl">Date:- <span style="border-bottom:1.5px dotted #555;padding:0 10px;font-family:Arial,sans-serif;">${esc(fmtDMY(r.date))}</span></span>
+        <span style="text-align:center;font-size:18px;font-weight:700;text-decoration:underline;font-family:Arial,sans-serif;">Report for Substation Maintenance Section</span></div>
+      <div class="rp-field"><span class="lbl">Area Name :-</span><span class="val">${esc(r.area)}</span>${r.urgent !== 'no' ? '<span class="rp-urgent">Urgent</span>' : '<span></span>'}</div>
+      ${field('SubStation Name :-', r.sstn)}
+      ${field('Last Maintenance Date :-', fmtDMY(r.lastMaint))}
+      ${field('Major Name :-', r.major)}
+      ${field('Type of Swich Gear :-', r.switchgear)}
+      ${field('Reported By :-', r.reportedBy)}
+      <div class="rp-field" style="grid-template-columns:200px 1fr;align-items:start;"><span class="lbl">Equipment Affected :-</span>
+        <table class="rp-eq"><thead><tr><th>Transformer Name</th><th>Type</th><th>Serial No.</th></tr></thead>
+        <tbody>${eq.map(e => `<tr><td>${esc(e.name)}</td><td>${esc(e.type)}</td><td>${esc(e.serial)}</td></tr>`).join('')}</tbody></table></div>
+      <div class="rp-field" style="grid-template-columns:200px 1fr;align-items:start;margin-top:22px;"><span class="lbl">Findings :-</span><span></span></div>
+      <div class="rp-findings" style="margin-top:-28px;">${findings.map(f => `<div>${esc(f)}</div>`).join('') || '<div>&nbsp;</div>'}</div>
+    </div>
+    <div class="rp-signs">
+      ${sign('المهندس', '')}${sign('عن رئيس قسم التشغيل', settings.opHead)}${sign('مراقب محافظة ' + govName(currentGov), settings.controller)}${sign('مدير إدارة شبكات التوزيع الكهربائية', settings.distDirector)}
+    </div>
+    <div class="rp-action">
+      <div class="ttl">Action Taken</div>
+      <div class="txt">${esc(r.actionTaken)}</div>
+      <div class="rp-signs" style="grid-template-columns:repeat(3,1fr);padding-top:14px;">
+        <div><b>التنفيذ</b><div class="nm"></div><div class="dt">التاريخ:- ${r.actionDate ? esc(fmtDMY(r.actionDate)) : '...... / ...... / ......'}</div></div>
+        ${sign('المهندس', '')}${sign('رئيس قسم الصيانة والوقاية', settings.mtHead)}
+      </div>
+    </div>
+    <div class="rp-foot"><span>Printing DateTime:- ${esc(printed)}</span><span>إعداد : ${esc(r.preparedBy)}</span></div>
+  </div></div>
+  ${attachmentPages(r.attachments, 'portrait')}`;
+  printPages(html, 'portrait');
 }
 
-document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', e => {
-  e.stopPropagation();
-  openModal(null, b.dataset.add);
-}));
-
-/* ===== CATEGORY FILTER (tabs above the table + the two cards) ===== */
-let categoryFilter = '';
-function setCategoryFilter(cat){
-  categoryFilter = cat || '';
-  document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === categoryFilter));
-  document.querySelectorAll('.cat-card').forEach(c => c.classList.toggle('active', c.dataset.cat === categoryFilter));
+function printProgramme(p){
+  const kv = (lbl, val) => `<div class="kv"><b>${lbl}</b><span>${esc(val)}</span></div>`;
+  const tick = on => on ? '✔' : '';
+  const now = new Date();
+  const printed = pad2(now.getDate()) + '/' + pad2(now.getMonth() + 1) + '/' + String(now.getFullYear()).slice(2) + ' ' + now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+  const rows = p.rows.slice().sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.timeFrom || '').localeCompare(b.timeFrom || ''));
+  const html = `
+  <div class="rp-page"><div class="rp-frame">
+    <div class="ep-head">
+      <div class="left"><u>Switching Operations Emergency Programme, (EDN)</u><br>Subject to Checking and Confirmation of DCC</div>
+      <div class="mid">${ministryBlock()}</div>
+      <div class="right">${esc(settings.dept1)} - ${esc(deptLine2().replace(/^مراقبة /, ''))}<br>${esc(settings.dept3)}<br>${esc(settings.dept4)}</div>
+    </div>
+    <div class="ep-info">
+      <span>* <span class="box">Annual Maintenance</span></span>
+      <span>Week No.:- <span class="v">${esc(p.weekNo)}</span></span>
+      <span>The Group.:- <span class="v">${esc(p.group)}</span></span>
+      <span>From:- <span class="v">${esc(p.from)}</span></span>
+      <span>To:- <span class="v">${esc(p.to)}</span></span>
+    </div>
+    <table class="ep-table">
+      <thead><tr><th style="width:12%;">Date</th><th style="width:11%;">Major Sub Station Name</th><th style="width:5%;">Bay No.</th><th style="width:14%;">Circuit Name</th><th style="width:5%;">Block</th><th style="width:3%;">kV</th><th style="width:6%;">Switch Gear Make</th><th style="width:8%;">Time From</th><th style="width:8%;">Time To</th><th style="width:9%;">State</th><th>Details of Works / Remarks</th></tr></thead>
+      <tbody>${rows.map(r => `<tr>
+        <td>${esc(fmtLongDate(r.date))}</td><td>${esc(r.major)}</td><td>${esc(r.bay)}</td><td>${esc(r.circuit)}</td><td>${esc(r.block)}</td>
+        <td>${esc(r.kv)}</td><td>${esc(r.make)}</td><td>${esc(fmt12h(r.timeFrom))}</td><td>${esc(fmt12h(r.timeTo))}</td>
+        <td>${esc(rowState(r))}</td><td class="rem">${esc(r.remarks)}</td></tr>`).join('')}</tbody>
+    </table>
+    <div class="ep-foot">
+      <div>${kv('Preparation:-', p.prepName)}${kv('Phone:-', p.prepNote)}</div>
+      <div>${kv('Supervision:-', p.supName)}${kv('Phone:-', p.supPhone)}</div>
+      <div>${kv('* JAB DCC:-', settings.jabDcc)}${kv('* JAH DCC:-', settings.jahDcc)}</div>
+      <div>${kv('* FAR Tawary:-', settings.farTawary)}${kv('* Call Center:-', settings.callCenter)}${kv('* EDN Maintenance:-', settings.ednMaint)}</div>
+    </div>
+    <div class="ep-foot" style="grid-template-columns:1fr 1fr 1fr 1.1fr;">
+      <div>${kv('Maint. Engineer:-', settings.mtEng)}${kv('Phone:-', settings.mtEngPhone)}${kv('Signature:-', '')}${kv('Date:-', '')}</div>
+      <div>${kv('Section Head Engr:-', settings.secHead)}${kv('Phone:-', settings.secHeadPhone)}${kv('Signature:-', '')}${kv('Date:-', '')}</div>
+      <div>${kv('Director:-', settings.director)}${kv('Phone:-', settings.directorPhone)}${kv('Signature:-', '')}${kv('Date:-', '')}</div>
+      <div class="ops"><div style="margin:0 0 6px;"><b style="display:inline;">Date Time:-</b> ${esc(printed)}</div>
+        <b>Operation / DMS Engineer</b>
+        <div>(1) - Consumer Notified ${tick(p.consumerNotified)}</div>
+        <div>(2) - Cable Rerouting ${tick(p.cableRerouting)}</div>
+        <div>(3) - S/S Change of Location ${tick(p.ssChange)}</div></div>
+    </div>
+  </div></div>
+  ${attachmentPages(p.attachments, 'landscape')}`;
+  printPages(html, 'landscape');
 }
-document.querySelectorAll('.cat-tab').forEach(t => t.addEventListener('click', () => { setCategoryFilter(t.dataset.cat); render(); }));
-document.querySelectorAll('.cat-card').forEach(c => c.addEventListener('click', () => {
-  setCategoryFilter(categoryFilter === c.dataset.cat ? '' : c.dataset.cat);
-  render();
-  document.querySelector('.cat-tabs').scrollIntoView({behavior:'smooth', block:'start'});
-}));
-document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
-document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
-document.getElementById('modalSaveBtn').addEventListener('click', saveModal);
-document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target.id === 'modalOverlay') closeModal(); });
-document.addEventListener('keydown', e => {
-  if(e.key !== 'Escape') return;
-  closeModal();
-  document.getElementById('govStatsModal').style.display = 'none';
+
+/* ===== BACKUP / IMPORT ===== */
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+document.getElementById('exportBackupBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({kind:'maintenance-reports', gov: currentGov, reports, programmes, settings}, null, 2)], {type:'application/json'});
+  downloadBlob(blob, 'reports-backup-' + currentGov + '-' + todayISO() + '.json');
+  showToast('تم حفظ النسخة الاحتياطية', 'success');
+});
+document.getElementById('importBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const d = JSON.parse(reader.result);
+      if(!d || d.kind !== 'maintenance-reports' || !Array.isArray(d.reports) || !Array.isArray(d.programmes)) throw new Error('bad');
+      if(!confirm('استبدال تقارير وبرامج ' + govName(currentGov) + ' الحالية بمحتوى الملف؟')) return;
+      reports = d.reports; programmes = d.programmes;
+      if(d.settings) settings = Object.assign({}, DEFAULT_SETTINGS, d.settings);
+      saveReports(); savePrograms(); writeJSON(SETTINGS_KEY, settings);
+      render();
+      showToast('تم الاستيراد', 'success');
+    }catch(err){ showToast('الملف غير صالح — اختر نسخة احتياطية من نظام التقارير', 'error'); }
+  };
+  reader.readAsText(file);
 });
 
-['searchBox'].forEach(id => document.getElementById(id).addEventListener('input', render));
-['dateFilter','statusFilter'].forEach(id => document.getElementById(id).addEventListener('change', render));
-document.getElementById('refreshBtn').addEventListener('click', () => {
-  data = loadData();
-  render();
-  showToast('تم التحديث', 'info');
-});
-
-/* ===== TOASTS & ACTIVITY ===== */
+/* ===== TOASTS / THEME / CLOCK / LOGO ===== */
 function showToast(message, type){
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
@@ -2313,448 +2247,18 @@ function showToast(message, type){
     toast.style.opacity = '0';
     toast.style.transition = 'opacity .3s ease';
     setTimeout(() => toast.remove(), 300);
-  }, 3200);
+  }, 3600);
 }
 
-let activityLog = [];
-try{ activityLog = JSON.parse(localStorage.getItem(activityKeyFor(currentGov))) || []; }catch(e){ activityLog = []; }
-
-function logActivity(type, detail){
-  activityLog.unshift({type, detail, ts: new Date().toISOString()});
-  activityLog = activityLog.slice(0, 30);
-  try{ localStorage.setItem(activityKeyFor(currentGov), JSON.stringify(activityLog)); }catch(e){}
-  renderActivity();
-}
-
-function timeAgo(iso){
-  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if(mins < 1) return 'just now';
-  if(mins < 60) return mins + 'm ago';
-  const hrs = Math.floor(mins / 60);
-  if(hrs < 24) return hrs + 'h ago';
-  return Math.floor(hrs / 24) + 'd ago';
-}
-
-function renderActivity(){
-  const feed = document.getElementById('activityFeed');
-  if(!activityLog.length){ feed.innerHTML = '<div class="activity-empty">لا يوجد نشاط بعد.</div>'; return; }
-  feed.innerHTML = activityLog.map(a => `
-    <div class="activity-item">
-      <div class="activity-dot ${a.type}"></div>
-      <div><div class="activity-detail">${esc(a.detail)}</div><div class="activity-time">${timeAgo(a.ts)}</div></div>
-    </div>`).join('');
-}
-
-/* ===== BACKUP / IMPORT ===== */
-function downloadBlob(blob, filename){
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-document.getElementById('exportBackupBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  downloadBlob(blob, 'maintenance-backup-' + currentGov + '-' + todayISO() + '.json');
-  showToast('تم حفظ النسخة الاحتياطية', 'success');
-});
-document.getElementById('importBtn').addEventListener('click', () => document.getElementById('fileInput').click());
-document.getElementById('fileInput').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try{
-      const parsed = JSON.parse(reader.result);
-      if(!Array.isArray(parsed) || parsed.some(r => typeof r !== 'object' || r === null || typeof r.id !== 'number')){
-        throw new Error('not a maintenance backup');
-      }
-      if(!confirm('استبدال ' + data.length + ' سجل حالي في ' + govName(currentGov) + ' بـ ' + parsed.length + ' سجل من الملف؟')) return;
-      data = normalizeRecords(parsed);
-      saveData();
-      logActivity('edit', 'استيراد نسخة محفوظة (' + parsed.length + ' سجل)');
-      showToast('تم استيراد ' + parsed.length + ' سجل', 'success');
-      render();
-    }catch(err){
-      showToast('الملف غير صالح — اختر نسخة احتياطية من نظام الصيانة', 'error');
-    }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
-});
-
-/* ===== EXCEL / PDF / PRINT ===== */
-function recordToExcelRow(r){
-  return {
-    'WO ID': fmtWid(r.id), 'Substation': r.sstn, 'Equipment': r.equipment, 'Equipment Type': r.equipType,
-    'Maintenance Type': MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].en : r.mtType, 'Recurrence': r.recurrence || 'none',
-    'Description': r.description, 'Engineer / Team': r.engineer, 'Planned Date': r.plannedDate,
-    'Start': ((r.startDate || '') + ' ' + (r.startTime || '')).trim(), 'End': ((r.endDate || '') + ' ' + (r.endTime || '')).trim(),
-    'Duration (hr)': r.duration, 'PTW No.': r.ptw, 'Shutdown': r.shutdown === 'yes' ? 'Yes' : 'No', 'Affected': r.affected,
-    'Priority': r.priority, 'Status': (STATUSES[r.status] || {}).en + (isOverdue(r) ? ' (Overdue)' : ''),
-    'Work Done': r.workDone, 'Spares / Materials': r.spares, 'Notes': r.notes
-  };
-}
-
-function exportRowsToExcel(rows, filename){
-  try{
-    const out = rows.map(recordToExcelRow);
-    out.push({});
-    out.push({'WO ID': 'Generated: ' + new Date().toLocaleString('en-GB') + ' — ' + (GOV_NAME_EN[currentGov] || currentGov)});
-    const ws = XLSX.utils.json_to_sheet(out);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Maintenance');
-    const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
-    downloadBlob(new Blob([wbout], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), filename);
-  }catch(err){
-    console.error('Excel export failed:', err);
-    showToast('تعذر تصدير ملف Excel. حاولي مرة ثانية.', 'error');
-  }
-}
-
-document.getElementById('exportExcelBtn').addEventListener('click', () => {
-  exportRowsToExcel(sortRows(data), 'Maintenance_Records_' + currentGov + '.xlsx');
-});
-
-// jsPDF has no Arabic glyphs — render Arabic on a canvas and embed it as an image.
-function arabicTextToImage(text, fontSizePt, color){
-  const scale = 3;
-  const probe = document.createElement('canvas').getContext('2d');
-  const font = (fontSizePt * scale) + 'px Arial, Tahoma, sans-serif';
-  probe.font = font;
-  const textWidth = Math.max(1, probe.measureText(text).width);
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.ceil(textWidth) + 8 * scale;
-  canvas.height = Math.ceil(fontSizePt * scale * 1.6);
-  const ctx = canvas.getContext('2d');
-  ctx.font = font;
-  ctx.direction = 'rtl';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = color || '#000000';
-  ctx.fillText(text, canvas.width - 4 * scale, canvas.height / 2);
-  return {dataUrl: canvas.toDataURL('image/png'), widthPt: canvas.width / scale, heightPt: canvas.height / scale};
-}
-function drawArabicTextCentered(doc, text, centerX, y, fontSizePt, color){
-  const img = arabicTextToImage(text, fontSizePt, color);
-  doc.addImage(img.dataUrl, 'PNG', centerX - img.widthPt / 2, y - img.heightPt / 2, img.widthPt, img.heightPt);
-}
-function drawArabicTextRightAligned(doc, text, rightX, y, fontSizePt, color){
-  const img = arabicTextToImage(text, fontSizePt, color);
-  doc.addImage(img.dataUrl, 'PNG', rightX - img.widthPt, y - img.heightPt / 2, img.widthPt, img.heightPt);
-}
-function drawReportLetterhead(doc, titleAr, titleEn){
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const emblemW = 42, emblemH = emblemW * (750 / 645);
-  const logoW = 64, logoH = logoW * (600 / 800);
-  const topY = 12;
-  try{ doc.addImage(KW_EMBLEM_B64, 'JPEG', 40, topY, emblemW, emblemH); }catch(e){}
-  try{ doc.addImage(MEW_LOGO_B64, 'JPEG', pageWidth - 40 - logoW, topY, logoW, logoH); }catch(e){}
-  drawArabicTextCentered(doc, titleAr, pageWidth / 2, topY + 20, 15, '#0a1e3c');
-  doc.setFont(undefined, 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text(titleEn, pageWidth / 2, topY + 40, {align:'center'});
-  const lineY = topY + 54;
-  doc.setDrawColor(10,61,124);
-  doc.setLineWidth(1.1);
-  doc.line(40, lineY, pageWidth - 40, lineY);
-  return lineY + 14;
-}
-
-function buildMaintenancePdf(title, subtitle, rows){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({orientation:'landscape', unit:'pt', format:'a4'});
-  const afterHeaderY = drawReportLetterhead(doc, 'نظام إدارة الصيانة', title);
-  const s = computeStats(rows);
-  doc.setFontSize(9.5);
-  doc.setTextColor(120);
-  doc.text(subtitle + '  ·  Generated ' + new Date().toLocaleString('en-GB'), 40, afterHeaderY);
-  doc.setTextColor(20);
-  doc.setFontSize(10);
-  doc.text(`Total: ${s.total}    |    Planned: ${s.planned}    |    In Progress: ${s.inprogress}    |    Completed: ${s.completed}    |    Overdue: ${s.overdue}    |    Completion: ${s.rate}%    |    Avg Duration: ${s.avgDur} hr`, 40, afterHeaderY + 20);
-  doc.autoTable({
-    startY: afterHeaderY + 36,
-    head: [['WO ID','Station','Equipment','Equip. Type','Type','Description','Team','Planned','End','Hr','PTW','Status']],
-    body: sortRows(rows).map(r => [
-      fmtWid(r.id), r.sstn || '', r.equipment || '', r.equipType || '', MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].en : '',
-      r.description || '', r.engineer || '', r.plannedDate || '', r.endDate || '', (r.duration || r.duration === 0) ? r.duration : '',
-      r.ptw || '', ((STATUSES[r.status] || {}).en || '') + (isOverdue(r) ? ' (Overdue)' : '')
-    ]),
-    styles: {fontSize:8, cellPadding:4, overflow:'linebreak'},
-    headStyles: {fillColor:[10,61,124], textColor:255, fontStyle:'bold'},
-    alternateRowStyles: {fillColor:[245,247,250]},
-    columnStyles: {5:{cellWidth:150}},
-    margin: {left:40, right:40},
-    didDrawPage: () => {
-      drawArabicTextRightAligned(doc, 'م.ابرار المويزري', doc.internal.pageSize.getWidth() - 40, doc.internal.pageSize.getHeight() - 20, 8, '#969696');
-    }
-  });
-  return doc;
-}
-
-function exportPdf(rows, title, subtitle, filename){
-  try{
-    if(!window.jspdf || !window.jspdf.jsPDF){
-      showToast('تعذر تحميل مكتبة PDF — تأكد من الاتصال بالإنترنت.', 'error');
-      return;
-    }
-    buildMaintenancePdf(title, subtitle, rows).save(filename);
-    showToast('تم إنشاء ملف PDF بنجاح', 'success');
-  }catch(err){
-    console.error('PDF export failed:', err);
-    showToast('تعذر إنشاء ملف PDF. حاولي مرة ثانية.', 'error');
-  }
-}
-
-document.getElementById('exportPdfBtn').addEventListener('click', () => {
-  exportPdf(data, 'MAINTENANCE — ' + (GOV_NAME_EN[currentGov] || currentGov) + ' Governorate', 'Maintenance Management System',
-    'Maintenance_Report_' + currentGov + '_' + todayISO() + '.pdf');
-});
-
-document.getElementById('printBtn').addEventListener('click', () => {
-  try{ window.print(); }catch(err){ showToast('تعذر فتح نافذة الطباعة على هذا المتصفح.', 'error'); }
-});
-
-function printReport(title, subtitle, contentHtml){
-  const root = document.getElementById('printReportRoot');
-  root.innerHTML = `
-    <div class="print-report-page">
-      <div class="print-letterhead">
-        <img class="emblem" src="${KW_EMBLEM_B64}" alt="">
-        <div class="letterhead-title">
-          <div class="ar">نظام إدارة الصيانة</div>
-          <div class="en">MAINTENANCE — Maintenance Management System</div>
-        </div>
-        <img class="mew-logo" src="${MEW_LOGO_B64}" alt="">
-      </div>
-      <h1>${esc(title)}</h1>
-      <div class="print-report-sub">${esc(subtitle)} · Generated ${new Date().toLocaleString('en-GB')}</div>
-      ${contentHtml}
-    </div>
-    <div class="print-report-footer">م.ابرار المويزري</div>`;
-  document.body.classList.add('printing-report');
-  const cleanup = () => {
-    document.body.classList.remove('printing-report');
-    root.innerHTML = '';
-    window.removeEventListener('afterprint', cleanup);
-  };
-  window.addEventListener('afterprint', cleanup);
-  setTimeout(() => {
-    try{ window.print(); }catch(err){ showToast('تعذر فتح نافذة الطباعة على هذا المتصفح.', 'error'); }
-    setTimeout(cleanup, 1000);
-  }, 100);
-}
-
-function shareToWhatsApp(text){
-  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
-}
-
-/* ===== REPORTS ===== */
-let reportMode = 'weekly';
-let rangeOffset = 0;
-let customRows = null;
-let customLabel = '';
-
-function getWeekBounds(offset){
-  // Week runs Sunday → Saturday (Kuwait work week).
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + offset * 7);
-  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
-  return {start, end};
-}
-function getMonthBounds(offset){
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-  const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
-  return {start, end};
-}
-function rowsInRange(from, to){
-  return data.filter(r => { const d = refDate(r); return d && d >= from && d <= to; });
-}
-
-function refreshActiveReport(){
-  const out = document.getElementById('reportOutput');
-  if(reportMode === 'custom'){
-    if(customRows) out.innerHTML = buildReport(customRows, 'تقرير صيانة مخصص', customLabel);
-    else out.innerHTML = '<div class="no-data">اختر الفلاتر ثم اضغط "إنشاء التقرير".</div>';
-  } else {
-    const b = reportMode === 'weekly' ? getWeekBounds(rangeOffset) : getMonthBounds(rangeOffset);
-    const label = fmtDateLong(b.start) + ' — ' + fmtDateLong(b.end);
-    document.getElementById('rangeLabel').textContent = label;
-    out.innerHTML = buildReport(rowsInRange(toISO(b.start), toISO(b.end)),
-      reportMode === 'weekly' ? 'تقرير الصيانة الأسبوعي' : 'تقرير الصيانة الشهري', label);
-  }
-  wireReportActions();
-}
-
-function categorySummaryHtml(rows){
-  const p = computeStats(rows.filter(r => r.mtType === 'preventive'));
-  const e = computeStats(rows.filter(r => r.mtType === 'emergency'));
-  return `<div class="report-cols" style="margin-bottom:18px;">
-    <div class="kpi ok"><div class="val">🛡️ ${p.total}</div><div class="lbl">صيانة وقائية — منجزة ${p.completed} · متأخرة ${p.overdue} · إنجاز ${p.rate}%</div></div>
-    <div class="kpi danger"><div class="val">🚨 ${e.total}</div><div class="lbl">صيانة طارئة — منجزة ${e.completed} · مفتوحة ${e.planned + e.inprogress + e.postponed} · متوسط ${e.avgDur} ساعة</div></div>
-  </div>`;
-}
-
-let lastReport = null;
-function buildReport(rows, title, subtitle){
-  lastReport = {rows, title, subtitle};
-  const s = computeStats(rows);
-  const table = rows.length ? `
-    <div class="report-table-wrap"><table>
-      <thead><tr><th>رقم الأمر</th><th>المحطة</th><th>المعدة</th><th>نوع الصيانة</th><th>الوصف</th><th>الفريق</th><th>المخطط</th><th>الانتهاء</th><th>المدة (ساعة)</th><th>الحالة</th></tr></thead>
-      <tbody>${sortRows(rows).map(r => `<tr>
-        <td class="fid">${fmtWid(r.id)}</td><td class="sstn-cell">${esc(r.sstn) || '—'}</td><td>${esc(r.equipment) || '—'}</td>
-        <td>${typeBadge(r.mtType)}</td><td class="desc-cell">${esc(r.description) || '—'}</td><td>${esc(r.engineer) || '—'}</td>
-        <td>${esc(r.plannedDate) || '—'}</td><td>${esc(r.endDate) || '—'}</td><td>${(r.duration || r.duration === 0) ? r.duration : '—'}</td><td>${statusPill(r)}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>` : '<div class="no-data">لا توجد أوامر صيانة في هذه الفترة.</div>';
-  return `
-    <div class="report-summary-head">
-      <div><h3>${esc(title)} — ${esc(govName(currentGov))}</h3><div class="range-sub">${esc(subtitle)}</div></div>
-    </div>
-    ${categorySummaryHtml(rows)}
-    <div class="report-kpis">
-      <div class="kpi"><div class="val">${s.total}</div><div class="lbl">الإجمالي</div></div>
-      <div class="kpi"><div class="val">${s.planned}</div><div class="lbl">مجدولة</div></div>
-      <div class="kpi warn"><div class="val">${s.inprogress}</div><div class="lbl">قيد التنفيذ</div></div>
-      <div class="kpi ok"><div class="val">${s.completed}</div><div class="lbl">منجزة</div></div>
-      <div class="kpi danger"><div class="val">${s.overdue}</div><div class="lbl">متأخرة</div></div>
-      <div class="kpi ok"><div class="val">${s.rate}<small> %</small></div><div class="lbl">نسبة الإنجاز</div></div>
-      <div class="kpi"><div class="val">${s.avgDur}<small> hr</small></div><div class="lbl">متوسط المدة</div></div>
-    </div>
-    <div class="report-cols">
-      <div class="report-block"><h4>حسب نوع الصيانة</h4>${barsHtml(groupCount(rows, r => MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].ar : ''))}</div>
-      <div class="report-block"><h4>حسب نوع المعدة</h4>${barsHtml(groupCount(rows, r => r.equipType))}</div>
-      <div class="report-block"><h4>أكثر المحطات صيانة</h4>${barsHtml(Object.fromEntries(Object.entries(groupCount(rows, r => r.sstn)).sort((a, b) => b[1] - a[1]).slice(0, 8)))}</div>
-      <div class="report-block"><h4>حسب الحالة</h4>${barsHtml(groupCount(rows, r => STATUSES[r.status] ? STATUSES[r.status].ar : ''))}</div>
-    </div>
-    ${table}
-    <div class="report-actions">
-      <button class="btn excel" id="rptExcelBtn">📤 Excel</button>
-      <button class="btn pdf" id="rptPdfBtn">📄 PDF</button>
-      <button class="btn print" id="rptPrintBtn">🖨️ طباعة</button>
-      <button class="btn ghost" id="rptWhatsBtn">💬 واتساب</button>
-    </div>`;
-}
-
-function reportFileStem(){
-  return 'Maintenance_' + currentGov + '_' + (lastReport.subtitle || todayISO()).replace(/[^\w]+/g, '_');
-}
-
-function wireReportActions(){
-  const x = document.getElementById('rptExcelBtn');
-  if(!x || !lastReport) return;
-  x.addEventListener('click', () => exportRowsToExcel(lastReport.rows, reportFileStem() + '.xlsx'));
-  document.getElementById('rptPdfBtn').addEventListener('click', () =>
-    exportPdf(lastReport.rows, 'MAINTENANCE REPORT — ' + (GOV_NAME_EN[currentGov] || currentGov), lastReport.subtitle, reportFileStem() + '.pdf'));
-  document.getElementById('rptPrintBtn').addEventListener('click', () => {
-    const html = document.getElementById('reportOutput').innerHTML;
-    printReport(lastReport.title + ' — ' + govName(currentGov), lastReport.subtitle, html);
-  });
-  document.getElementById('rptWhatsBtn').addEventListener('click', () => {
-    const s = computeStats(lastReport.rows);
-    const lines = [
-      '🛠️ ' + lastReport.title + ' — ' + govName(currentGov),
-      '📅 ' + lastReport.subtitle,
-      '',
-      'الإجمالي: ' + s.total,
-      '🛡️ صيانة وقائية: ' + lastReport.rows.filter(r => r.mtType === 'preventive').length,
-      '🚨 صيانة طارئة: ' + lastReport.rows.filter(r => r.mtType === 'emergency').length,
-      '📅 مجدولة: ' + s.planned,
-      '🔧 قيد التنفيذ: ' + s.inprogress,
-      '✅ منجزة: ' + s.completed,
-      '⏰ متأخرة: ' + s.overdue,
-      '📈 نسبة الإنجاز: ' + s.rate + '%'
-    ];
-    const late = lastReport.rows.filter(isOverdue).slice(0, 10);
-    if(late.length){
-      lines.push('', 'الأعمال المتأخرة:');
-      late.forEach(r => lines.push('• ' + fmtWid(r.id) + ' ' + (r.sstn || '') + ' ' + (r.equipment || '') + ' (' + r.plannedDate + ')'));
-    }
-    shareToWhatsApp(lines.join('\n'));
-  });
-}
-
-document.querySelectorAll('.rtab').forEach(t => t.addEventListener('click', () => {
-  document.querySelectorAll('.rtab').forEach(x => x.classList.remove('active'));
-  t.classList.add('active');
-  reportMode = t.dataset.mode;
-  rangeOffset = 0;
-  document.getElementById('rangeNav').style.display = reportMode === 'custom' ? 'none' : 'flex';
-  document.getElementById('customFilters').style.display = reportMode === 'custom' ? 'block' : 'none';
-  refreshActiveReport();
-}));
-document.getElementById('prevRangeBtn').addEventListener('click', () => { rangeOffset--; refreshActiveReport(); });
-document.getElementById('nextRangeBtn').addEventListener('click', () => { rangeOffset++; refreshActiveReport(); });
-
-document.getElementById('generateCustomBtn').addEventListener('click', () => {
-  const v = id => document.getElementById(id).value.trim();
-  const from = v('cf_from'), to = v('cf_to');
-  const sstn = v('cf_sstn').toLowerCase(), eng = v('cf_engineer').toLowerCase();
-  const type = v('cf_type'), equip = v('cf_equip'), status = v('cf_status');
-  customRows = data.filter(r => {
-    const d = refDate(r);
-    if(from && (!d || d < from)) return false;
-    if(to && (!d || d > to)) return false;
-    if(sstn && !(r.sstn || '').toLowerCase().includes(sstn)) return false;
-    if(eng && !(r.engineer || '').toLowerCase().includes(eng)) return false;
-    if(type && r.mtType !== type) return false;
-    if(equip && r.equipType !== equip) return false;
-    return matchesStatus(r, status);
-  });
-  customLabel = (from || to) ? ((from || '…') + ' → ' + (to || '…')) : 'كل الفترات';
-  refreshActiveReport();
-});
-document.getElementById('clearCustomBtn').addEventListener('click', () => {
-  ['cf_from','cf_to','cf_sstn','cf_engineer','cf_type','cf_equip','cf_status'].forEach(id => { document.getElementById(id).value = ''; });
-  customRows = null;
-  refreshActiveReport();
-});
-
-/* ===== ALL GOVERNORATES ===== */
-function loadGovRecords(gov){
-  if(gov === currentGov) return data;
-  try{ const p = JSON.parse(localStorage.getItem(storageKeyFor(gov))); return Array.isArray(p) ? p : []; }catch(e){ return []; }
-}
-document.getElementById('allGovStatsBtn').addEventListener('click', () => {
-  document.getElementById('govStatsGrid').innerHTML = GOVERNORATES.map(g => {
-    const s = computeStats(loadGovRecords(g.code));
-    return `<div class="gov-stats-card ${g.code === currentGov ? 'current' : ''}">
-      <h4>${esc(g.name)}${g.code === currentGov ? '<span class="tag">الحالية</span>' : ''}</h4>
-      <div class="gov-stats-mini-kpis">
-        <div>الإجمالي <b>${s.total}</b></div>
-        <div>مجدولة <b>${s.planned}</b></div>
-        <div>قيد التنفيذ <b>${s.inprogress}</b></div>
-        <div>منجزة <b>${s.completed}</b></div>
-        <div>متأخرة <b style="color:var(--red);">${s.overdue}</b></div>
-        <div>نسبة الإنجاز <b>${s.rate}%</b></div>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('govStatsModal').style.display = 'flex';
-});
-document.getElementById('govStatsCloseBtn').addEventListener('click', () => { document.getElementById('govStatsModal').style.display = 'none'; });
-document.getElementById('govStatsModal').addEventListener('click', e => { if(e.target.id === 'govStatsModal') e.target.style.display = 'none'; });
-
-/* ===== THEME / CLOCK / LOGO ===== */
 const themeToggle = document.getElementById('themeToggle');
 themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('light');
   const isLight = document.body.classList.contains('light');
   themeToggle.textContent = isLight ? '☀️ فاتح' : '🌙 داكن';
-  try{ localStorage.setItem('mtTheme', isLight ? 'light' : 'dark'); }catch(e){}
+  try{ localStorage.setItem('rpTheme', isLight ? 'light' : 'dark'); }catch(e){}
 });
 try{
-  if(localStorage.getItem('mtTheme') === 'light'){
-    document.body.classList.add('light');
-    themeToggle.textContent = '☀️ فاتح';
-  }
+  if(localStorage.getItem('rpTheme') === 'light'){ document.body.classList.add('light'); themeToggle.textContent = '☀️ فاتح'; }
 }catch(e){}
 
 function updateHeaderClock(){
@@ -2765,11 +2269,8 @@ function updateHeaderClock(){
 updateHeaderClock();
 setInterval(updateHeaderClock, 1000);
 
-const LOGO_KEY = 'mtLogo_v1';
-try{
-  const saved = localStorage.getItem(LOGO_KEY);
-  if(saved) document.getElementById('logoSlot').innerHTML = `<img src="${saved}" alt="Logo">`;
-}catch(e){}
+const LOGO_KEY = 'rpLogo_v1';
+try{ const saved = localStorage.getItem(LOGO_KEY); if(saved) document.getElementById('logoSlot').innerHTML = `<img src="${saved}" alt="Logo">`; }catch(e){}
 document.getElementById('logoSlot').addEventListener('click', () => document.getElementById('logoFileInput').click());
 document.getElementById('logoFileInput').addEventListener('change', e => {
   const file = e.target.files[0];
@@ -2778,11 +2279,9 @@ document.getElementById('logoFileInput').addEventListener('change', e => {
   reader.onload = () => {
     try{ localStorage.setItem(LOGO_KEY, reader.result); }catch(err){}
     document.getElementById('logoSlot').innerHTML = `<img src="${reader.result}" alt="Logo">`;
-    showToast('Logo updated', 'success');
   };
   reader.readAsDataURL(file);
 });
-
 (function(){
   const emblemImg = document.querySelector('#dashboardPrintHeader .emblem');
   const logoImg = document.querySelector('#dashboardPrintHeader .mew-logo');
@@ -2790,35 +2289,33 @@ document.getElementById('logoFileInput').addEventListener('change', e => {
   if(logoImg) logoImg.src = MEW_LOGO_B64;
 })();
 
-/* ===== GOVERNORATE SWITCHER ===== */
-function updateGovBrand(){
-  document.querySelector('.brand .tagline').textContent = 'نظام إدارة الصيانة — ' + govName(currentGov);
-  document.getElementById('toReportsLink').href = 'REPORTS_MASTER.html#gov=' + currentGov;
-}
-function switchGovernorate(gov){
-  if(gov === currentGov) return;
-  currentGov = gov;
-  try{ localStorage.setItem(GOV_KEY, gov); }catch(e){}
-  data = loadData();
-  editingId = null;
-  customRows = null;
-  try{ activityLog = JSON.parse(localStorage.getItem(activityKeyFor(currentGov))) || []; }catch(e){ activityLog = []; }
-  updateGovBrand();
-  document.getElementById('searchBox').value = '';
-  document.getElementById('dateFilter').value = '';
-  document.getElementById('statusFilter').value = 'all';
-  setCategoryFilter('');
-  render();
-  renderActivity();
-  showToast('تم التبديل إلى محافظة ' + govName(currentGov), 'info');
+document.getElementById('stationList').innerHTML =
+  Object.keys(typeof STATION_COORDS !== 'undefined' ? STATION_COORDS : {}).sort().map(s => `<option value="${esc(s)}">`).join('');
+
+/* ===== GOVERNORATE ===== */
+function updateGovUI(){
+  document.querySelector('.brand .tagline').textContent = 'نظام تقارير الصيانة — ' + govName(currentGov);
+  document.getElementById('toMaintenanceLink').href = 'MAINTENANCE_MASTER.html#gov=' + currentGov;
 }
 const govSel = document.getElementById('govSelect');
 govSel.innerHTML = GOVERNORATES.map(g => `<option value="${g.code}">${g.name}</option>`).join('');
 govSel.value = currentGov;
-govSel.addEventListener('change', e => switchGovernorate(e.target.value));
-updateGovBrand();
+govSel.addEventListener('change', e => {
+  currentGov = e.target.value;
+  try{ localStorage.setItem(GOV_KEY, currentGov); }catch(err){}
+  reports = readJSON(repKeyFor(currentGov), []);
+  programmes = readJSON(progKeyFor(currentGov), []);
+  document.getElementById('searchBox').value = '';
+  updateGovUI();
+  render();
+  showToast('تم التبديل إلى محافظة ' + govName(currentGov), 'info');
+});
+// Work finished in the maintenance system (another tab) shows up here right away.
+window.addEventListener('storage', e => { if(e.key === mtKeyFor(currentGov)) render(); });
+window.addEventListener('focus', render);
 
-renderActivity();
+updateGovUI();
+setSection('emergency');
 render();
 </script>
 
