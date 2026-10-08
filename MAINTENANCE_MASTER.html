@@ -1192,6 +1192,48 @@
   .cat-switch button.emergency.active{border-color:var(--red);background:var(--red-dim);color:var(--red);}
   .modal-head.preventive{background:linear-gradient(120deg,#0f5c38,#1f9d5b);}
   .modal-head.emergency{background:linear-gradient(120deg,#7a1f1f,#c33);}
+  /* ===== HOME SCREEN (first page of the maintenance system) ===== */
+  #homeScreen{
+    position:fixed;inset:0;z-index:150;overflow-y:auto;
+    background:radial-gradient(ellipse at top, var(--panel2), var(--bg) 70%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 16px;text-align:center;
+  }
+  #homeScreen.hidden{display:none;}
+  .home-logo{
+    width:76px;height:76px;border-radius:18px;margin-bottom:16px;
+    background:radial-gradient(circle at 30% 20%, #ffb020, #d9861a);box-shadow:0 0 30px rgba(255,176,32,0.45);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .home-logo svg{width:40px;height:40px;fill:#fff;}
+  .home-title{font-size:28px;font-weight:800;letter-spacing:.03em;}
+  .home-sub{font-size:14px;color:var(--mute);margin:6px 0 4px;}
+  .home-gov{font-size:12px;color:var(--mute);font-family:'IBM Plex Mono',monospace;margin-bottom:30px;}
+  .home-main-btn{
+    font-family:'Inter',sans-serif;font-size:20px;font-weight:800;color:#fff;cursor:pointer;
+    background:linear-gradient(120deg,var(--navy2),var(--e-blue-dark));border:1px solid var(--e-blue);
+    border-radius:14px;padding:18px 46px;display:flex;align-items:center;gap:12px;
+    box-shadow:0 8px 24px rgba(0,174,239,0.25);transition:transform .1s ease;
+  }
+  .home-main-btn:active{transform:translateY(1px);}
+  .home-main-btn .caret{font-size:14px;transition:transform .2s ease;}
+  .home-main-btn.open .caret{transform:rotate(180deg);}
+  .home-choices{display:none;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;width:100%;max-width:640px;}
+  .home-choices.open{display:grid;animation:toastIn .25s ease;}
+  .home-choice{
+    background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:22px 16px;cursor:pointer;
+    font-family:'Inter',sans-serif;color:var(--text);transition:transform .1s ease, border-color .15s ease;
+  }
+  .home-choice:hover{transform:translateY(-2px);}
+  .home-choice .ic{font-size:40px;line-height:1;}
+  .home-choice .t{font-size:19px;font-weight:800;margin-top:10px;}
+  .home-choice .d{font-size:12px;color:var(--mute);margin-top:4px;}
+  .home-choice .n{font-size:12px;font-weight:700;margin-top:12px;}
+  .home-choice.preventive{border-color:rgba(55,214,122,0.5);}
+  .home-choice.preventive .t{color:var(--green);}
+  .home-choice.emergency{border-color:rgba(255,92,92,0.5);}
+  .home-choice.emergency .t{color:var(--red);}
+  @media print{ #homeScreen{display:none !important;} }
+
   @media (max-width:900px){
     .cat-cards{grid-template-columns:1fr;}
     .cat-stats{grid-template-columns:repeat(2,1fr);}
@@ -1218,6 +1260,7 @@
   .up-item.late .when{color:var(--red);font-weight:700;}
   .kpi .val.pct small{font-size:13px;}
   .toolbar .filter-sel{min-width:130px;}
+  .src-badge{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;background:rgba(139,123,255,0.16);color:#a99cff;border-radius:10px;padding:1px 7px;font-family:'IBM Plex Mono',monospace;}
   .wo-sheet{font-family:Arial,sans-serif;color:#111;}
   .wo-sheet .wo-id{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:#0a3d7c;}
   .wo-sheet table.wo-grid{width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;}
@@ -1238,6 +1281,22 @@
     <div class="en">MAINTENANCE — Maintenance Management System</div>
   </div>
   <img class="mew-logo" src="" alt="">
+</div>
+
+<div id="homeScreen">
+  <div class="home-logo"><svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg></div>
+  <div class="home-title">MAINTENANCE</div>
+  <div class="home-sub">نظام إدارة الصيانة — وزارة الكهرباء والماء والطاقة المتجددة</div>
+  <div class="home-gov" id="homeGov"></div>
+  <button class="home-main-btn" id="homeMainBtn" type="button">🛠️ الصيانة <span class="caret">▾</span></button>
+  <div class="home-choices" id="homeChoices">
+    <button class="home-choice preventive" data-home-cat="preventive" type="button">
+      <div class="ic">🛡️</div><div class="t">صيانة وقائية</div><div class="d">أعمال مجدولة ودورية لمنع الأعطال</div><div class="n" id="homePrevCount"></div>
+    </button>
+    <button class="home-choice emergency" data-home-cat="emergency" type="button">
+      <div class="ic">🚨</div><div class="t">صيانة طارئة</div><div class="d">أعمال مفاجئة تحتاج تدخل فوري</div><div class="n" id="homeEmergCount"></div>
+    </button>
+  </div>
 </div>
 
 <div class="topbar">
@@ -1268,6 +1327,7 @@
     <select id="govSelect" class="gov-select" title="اختر المحافظة"></select>
     <div class="grow"></div>
     <button class="btn ghost" id="allGovStatsBtn">📊 إحصائية كل المحافظات</button>
+    <button class="btn ghost" id="homeBtn">🏠 الرئيسية</button>
   </div>
 </div>
 
@@ -1561,6 +1621,14 @@ const GOV_NAME_EN = {FARW:'Farwaniya', CAP:'Capital', HAW:'Hawalli', AHM:'Ahmadi
 const GOV_KEY = 'mtGovernorate';
 let currentGov = 'FARW';
 try{ currentGov = localStorage.getItem(GOV_KEY) || 'FARW'; }catch(e){ currentGov = 'FARW'; }
+(function(){
+  // Arriving from the reports system's link keeps the same governorate.
+  const m = (location.hash || '').match(/gov=([A-Z]+)/);
+  if(m && ['FARW','CAP','HAW','AHM','JAH','MAB'].includes(m[1])){
+    currentGov = m[1];
+    try{ localStorage.setItem(GOV_KEY, currentGov); }catch(e){}
+  }
+})();
 function govName(code){ const g = GOVERNORATES.find(x => x.code === code); return g ? g.name : code; }
 function storageKeyFor(gov){ return 'mtRecords_v1_' + gov; }
 function activityKeyFor(gov){ return 'mtActivityLog_v1_' + gov; }
@@ -1734,7 +1802,7 @@ function render(){
     const tr = document.createElement('tr');
     tr.className = 'cat-' + r.mtType;
     tr.innerHTML = `
-      <td class="fid">${fmtWid(r.id)}</td>
+      <td class="fid">${fmtWid(r.id)}${r.source ? `<span class="src-badge" title="من نظام التقارير">${esc(r.source.label)}</span>` : ''}</td>
       <td class="sstn-cell">${esc(r.sstn) || '—'}</td>
       <td>${esc(r.equipment) || '—'}</td>
       <td>${esc(r.equipType) || '—'}</td>
@@ -2232,7 +2300,7 @@ function printWorkOrder(id){
   const row = (label, val) => `<tr><th>${label}</th><td>${esc(val) || '—'}</td></tr>`;
   const html = `
     <div class="wo-sheet">
-      <div class="wo-id">${fmtWid(r.id)}</div>
+      <div class="wo-id">${fmtWid(r.id)}${r.source ? ' · ' + esc(r.source.label) : ''}</div>
       <table class="wo-grid">
         ${row('Governorate / المحافظة', govName(currentGov))}
         ${row('Substation / المحطة', r.sstn)}
@@ -2808,7 +2876,33 @@ govSel.addEventListener('change', e => switchGovernorate(e.target.value));
 updateGovBrand();
 
 renderActivity();
+
+/* ===== HOME SCREEN =====
+   The first page: "الصيانة" opens two choices, and each one shows the
+   system filtered to that kind. "🏠 الرئيسية" comes back here. */
+function showHome(){
+  const p = computeStats(data.filter(r => r.mtType === 'preventive'));
+  const e = computeStats(data.filter(r => r.mtType === 'emergency'));
+  document.getElementById('homeGov').textContent = 'المحافظة: ' + govName(currentGov);
+  document.getElementById('homePrevCount').innerHTML = `<span style="color:var(--amber);">${p.planned + p.inprogress + p.postponed} مجدولة / جارية</span> · <span style="color:var(--red);">${p.overdue} متأخرة</span>`;
+  document.getElementById('homeEmergCount').innerHTML = `<span style="color:var(--red);">${e.planned + e.inprogress + e.postponed} مفتوحة الآن</span> · <span style="color:var(--green);">${e.completed} منجزة</span>`;
+  document.getElementById('homeScreen').classList.remove('hidden');
+}
+function enterCategory(cat){
+  setCategoryFilter(cat);
+  render();
+  document.getElementById('homeScreen').classList.add('hidden');
+  window.scrollTo(0, 0);
+}
+document.getElementById('homeMainBtn').addEventListener('click', e => {
+  e.currentTarget.classList.toggle('open');
+  document.getElementById('homeChoices').classList.toggle('open');
+});
+document.querySelectorAll('[data-home-cat]').forEach(b => b.addEventListener('click', () => enterCategory(b.dataset.homeCat)));
+document.getElementById('homeBtn').addEventListener('click', showHome);
+
 render();
+showHome();
 </script>
 
 </body>
