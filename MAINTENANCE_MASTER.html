@@ -1260,6 +1260,7 @@
   .up-item.late .when{color:var(--red);font-weight:700;}
   .kpi .val.pct small{font-size:13px;}
   .toolbar .filter-sel{min-width:130px;}
+  .demo-badge{display:inline-block;margin-left:5px;font-size:11px;opacity:.85;}
   .src-badge{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;background:rgba(139,123,255,0.16);color:#a99cff;border-radius:10px;padding:1px 7px;font-family:'IBM Plex Mono',monospace;}
   .wo-sheet{font-family:Arial,sans-serif;color:#111;}
   .wo-sheet .wo-id{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:#0a3d7c;}
@@ -1396,6 +1397,8 @@
     <button class="btn ghost" id="exportBackupBtn">💾 حفظ نسخة احتياطية</button>
     <input type="file" id="fileInput" accept=".json,application/json,text/json,text/plain,*/*" style="display:none;">
     <button class="btn ghost" id="importBtn">📂 استيراد نسخة محفوظة</button>
+    <button class="btn ghost" id="demoAddBtn">🧪 بيانات تجريبية</button>
+    <button class="btn ghost" id="demoClearBtn" style="display:none;border-color:rgba(255,92,92,0.5);color:var(--red);">🧹 مسح البيانات التجريبية</button>
   </div>
 
   <div class="panel">
@@ -1673,10 +1676,82 @@ let editingId = null;
 
 function loadData(){
   try{
-    const parsed = JSON.parse(localStorage.getItem(storageKeyFor(currentGov)));
+    const raw = localStorage.getItem(storageKeyFor(currentGov));
+    const parsed = JSON.parse(raw);
     if(Array.isArray(parsed)) return normalizeRecords(parsed);
+    // First visit to this governorate: start with demo data so the system
+    // isn't empty. Only once — clearing it later doesn't bring it back.
+    const flag = 'mtDemoSeeded_' + currentGov;
+    if(raw === null && !localStorage.getItem(flag)){
+      const demo = buildDemoRecords(1);
+      localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(demo));
+      localStorage.setItem(flag, '1');
+      return demo;
+    }
   }catch(e){}
   return [];
+}
+
+/* ===== DEMO DATA =====
+   Sample work orders (marked demo:true) dated around today, so the
+   system shows overdue, upcoming, in-progress and completed work. */
+function buildDemoRecords(firstId){
+  const day = off => { const x = new Date(); x.setDate(x.getDate() + off); return toISO(x); };
+  const base = {recurrence:'none', startDate:'', startTime:'', endDate:'', endTime:'', duration:null,
+    ptw:'', shutdown:'no', affected:'', workDone:'', spares:'', notes:'', demo:true};
+  const list = [
+    // ---- Preventive ----
+    {sstn:'KHIT C', equipment:'TR-2 inside S/S KHIT 63', equipType:'Distribution Transformer (11/0.415 kV)', mtType:'preventive', priority:'medium', status:'planned',
+     plannedDate:day(-6), recurrence:'annual', engineer:'فريق الصيانة A', ptw:'PTW-2026-0131', shutdown:'yes', affected:'KHIT 63 — جزء من بلوك 4 خيطان',
+     description:'Annual preventive maintenance — oil test, bushing cleaning, LV terminal tightening.'},
+    {sstn:'FARW Q', equipment:'Switchgear FARW 147 (IEPC)', equipType:'Switchgear / Circuit Breaker', mtType:'preventive', priority:'medium', status:'inprogress',
+     plannedDate:day(0), startDate:day(0), startTime:'08:00', engineer:'فريق الصيانة B', ptw:'PTW-2026-0142', shutdown:'yes', affected:'FARW 147',
+     description:'Annual maintenance of 11 kV panel — breaker timing test, mechanism lubrication.'},
+    {sstn:'JALB B', equipment:'Battery bank & charger — JALB 137', equipType:'Battery & Charger', mtType:'preventive', priority:'low', status:'planned',
+     plannedDate:day(2), recurrence:'semiannual', engineer:'فريق الصيانة A',
+     description:'Battery cell voltage check, charger output test, terminal cleaning.'},
+    {sstn:'ARDY G', equipment:'RMU MOJ-1', equipType:'RMU', mtType:'preventive', priority:'medium', status:'planned',
+     plannedDate:day(4), recurrence:'quarterly', engineer:'فريق الصيانة B', shutdown:'yes', affected:'MOJ-1 (Judicial Archives)',
+     description:'Quarterly RMU inspection — SF6 pressure, cable boxes, earthing.'},
+    {sstn:'SULB B', equipment:'Protection relay — Sulaibiya K.D.C feeder', equipType:'Protection Relay', mtType:'preventive', priority:'medium', status:'planned',
+     plannedDate:day(10), engineer:'فريق الوقاية', description:'Secondary injection test of O/C & E/F relay.'},
+    {sstn:'FARW M', equipment:'Earthing grid — FARW M', equipType:'Earthing System', mtType:'preventive', priority:'low', status:'completed',
+     plannedDate:day(-20), startDate:day(-20), startTime:'08:00', endDate:day(-20), endTime:'12:30', duration:4.5, engineer:'فريق الصيانة A',
+     description:'Earth resistance measurement.', workDone:'Earth resistance measured 0.8 Ω — within limits. Two clamps replaced.', spares:'2 × earthing clamps'},
+    {sstn:'KHIT B', equipment:'Power transformer TR-1', equipType:'Power Transformer', mtType:'preventive', priority:'high', status:'completed',
+     plannedDate:day(-12), recurrence:'quarterly', startDate:day(-12), startTime:'09:00', endDate:day(-12), endTime:'15:00', duration:6, engineer:'فريق الصيانة B', ptw:'PTW-2026-0118', shutdown:'yes', affected:'KHIT B 11 kV bus section 1',
+     description:'Quarterly oil sampling and tap-changer inspection.', workDone:'Oil sample taken (BDV OK). Tap-changer contacts cleaned. Silica gel replaced.', spares:'Silica gel 2 kg'},
+    {sstn:'KHIT B', equipment:'Power transformer TR-1', equipType:'Power Transformer', mtType:'preventive', priority:'high', status:'planned',
+     plannedDate:day(78), recurrence:'quarterly', engineer:'فريق الصيانة B', shutdown:'yes', affected:'KHIT B 11 kV bus section 1',
+     description:'Quarterly oil sampling and tap-changer inspection.', notes:'دورة تلقائية'},
+    {sstn:'JAL A', equipment:'11 kV cable JAL 93 – JAL 92', equipType:'Cable', mtType:'preventive', priority:'medium', status:'postponed',
+     plannedDate:day(-2), engineer:'فريق الصيانة A', description:'Cable insulation (IR) test.', notes:'تأجيل بسبب الأحمال العالية'},
+    {sstn:'ARDY B', equipment:'11 kV OHL — ARDY 111', equipType:'OHL', mtType:'preventive', priority:'low', status:'planned',
+     plannedDate:day(1), engineer:'فريق الصيانة B', description:'Line patrol — insulators, jumpers and vegetation clearance.'},
+    // ---- Emergency ----
+    {sstn:'DMC PUMPING NEW', equipment:'Battery charger — SULB-H feed (IEPC)', equipType:'Battery & Charger', mtType:'emergency', priority:'critical', status:'inprogress',
+     plannedDate:day(0), startDate:day(0), startTime:'07:40', engineer:'فريق الطوارئ 1', affected:'الصليبية',
+     description:'Battery charger failure — battery output low voltage.'},
+    {sstn:'YARK A', equipment:'11 kV cable YARK 28', equipType:'Cable', mtType:'emergency', priority:'critical', status:'completed',
+     plannedDate:day(-1), startDate:day(-1), startTime:'21:10', endDate:day(-1), endTime:'23:55', duration:2.8, engineer:'فريق الطوارئ 2', shutdown:'yes', affected:'جزء من بلوك 1 اليرموك',
+     description:'Cable fault after E/F trip.', workDone:'Faulty section located and isolated, joint made, cable tested OK and energized.', spares:'1 × 11 kV straight joint'},
+    {sstn:'JALB N', equipment:'RMU2 cable termination', equipType:'RMU', mtType:'emergency', priority:'high', status:'planned',
+     plannedDate:day(-1), engineer:'فريق الطوارئ 1', affected:'جزء من بلوك 2 جليب الشيوخ',
+     description:'Burnt cable end termination found during patrol.'},
+    {sstn:'FARW D', equipment:'LTR3 inside R/M FARW 43', equipType:'Distribution Transformer (11/0.415 kV)', mtType:'emergency', priority:'high', status:'completed',
+     plannedDate:day(-5), startDate:day(-5), startTime:'10:00', endDate:day(-5), endTime:'13:20', duration:3.3, engineer:'فريق الطوارئ 2', shutdown:'yes', affected:'جزء من بلوك 5 الفروانية',
+     description:'Transformer overheating — LV fuse failure.', workDone:'Replaced LV fuses, tightened LV links, load shared to LTR4.', spares:'3 × LV fuse 400 A'},
+    {sstn:'AIRP M', equipment:'CB — CARPRK F2', equipType:'Switchgear / Circuit Breaker', mtType:'emergency', priority:'medium', status:'completed',
+     plannedDate:day(-9), startDate:day(-9), startTime:'16:00', endDate:day(-9), endTime:'17:30', duration:1.5, engineer:'فريق الطوارئ 1',
+     description:'Breaker failed to close remotely.', workDone:'Closing coil replaced, breaker tested OK.', spares:'1 × closing coil'},
+    {sstn:'RABA A', equipment:'Relay — REHAB 55', equipType:'Protection Relay', mtType:'emergency', priority:'medium', status:'cancelled',
+     plannedDate:day(-7), engineer:'فريق الوقاية', description:'Suspected relay maloperation.', notes:'تبين أن الفصل من جهة المستهلك — لا يحتاج صيانة'}
+  ];
+  const now = new Date().toISOString();
+  const out = list.map((r, i) => Object.assign({}, base, r, {id: firstId + i, createdAt: now}));
+  // TR-1's completed cycle points at the order it scheduled.
+  out[6].nextScheduledId = out[7].id;
+  return out;
 }
 
 function saveData(){
@@ -1802,7 +1877,7 @@ function render(){
     const tr = document.createElement('tr');
     tr.className = 'cat-' + r.mtType;
     tr.innerHTML = `
-      <td class="fid">${fmtWid(r.id)}${r.source ? `<span class="src-badge" title="من نظام التقارير">${esc(r.source.label)}</span>` : ''}</td>
+      <td class="fid">${fmtWid(r.id)}${r.demo ? '<span class="demo-badge" title="بيانات تجريبية">🧪</span>' : ''}${r.source ? `<span class="src-badge" title="من نظام التقارير">${esc(r.source.label)}</span>` : ''}</td>
       <td class="sstn-cell">${esc(r.sstn) || '—'}</td>
       <td>${esc(r.equipment) || '—'}</td>
       <td>${esc(r.equipType) || '—'}</td>
@@ -1834,6 +1909,7 @@ function render(){
   tbody.querySelectorAll('.start').forEach(b => b.addEventListener('click', () => startWork(parseInt(b.dataset.id))));
   tbody.querySelectorAll('.close-fault').forEach(b => b.addEventListener('click', () => completeWork(parseInt(b.dataset.id))));
 
+  document.getElementById('demoClearBtn').style.display = data.some(r => r.demo) ? '' : 'none';
   document.getElementById('recCount').textContent = rows.length + ' معروض';
   document.getElementById('footCount').textContent = data.length + ' إجمالي السجلات';
   updateStats();
@@ -2052,6 +2128,7 @@ function scheduleNextRecurrence(rec){
     description: rec.description, workDone: '', spares: '', recurrence: rec.recurrence,
     notes: 'دورة تلقائية بعد ' + fmtWid(rec.id), createdAt: new Date().toISOString()
   };
+  if(rec.demo) next.demo = true;
   data.push(next);
   rec.nextScheduledId = next.id;
   logActivity('add', 'جدولة تلقائية ' + fmtWid(next.id) + ' بتاريخ ' + next.plannedDate);
@@ -2323,6 +2400,25 @@ function printWorkOrder(id){
     </div>`;
   printReport('Work Order / أمر عمل صيانة', fmtWid(r.id) + ' — ' + (r.sstn || ''), html);
 }
+
+document.getElementById('demoAddBtn').addEventListener('click', () => {
+  if(data.some(r => r.demo)){ showToast('البيانات التجريبية موجودة — امسحها أول إذا تبي تعيد إضافتها', 'info'); return; }
+  const demo = buildDemoRecords(nextId());
+  data.push(...demo);
+  saveData();
+  logActivity('add', 'إضافة ' + demo.length + ' أمر صيانة تجريبي');
+  showToast('تمت إضافة ' + demo.length + ' أمر صيانة تجريبي 🧪', 'success');
+  render();
+});
+document.getElementById('demoClearBtn').addEventListener('click', () => {
+  const n = data.filter(r => r.demo).length;
+  if(!n || !confirm('مسح ' + n + ' أمر صيانة تجريبي؟ بياناتك الحقيقية ما تنمسح.')) return;
+  data = data.filter(r => !r.demo);
+  saveData();
+  logActivity('del', 'مسح البيانات التجريبية (' + n + ')');
+  showToast('تم مسح البيانات التجريبية', 'info');
+  render();
+});
 
 document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', e => {
   e.stopPropagation();
