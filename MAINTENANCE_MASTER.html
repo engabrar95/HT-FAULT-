@@ -1532,11 +1532,6 @@
   </div>
 </div>
 
-<div class="alarm-banner" id="alarmBanner" style="display:none;">
-  <span class="alarm-icon">⏰</span>
-  <span class="alarm-ticker-wrap"><span class="alarm-text" id="alarmText"></span></span>
-</div>
-
 <div class="app-shell">
   <main class="app-main" id="appMain">
 
@@ -2416,29 +2411,11 @@ function updateStats(){
   animateNumber(document.querySelector('#kDur .num-part'), s.avgDur, 1);
   animateNumber(document.querySelector('#kShutdown .num-part'), s.shutdownPending, 0);
 
-  updateAlarmBanner();
   renderUpcoming();
   renderRanking();
   renderDonut(s);
   document.getElementById('byTypeBars').innerHTML = barsHtml(groupCount(data, r => MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].ar : ''));
   document.getElementById('byEquipBars').innerHTML = barsHtml(groupCount(scoped(), r => r.equipType));
-}
-
-function updateAlarmBanner(){
-  const late = scoped().filter(isOverdue);
-  const openEmerg = scoped().filter(r => r.mtType === 'emergency' && PENDING.includes(r.status));
-  const banner = document.getElementById('alarmBanner');
-  banner.style.display = 'flex';
-  const parts = [];
-  if(openEmerg.length) parts.push(`🚨 ${openEmerg.length} صيانة طارئة مفتوحة: ` +
-    openEmerg.slice(0, 6).map(r => `${fmtWid(r.id)} ${r.sstn || ''} ${r.equipment || ''}`).join(' • '));
-  if(late.length) parts.push(`⏰ ${late.length} صيانة مجدولة متأخرة عن موعدها: ` +
-    late.slice(0, 6).map(r => `${fmtWid(r.id)} ${MT_TYPES[r.mtType].icon} ${r.sstn || ''} ${r.equipment || ''} (${r.plannedDate})`).join(' • '));
-  const lowOil = (!categoryFilter || categoryFilter === 'oil') ? oilLowItems() : [];
-  if(lowOil.length) parts.push(`🛢️ ${lowOil.length} نوع زيت تحت الحد الأدنى: ` +
-    lowOil.map(x => `${x.item.name} (${fmtQty(x.bal)} ${x.item.unit})`).join(' • '));
-  if(!parts.length){ banner.style.display = 'none'; return; }
-  document.getElementById('alarmText').textContent = parts.join('   ||   ');
 }
 
 function renderUpcoming(){
