@@ -1142,6 +1142,43 @@
     background:rgba(0,174,239,0.12);color:var(--e-blue);
   }
   .type-badge.preventive{background:var(--green-dim);color:var(--green);}
+  .type-badge.battery{background:rgba(242,201,76,0.16);color:#f2c94c;}
+
+  /* ===== BATTERY & OIL SECTIONS ===== */
+  .cat-card.battery::before{background:#f2c94c;}
+  .cat-card.oil::before{background:#c8893b;}
+  .cat-card.battery.active{border-color:#f2c94c;box-shadow:0 0 0 1px #f2c94c;}
+  .cat-card.oil.active{border-color:#c8893b;box-shadow:0 0 0 1px #c8893b;}
+  .cat-card.battery .cat-card-title{color:#f2c94c;}
+  .cat-card.oil .cat-card-title{color:#e0a15a;}
+  button.btn.bat-add{background:#b8930f;}
+  button.btn.oil-add{background:#a86b2d;}
+  .cat-tab.battery.active{background:#b8930f;}
+  .cat-tab.oil.active{background:#a86b2d;}
+  tbody tr.cat-battery td:first-child{box-shadow:inset 4px 0 0 #f2c94c;}
+  .cat-switch button.battery.active{border-color:#f2c94c;background:rgba(242,201,76,0.14);color:#f2c94c;}
+  .modal-head.battery{background:linear-gradient(120deg,#6b5409,#b8930f);}
+  .modal-head.oil{background:linear-gradient(120deg,#5c3a16,#a86b2d);}
+  .bat-result{display:inline-block;margin-left:4px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;}
+  .bat-result.ok{background:var(--green-dim);color:var(--green);}
+  .bat-result.weak{background:var(--amber-dim);color:var(--amber);}
+  .bat-result.replace{background:var(--red-dim);color:var(--red);}
+  #batteryFields{display:none;border:1px dashed rgba(242,201,76,0.45);border-radius:8px;padding:14px;margin:4px 0 16px;}
+  #batteryFields .ttl{font-size:12px;font-weight:800;color:#f2c94c;margin-bottom:10px;}
+  .oil-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
+  .oil-state{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;}
+  .oil-state.ok{background:var(--green-dim);color:var(--green);}
+  .oil-state.low{background:var(--amber-dim);color:var(--amber);}
+  .oil-state.out{background:var(--red-dim);color:var(--red);}
+  .mv-type{display:inline-block;padding:3px 9px;border-radius:4px;font-size:10.5px;font-weight:800;}
+  .mv-type.in{background:var(--green-dim);color:var(--green);}
+  .mv-type.out{background:var(--amber-dim);color:var(--amber);}
+  .mv-type.check{background:rgba(0,174,239,0.16);color:var(--e-blue);}
+  .oil-diff.neg{color:var(--red);font-weight:700;}
+  .oil-diff.pos{color:var(--green);font-weight:700;}
+  .oil-table{min-width:900px;}
+  .oil-sys-qty{font-size:12.5px;color:var(--mute);margin-top:6px;}
+  .oil-sys-qty b{color:var(--text);}
   .type-badge.emergency{background:var(--red-dim);color:var(--red);}
   .type-badge{font-size:11.5px;padding:4px 10px;}
 
@@ -1183,7 +1220,7 @@
   .cat-tab.emergency.active{background:#d63a3a;}
   tbody tr.cat-preventive td:first-child{box-shadow:inset 4px 0 0 var(--green);}
   tbody tr.cat-emergency td:first-child{box-shadow:inset 4px 0 0 var(--red);}
-  .cat-switch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+  .cat-switch{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
   .cat-switch button{
     font-family:'Inter',sans-serif;font-size:14px;font-weight:800;padding:14px;border-radius:8px;cursor:pointer;
     border:2px solid var(--line);background:var(--panel2);color:var(--mute);
@@ -1217,7 +1254,7 @@
   .home-main-btn:active{transform:translateY(1px);}
   .home-main-btn .caret{font-size:14px;transition:transform .2s ease;}
   .home-main-btn.open .caret{transform:rotate(180deg);}
-  .home-choices{display:none;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;width:100%;max-width:640px;}
+  .home-choices{display:none;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;width:100%;max-width:700px;}
   .home-choices.open{display:grid;animation:toastIn .25s ease;}
   .home-choice{
     background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:22px 16px;cursor:pointer;
@@ -1232,9 +1269,14 @@
   .home-choice.preventive .t{color:var(--green);}
   .home-choice.emergency{border-color:rgba(255,92,92,0.5);}
   .home-choice.emergency .t{color:var(--red);}
+  .home-choice.battery{border-color:rgba(242,201,76,0.5);}
+  .home-choice.battery .t{color:#f2c94c;}
+  .home-choice.oil{border-color:rgba(200,137,59,0.6);}
+  .home-choice.oil .t{color:#e0a15a;}
   @media print{ #homeScreen{display:none !important;} }
 
   @media (max-width:900px){
+    .oil-kpis{grid-template-columns:repeat(2,1fr);}
     .cat-cards{grid-template-columns:1fr;}
     .cat-stats{grid-template-columns:repeat(2,1fr);}
   }
@@ -1291,11 +1333,17 @@
   <div class="home-gov" id="homeGov"></div>
   <button class="home-main-btn" id="homeMainBtn" type="button">🛠️ الصيانة <span class="caret">▾</span></button>
   <div class="home-choices" id="homeChoices">
-    <button class="home-choice preventive" data-home-cat="preventive" type="button">
-      <div class="ic">🛡️</div><div class="t">صيانة وقائية</div><div class="d">أعمال مجدولة ودورية لمنع الأعطال</div><div class="n" id="homePrevCount"></div>
-    </button>
     <button class="home-choice emergency" data-home-cat="emergency" type="button">
       <div class="ic">🚨</div><div class="t">صيانة طارئة</div><div class="d">أعمال مفاجئة تحتاج تدخل فوري</div><div class="n" id="homeEmergCount"></div>
+    </button>
+    <button class="home-choice preventive" data-home-cat="preventive" type="button">
+      <div class="ic">🛡️</div><div class="t">دورية وقائية</div><div class="d">صيانة شاملة كل 4 إلى 5 سنوات</div><div class="n" id="homePrevCount"></div>
+    </button>
+    <button class="home-choice battery" data-home-cat="battery" type="button">
+      <div class="ic">🔋</div><div class="t">صيانة البطاريات</div><div class="d">فحص البطاريات والشواحن بالمحطات</div><div class="n" id="homeBatCount"></div>
+    </button>
+    <button class="home-choice oil" data-home-cat="oil" type="button">
+      <div class="ic">🛢️</div><div class="t">صيانة الزيت</div><div class="d">فحص كميات الزيت بالمخزن</div><div class="n" id="homeOilCount"></div>
     </button>
   </div>
 </div>
@@ -1343,7 +1391,7 @@
     <div class="cat-card preventive" data-cat="preventive">
       <div class="cat-card-head">
         <span class="cat-card-icon">🛡️</span>
-        <div><div class="cat-card-title">الصيانة الوقائية</div><div class="cat-card-sub">أعمال مجدولة ودورية لمنع الأعطال</div></div>
+        <div><div class="cat-card-title">الدورية الوقائية</div><div class="cat-card-sub">صيانة شاملة كل 4 إلى 5 سنوات</div></div>
         <button class="btn prev-add cat-card-add" data-add="preventive">➕ إضافة وقائية</button>
       </div>
       <div class="cat-stats">
@@ -1366,7 +1414,35 @@
         <div class="cat-stat"><div class="v" id="eDur">0</div><div class="l">متوسط المدة (ساعة)</div></div>
       </div>
     </div>
+    <div class="cat-card battery" data-cat="battery">
+      <div class="cat-card-head">
+        <span class="cat-card-icon">🔋</span>
+        <div><div class="cat-card-title">صيانة البطاريات</div><div class="cat-card-sub">فحص البطاريات والشواحن بالمحطات</div></div>
+        <button class="btn bat-add cat-card-add" data-add="battery">➕ إضافة بطارية</button>
+      </div>
+      <div class="cat-stats">
+        <div class="cat-stat"><div class="v" id="bTotal">0</div><div class="l">الإجمالي</div></div>
+        <div class="cat-stat warn"><div class="v" id="bPending">0</div><div class="l">مجدولة / جارية</div></div>
+        <div class="cat-stat bad"><div class="v" id="bOverdue">0</div><div class="l">⏰ متأخرة</div></div>
+        <div class="cat-stat bad"><div class="v" id="bReplace">0</div><div class="l">⛔ تحتاج تبديل</div></div>
+      </div>
+    </div>
+    <div class="cat-card oil" data-cat="oil">
+      <div class="cat-card-head">
+        <span class="cat-card-icon">🛢️</span>
+        <div><div class="cat-card-title">صيانة الزيت</div><div class="cat-card-sub">فحص كميات الزيت بالمخزن</div></div>
+        <button class="btn oil-add cat-card-add" data-oil-act="check">🔍 فحص كمية</button>
+      </div>
+      <div class="cat-stats">
+        <div class="cat-stat"><div class="v" id="oItems">0</div><div class="l">أنواع الزيت</div></div>
+        <div class="cat-stat good"><div class="v" id="oLiters">0</div><div class="l">الرصيد (لتر)</div></div>
+        <div class="cat-stat bad"><div class="v" id="oLow">0</div><div class="l">⚠️ تحت الحد</div></div>
+        <div class="cat-stat"><div class="v" id="oLastCheck" style="font-size:15px;">—</div><div class="l">آخر فحص</div></div>
+      </div>
+    </div>
   </div>
+
+  <div id="ordersView">
 
   <div class="kpis">
     <div class="kpi"><div class="val" id="kTotal"><span class="num-part">0</span></div><div class="lbl">إجمالي أوامر الصيانة</div></div>
@@ -1380,8 +1456,9 @@
   </div>
 
   <div class="toolbar">
-    <button class="btn prev-add" data-add="preventive">🛡️ صيانة وقائية</button>
     <button class="btn emerg-add" data-add="emergency">🚨 صيانة طارئة</button>
+    <button class="btn prev-add" data-add="preventive">🛡️ دورية وقائية</button>
+    <button class="btn bat-add" data-add="battery">🔋 صيانة بطاريات</button>
     <button class="btn refresh" id="refreshBtn">🔄 تحديث</button>
     <div class="search-wrap"><span class="icn">🔍</span><input id="searchBox" placeholder="بحث بالمحطة، المعدة، الفريق، رقم التصريح..."></div>
     <input type="date" id="dateFilter" title="تصفية حسب التاريخ المخطط">
@@ -1405,8 +1482,10 @@
     <div class="panel-head"><h2>سجل أوامر الصيانة</h2><span id="recCount" style="font-size:12px;color:var(--mute);"></span></div>
     <div class="cat-tabs">
       <button class="cat-tab active" data-cat="">📋 الكل</button>
-      <button class="cat-tab preventive" data-cat="preventive">🛡️ الصيانة الوقائية</button>
-      <button class="cat-tab emergency" data-cat="emergency">🚨 الصيانة الطارئة</button>
+      <button class="cat-tab emergency" data-cat="emergency">🚨 الطارئة</button>
+      <button class="cat-tab preventive" data-cat="preventive">🛡️ الدورية الوقائية</button>
+      <button class="cat-tab battery" data-cat="battery">🔋 البطاريات</button>
+      <button class="cat-tab oil" data-cat="oil">🛢️ مخزن الزيت</button>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px 0;">
       <button class="btn excel" id="exportExcelBtn">📤 تصدير Excel</button>
@@ -1506,6 +1585,39 @@
     </div>
   </div>
 
+  </div><!-- /ordersView -->
+
+  <!-- ===== OIL STORE (صيانة الزيت — فحص كميات الزيت بالمخزن) ===== -->
+  <div id="oilView" style="display:none;">
+    <div class="toolbar">
+      <button class="btn oil-add" data-oil-act="item">➕ نوع زيت</button>
+      <button class="btn prev-add" data-oil-act="in">📥 إدخال للمخزن</button>
+      <button class="btn bat-add" data-oil-act="out">📤 صرف من المخزن</button>
+      <button class="btn add" data-oil-act="check">🔍 فحص الكمية</button>
+      <div class="grow"></div>
+      <button class="btn excel" id="oilExcelBtn">📤 تصدير Excel</button>
+      <button class="btn ghost" id="oilTabBack">📋 أوامر الصيانة</button>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>🛢️ أرصدة الزيت بالمخزن</h2><span id="oilCount" style="font-size:12px;color:var(--mute);"></span></div>
+      <div class="table-scroll">
+        <table class="oil-table">
+          <thead><tr><th>نوع الزيت</th><th>الموقع</th><th>الرصيد الحالي</th><th>الحد الأدنى</th><th>الحالة</th><th>آخر فحص</th><th>الإجراءات</th></tr></thead>
+          <tbody id="oilItemsBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:22px;">
+      <div class="panel-head"><h2>سجل حركات الزيت</h2><span id="oilMovesCount" style="font-size:12px;color:var(--mute);"></span></div>
+      <div class="table-scroll">
+        <table class="oil-table">
+          <thead><tr><th>التاريخ</th><th>الحركة</th><th>نوع الزيت</th><th>الكمية</th><th>الرصيد بعدها</th><th>المحطة / المرجع</th><th>بواسطة</th><th>ملاحظات</th><th></th></tr></thead>
+          <tbody id="oilMovesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <footer class="page-footer">MAINTENANCE — نظام إدارة الصيانة</footer>
 </div>
 
@@ -1549,10 +1661,28 @@
       </div>
 
       <div class="cat-switch">
-        <button type="button" class="preventive" data-cat="preventive">🛡️ صيانة وقائية</button>
         <button type="button" class="emergency" data-cat="emergency">🚨 صيانة طارئة</button>
+        <button type="button" class="preventive" data-cat="preventive">🛡️ دورية وقائية</button>
+        <button type="button" class="battery" data-cat="battery">🔋 صيانة بطاريات</button>
       </div>
       <input type="hidden" id="m_mtType">
+
+      <div id="batteryFields">
+        <div class="ttl">🔋 بيانات البطارية</div>
+        <div class="form-grid">
+          <div class="field"><label>نوع البطارية</label>
+            <select id="m_batType"><option value="">—</option><option>Ni-Cd</option><option>Lead-Acid (VLA)</option><option>VRLA / Sealed</option><option>Other</option></select>
+          </div>
+          <div class="field"><label>السعة (Ah)</label><input id="m_batAh" type="number" step="1" placeholder="مثال: 100"></div>
+          <div class="field"><label>عدد الخلايا</label><input id="m_batCells" type="number" step="1" placeholder="مثال: 92"></div>
+          <div class="field"><label>جهد البطارية المقاس (V)</label><input id="m_batVoltage" type="number" step="0.1" placeholder="مثال: 110.4"></div>
+          <div class="field"><label>جهد الشاحن (V)</label><input id="m_chargerVolt" type="number" step="0.1" placeholder="مثال: 121.0"></div>
+          <div class="field"><label>تاريخ تركيب البطارية</label><input id="m_batInstall" type="date"></div>
+          <div class="field span2"><label>نتيجة الفحص</label>
+            <select id="m_batResult"><option value="">— لم تُفحص بعد —</option><option value="ok">✅ سليمة</option><option value="weak">⚠️ ضعيفة — تحتاج متابعة</option><option value="replace">⛔ تحتاج تبديل</option></select>
+          </div>
+        </div>
+      </div>
 
       <div class="form-grid">
         <div class="field"><label>المحطة</label><input id="m_sstn" list="stationList" placeholder="مثال: KHIT F"></div>
@@ -1593,6 +1723,46 @@
       <button class="btn ghost" id="modalCancelBtn">إلغاء</button>
       <button class="btn add" id="modalSaveBtn">حفظ أمر الصيانة</button>
     </div>
+  </div>
+</div>
+
+<!-- OIL ITEM MODAL -->
+<div class="modal-overlay" id="oilItemModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head oil"><h3 id="oilItemTitle">🛢️ نوع زيت</h3><button class="modal-close" data-oil-close="oilItemModal">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span2"><label>اسم / نوع الزيت</label><input id="oi_name" placeholder="مثال: زيت محولات — Transformer Oil"></div>
+        <div class="field"><label>الوحدة</label><select id="oi_unit"><option>لتر</option><option>برميل</option><option>جالون</option></select></div>
+        <div class="field"><label>الحد الأدنى للتنبيه</label><input id="oi_minQty" type="number" step="0.1" placeholder="مثال: 400"></div>
+        <div class="field span2"><label>الموقع بالمخزن</label><input id="oi_location" placeholder="مثال: مخزن طوارئ عبدالله المبارك — رف 3"></div>
+        <div class="field span2" id="oi_openingWrap"><label>الرصيد الافتتاحي (اختياري)</label><input id="oi_opening" type="number" step="0.1" placeholder="الكمية الموجودة الحين"></div>
+        <div class="field span2"><label>ملاحظات</label><input id="oi_notes"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn ghost" data-oil-close="oilItemModal">إلغاء</button><button class="btn oil-add" id="oilItemSaveBtn">حفظ</button></div>
+  </div>
+</div>
+
+<!-- OIL MOVEMENT / STOCK CHECK MODAL -->
+<div class="modal-overlay" id="oilMoveModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head oil"><h3 id="oilMoveTitle">🛢️ حركة زيت</h3><button class="modal-close" data-oil-close="oilMoveModal">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="om_type">
+      <div class="form-grid">
+        <div class="field span2"><label>نوع الزيت</label><select id="om_item"></select>
+          <div class="oil-sys-qty" id="om_sysQty"></div></div>
+        <div class="field"><label>التاريخ</label><input id="om_date" type="date"></div>
+        <div class="field"><label id="om_qtyLabel">الكمية</label><input id="om_qty" type="number" step="0.1" min="0"></div>
+        <div class="field span2" id="om_diffWrap"><div class="oil-sys-qty" id="om_diff"></div></div>
+        <div class="field" id="om_stationWrap"><label>المحطة (المصروف لها)</label><input id="om_station" list="stationList" placeholder="مثال: KHIT C"></div>
+        <div class="field"><label id="om_refLabel">المرجع</label><input id="om_ref" placeholder="رقم أمر الصيانة / رقم الفاتورة"></div>
+        <div class="field span2"><label>بواسطة</label><input id="om_by" placeholder="اسم الموظف"></div>
+        <div class="field span2"><label>ملاحظات</label><input id="om_notes"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn ghost" data-oil-close="oilMoveModal">إلغاء</button><button class="btn oil-add" id="oilMoveSaveBtn">حفظ</button></div>
   </div>
 </div>
 
@@ -1645,11 +1815,17 @@ const STATUSES = {
 };
 // The system has exactly two kinds of maintenance.
 const MT_TYPES = {
-  preventive: {ar:'صيانة وقائية', en:'Preventive', icon:'🛡️'},
-  emergency:  {ar:'صيانة طارئة',  en:'Emergency',  icon:'🚨'}
+  emergency:  {ar:'صيانة طارئة',     en:'Emergency',            icon:'🚨'},
+  preventive: {ar:'دورية وقائية',    en:'Periodic Preventive',  icon:'🛡️'},
+  battery:    {ar:'صيانة البطاريات', en:'Battery Maintenance',  icon:'🔋'}
 };
+// Work orders come in the three kinds above; the fourth section of the
+// system, صيانة الزيت, is the oil store (see OIL STORE below).
+const BATTERY_FIELDS = ['batType','batAh','batCells','batVoltage','chargerVolt','batInstall','batResult'];
+const BAT_RESULTS = {ok:'✅ سليمة', weak:'⚠️ ضعيفة', replace:'⛔ تحتاج تبديل'};
 // Older records may carry the earlier five types — fold them into the two.
 function normalizeMtType(t){
+  if(t === 'battery') return 'battery';
   return (t === 'emergency' || t === 'corrective') ? 'emergency' : 'preventive';
 }
 function normalizeRecords(list){
@@ -1666,7 +1842,9 @@ const RECURRENCES = {
   monthly:    {ar:'شهري',       months:1},
   quarterly:  {ar:'كل 3 أشهر',  months:3},
   semiannual: {ar:'كل 6 أشهر',  months:6},
-  annual:     {ar:'سنوي',       months:12}
+  annual:     {ar:'سنوي',       months:12},
+  y4:         {ar:'كل 4 سنوات', months:48},
+  y5:         {ar:'كل 5 سنوات', months:60}
 };
 // Not finished yet — these count toward "overdue" once the planned date passes.
 const PENDING = ['planned', 'inprogress', 'postponed'];
@@ -1702,32 +1880,47 @@ function buildDemoRecords(firstId){
   const list = [
     // ---- Preventive ----
     {sstn:'KHIT C', equipment:'TR-2 inside S/S KHIT 63', equipType:'Distribution Transformer (11/0.415 kV)', mtType:'preventive', priority:'medium', status:'planned',
-     plannedDate:day(-6), recurrence:'annual', engineer:'فريق الصيانة A', ptw:'PTW-2026-0131', shutdown:'yes', affected:'KHIT 63 — جزء من بلوك 4 خيطان',
-     description:'Annual preventive maintenance — oil test, bushing cleaning, LV terminal tightening.'},
+     plannedDate:day(-6), recurrence:'y4', engineer:'فريق الصيانة A', ptw:'PTW-2026-0131', shutdown:'yes', affected:'KHIT 63 — جزء من بلوك 4 خيطان',
+     description:'Periodic preventive maintenance (every 4 years) — oil test, bushing cleaning, LV terminal tightening.'},
     {sstn:'FARW Q', equipment:'Switchgear FARW 147 (IEPC)', equipType:'Switchgear / Circuit Breaker', mtType:'preventive', priority:'medium', status:'inprogress',
      plannedDate:day(0), startDate:day(0), startTime:'08:00', engineer:'فريق الصيانة B', ptw:'PTW-2026-0142', shutdown:'yes', affected:'FARW 147',
      description:'Annual maintenance of 11 kV panel — breaker timing test, mechanism lubrication.'},
-    {sstn:'JALB B', equipment:'Battery bank & charger — JALB 137', equipType:'Battery & Charger', mtType:'preventive', priority:'low', status:'planned',
-     plannedDate:day(2), recurrence:'semiannual', engineer:'فريق الصيانة A',
+    {sstn:'JALB B', equipment:'Battery bank & charger — JALB 137', equipType:'Battery & Charger', mtType:'battery', priority:'low', status:'planned',
+     plannedDate:day(2), recurrence:'semiannual', engineer:'فريق البطاريات', batType:'Ni-Cd', batAh:'100', batCells:'92', batInstall:'2019-03-10',
      description:'Battery cell voltage check, charger output test, terminal cleaning.'},
     {sstn:'ARDY G', equipment:'RMU MOJ-1', equipType:'RMU', mtType:'preventive', priority:'medium', status:'planned',
-     plannedDate:day(4), recurrence:'quarterly', engineer:'فريق الصيانة B', shutdown:'yes', affected:'MOJ-1 (Judicial Archives)',
-     description:'Quarterly RMU inspection — SF6 pressure, cable boxes, earthing.'},
+     plannedDate:day(4), recurrence:'y4', engineer:'فريق الصيانة B', shutdown:'yes', affected:'MOJ-1 (Judicial Archives)',
+     description:'Periodic RMU overhaul — SF6 pressure, cable boxes, earthing.'},
     {sstn:'SULB B', equipment:'Protection relay — Sulaibiya K.D.C feeder', equipType:'Protection Relay', mtType:'preventive', priority:'medium', status:'planned',
      plannedDate:day(10), engineer:'فريق الوقاية', description:'Secondary injection test of O/C & E/F relay.'},
     {sstn:'FARW M', equipment:'Earthing grid — FARW M', equipType:'Earthing System', mtType:'preventive', priority:'low', status:'completed',
      plannedDate:day(-20), startDate:day(-20), startTime:'08:00', endDate:day(-20), endTime:'12:30', duration:4.5, engineer:'فريق الصيانة A',
      description:'Earth resistance measurement.', workDone:'Earth resistance measured 0.8 Ω — within limits. Two clamps replaced.', spares:'2 × earthing clamps'},
     {sstn:'KHIT B', equipment:'Power transformer TR-1', equipType:'Power Transformer', mtType:'preventive', priority:'high', status:'completed',
-     plannedDate:day(-12), recurrence:'quarterly', startDate:day(-12), startTime:'09:00', endDate:day(-12), endTime:'15:00', duration:6, engineer:'فريق الصيانة B', ptw:'PTW-2026-0118', shutdown:'yes', affected:'KHIT B 11 kV bus section 1',
-     description:'Quarterly oil sampling and tap-changer inspection.', workDone:'Oil sample taken (BDV OK). Tap-changer contacts cleaned. Silica gel replaced.', spares:'Silica gel 2 kg'},
+     plannedDate:day(-12), recurrence:'y5', startDate:day(-12), startTime:'09:00', endDate:day(-12), endTime:'15:00', duration:6, engineer:'فريق الصيانة B', ptw:'PTW-2026-0118', shutdown:'yes', affected:'KHIT B 11 kV bus section 1',
+     description:'5-yearly transformer overhaul — oil sampling and tap-changer inspection.', workDone:'Oil sample taken (BDV OK). Tap-changer contacts cleaned. Silica gel replaced.', spares:'Silica gel 2 kg'},
     {sstn:'KHIT B', equipment:'Power transformer TR-1', equipType:'Power Transformer', mtType:'preventive', priority:'high', status:'planned',
-     plannedDate:day(78), recurrence:'quarterly', engineer:'فريق الصيانة B', shutdown:'yes', affected:'KHIT B 11 kV bus section 1',
-     description:'Quarterly oil sampling and tap-changer inspection.', notes:'دورة تلقائية'},
+     plannedDate:addMonthsISO(day(-12), 60), recurrence:'y5', engineer:'فريق الصيانة B', shutdown:'yes', affected:'KHIT B 11 kV bus section 1',
+     description:'5-yearly transformer overhaul — oil sampling and tap-changer inspection.', notes:'دورة تلقائية'},
     {sstn:'JAL A', equipment:'11 kV cable JAL 93 – JAL 92', equipType:'Cable', mtType:'preventive', priority:'medium', status:'postponed',
      plannedDate:day(-2), engineer:'فريق الصيانة A', description:'Cable insulation (IR) test.', notes:'تأجيل بسبب الأحمال العالية'},
     {sstn:'ARDY B', equipment:'11 kV OHL — ARDY 111', equipType:'OHL', mtType:'preventive', priority:'low', status:'planned',
      plannedDate:day(1), engineer:'فريق الصيانة B', description:'Line patrol — insulators, jumpers and vegetation clearance.'},
+    // ---- Battery ----
+    {sstn:'FARW Q', equipment:'110 V DC battery bank — FARW Q', equipType:'Battery & Charger', mtType:'battery', priority:'medium', status:'completed',
+     plannedDate:day(-15), recurrence:'semiannual', startDate:day(-15), startTime:'09:00', endDate:day(-15), endTime:'11:30', duration:2.5, engineer:'فريق البطاريات',
+     batType:'Ni-Cd', batAh:'150', batCells:'92', batVoltage:'119.6', chargerVolt:'121.2', batInstall:'2018-05-20', batResult:'ok',
+     description:'Semi-annual battery check — cell voltages, electrolyte level, charger output.', workDone:'All cells within limits, electrolyte topped up.', spares:'Distilled water 5 L'},
+    {sstn:'KHIT C', equipment:'48 V battery — RTU panel', equipType:'Battery & Charger', mtType:'battery', priority:'high', status:'completed',
+     plannedDate:day(-30), recurrence:'semiannual', startDate:day(-30), startTime:'10:00', endDate:day(-30), endTime:'12:00', duration:2, engineer:'فريق البطاريات',
+     batType:'VRLA / Sealed', batAh:'65', batCells:'24', batVoltage:'44.1', chargerVolt:'53.5', batInstall:'2016-11-02', batResult:'replace',
+     description:'Battery discharge test.', workDone:'Low capacity on discharge test — replacement requested.'},
+    {sstn:'SULB H', equipment:'110 V DC battery bank', equipType:'Battery & Charger', mtType:'battery', priority:'medium', status:'planned',
+     plannedDate:day(-4), recurrence:'semiannual', engineer:'فريق البطاريات', batType:'Lead-Acid (VLA)', batAh:'200', batCells:'55', batInstall:'2020-01-15',
+     description:'Semi-annual battery check — specific gravity, cell voltages, terminals.'},
+    {sstn:'JAL B', equipment:'Battery charger & bank — JAL B', equipType:'Battery & Charger', mtType:'battery', priority:'low', status:'planned',
+     plannedDate:day(6), recurrence:'semiannual', engineer:'فريق البطاريات', batType:'Ni-Cd', batAh:'100', batCells:'92', batInstall:'2021-06-01',
+     description:'Charger output and alarm test, battery visual inspection.'},
     // ---- Emergency ----
     {sstn:'DMC PUMPING NEW', equipment:'Battery charger — SULB-H feed (IEPC)', equipType:'Battery & Charger', mtType:'emergency', priority:'critical', status:'inprogress',
      plannedDate:day(0), startDate:day(0), startTime:'07:40', engineer:'فريق الطوارئ 1', affected:'الصليبية',
@@ -1890,7 +2083,7 @@ function render(){
       <td>${(r.duration || r.duration === 0) ? r.duration : '—'}</td>
       <td>${esc(r.ptw) || '—'}${r.shutdown === 'yes' ? '<span class="shutdown-badge" title="يتطلب فصل">🔌 فصل</span>' : ''}</td>
       <td>${priorityBadge(r.priority)}</td>
-      <td>${statusPill(r)}</td>
+      <td>${statusPill(r)}${(r.mtType === 'battery' && BAT_RESULTS[r.batResult]) ? `<span class="bat-result ${r.batResult}">${BAT_RESULTS[r.batResult]}</span>` : ''}</td>
       <td>
         <div class="row-actions">
           ${(r.status === 'planned' || r.status === 'postponed') ? `<button class="icon-btn start" data-id="${r.id}" title="بدء التنفيذ">▶️</button>` : ''}
@@ -1909,7 +2102,8 @@ function render(){
   tbody.querySelectorAll('.start').forEach(b => b.addEventListener('click', () => startWork(parseInt(b.dataset.id))));
   tbody.querySelectorAll('.close-fault').forEach(b => b.addEventListener('click', () => completeWork(parseInt(b.dataset.id))));
 
-  document.getElementById('demoClearBtn').style.display = data.some(r => r.demo) ? '' : 'none';
+  document.getElementById('demoClearBtn').style.display = (data.some(r => r.demo) || oil.items.some(i => i.demo) || oil.moves.some(m => m.demo)) ? '' : 'none';
+  renderOil();
   document.getElementById('recCount').textContent = rows.length + ' معروض';
   document.getElementById('footCount').textContent = data.length + ' إجمالي السجلات';
   updateStats();
@@ -1950,6 +2144,12 @@ function updateCategoryCards(){
   const set = (id, v) => { document.getElementById(id).textContent = v; };
   set('pTotal', p.total); set('pPending', p.planned + p.inprogress + p.postponed); set('pOverdue', p.overdue); set('pRate', p.rate + '%');
   set('eTotal', e.total); set('eOpen', e.planned + e.inprogress + e.postponed); set('eDone', e.completed); set('eDur', e.avgDur);
+  const bRecs = data.filter(r => r.mtType === 'battery');
+  const b = computeStats(bRecs);
+  set('bTotal', b.total); set('bPending', b.planned + b.inprogress + b.postponed); set('bOverdue', b.overdue);
+  set('bReplace', bRecs.filter(r => r.batResult === 'replace' && !r.nextScheduledId).length);
+  const o = oilSummary();
+  set('oItems', o.items); set('oLiters', o.liters); set('oLow', o.low); set('oLastCheck', o.lastCheck ? fmtShort(o.lastCheck) : '—');
 }
 
 function updateStats(){
@@ -1976,13 +2176,16 @@ function updateAlarmBanner(){
   const late = data.filter(isOverdue);
   const openEmerg = data.filter(r => r.mtType === 'emergency' && PENDING.includes(r.status));
   const banner = document.getElementById('alarmBanner');
-  if(!late.length && !openEmerg.length){ banner.style.display = 'none'; return; }
   banner.style.display = 'flex';
   const parts = [];
   if(openEmerg.length) parts.push(`🚨 ${openEmerg.length} صيانة طارئة مفتوحة: ` +
     openEmerg.slice(0, 6).map(r => `${fmtWid(r.id)} ${r.sstn || ''} ${r.equipment || ''}`).join(' • '));
-  if(late.length) parts.push(`⏰ ${late.length} صيانة وقائية متأخرة عن موعدها: ` +
-    late.slice(0, 6).map(r => `${fmtWid(r.id)} ${r.sstn || ''} ${r.equipment || ''} (${r.plannedDate})`).join(' • '));
+  if(late.length) parts.push(`⏰ ${late.length} صيانة مجدولة متأخرة عن موعدها: ` +
+    late.slice(0, 6).map(r => `${fmtWid(r.id)} ${MT_TYPES[r.mtType].icon} ${r.sstn || ''} ${r.equipment || ''} (${r.plannedDate})`).join(' • '));
+  const lowOil = oilLowItems();
+  if(lowOil.length) parts.push(`🛢️ ${lowOil.length} نوع زيت تحت الحد الأدنى: ` +
+    lowOil.map(x => `${x.item.name} (${fmtQty(x.bal)} ${x.item.unit})`).join(' • '));
+  if(!parts.length){ banner.style.display = 'none'; return; }
   document.getElementById('alarmText').textContent = parts.join('   ||   ');
 }
 
@@ -2136,16 +2339,18 @@ function scheduleNextRecurrence(rec){
 }
 
 /* ===== MODAL ===== */
-const FIELDS = ['sstn','equipment','equipType','mtType','priority','status','plannedDate','recurrence','startDate','startTime','endDate','endTime','engineer','ptw','shutdown','duration','affected','description','workDone','spares','notes'];
+const FIELDS = ['sstn','equipment','equipType','mtType','priority','status','plannedDate','recurrence','startDate','startTime','endDate','endTime','engineer','ptw','shutdown','duration','affected','description','workDone','spares','notes', ...BATTERY_FIELDS];
 
 function openModal(id, category){
   editingId = id || null;
   const rec = id ? data.find(d => d.id === id) : null;
   const cat = rec ? rec.mtType : (category || 'preventive');
   // Emergency work is usually already happening: start it now, high priority.
-  const defaults = cat === 'emergency'
-    ? {equipType: EQUIP_TYPES[0], mtType:'emergency', priority:'high', status:'inprogress', recurrence:'none', shutdown:'no', plannedDate: todayISO(), startDate: todayISO(), startTime: nowHHMM()}
-    : {equipType: EQUIP_TYPES[0], mtType:'preventive', priority:'medium', status:'planned', recurrence:'none', shutdown:'no', plannedDate: todayISO()};
+  const defaults = {
+    emergency:  {equipType: EQUIP_TYPES[0], mtType:'emergency', priority:'high', status:'inprogress', recurrence:'none', shutdown:'no', plannedDate: todayISO(), startDate: todayISO(), startTime: nowHHMM()},
+    preventive: {equipType: EQUIP_TYPES[0], mtType:'preventive', priority:'medium', status:'planned', recurrence:'y4', shutdown:'no', plannedDate: todayISO()},
+    battery:    {equipType: 'Battery & Charger', mtType:'battery', priority:'medium', status:'planned', recurrence:'semiannual', shutdown:'no', plannedDate: todayISO()}
+  }[cat] || {};
   FIELDS.forEach(f => {
     const el = document.getElementById('m_' + f);
     const v = rec ? rec[f] : defaults[f];
@@ -2160,28 +2365,40 @@ function openModal(id, category){
   setTimeout(() => document.getElementById('m_sstn').focus(), 50);
 }
 
+const MODAL_CAT = {
+  emergency:  {btn:'emerg-add', save:'🚨 حفظ الصيانة الطارئة', date:'تاريخ البلاغ',
+               desc:'مثال: RMU FARW 43 tripped — cable end termination burnt, needs urgent replacement.'},
+  preventive: {btn:'prev-add', save:'🛡️ حفظ الدورية الوقائية', date:'التاريخ المخطط',
+               desc:'مثال: Periodic preventive maintenance (every 4 years) for TR-2 — oil test, tap changer inspection, terminal tightening.'},
+  battery:    {btn:'bat-add', save:'🔋 حفظ صيانة البطارية', date:'تاريخ الفحص المخطط',
+               desc:'مثال: Semi-annual battery check — cell voltages, electrolyte level, charger output.'}
+};
 function applyModalCategory(cat){
+  const c = MODAL_CAT[cat];
   document.getElementById('m_mtType').value = cat;
-  const isEm = cat === 'emergency';
   document.querySelectorAll('.cat-switch button').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
   document.getElementById('modalHead').className = 'modal-head ' + cat;
   document.getElementById('modalTitle').textContent = (editingId ? 'تعديل ' + fmtWid(editingId) + ' — ' : 'إضافة ') + MT_TYPES[cat].icon + ' ' + MT_TYPES[cat].ar;
-  document.getElementById('plannedDateLabel').textContent = isEm ? 'تاريخ البلاغ' : 'التاريخ المخطط';
-  document.getElementById('recurrenceField').style.display = isEm ? 'none' : '';
-  document.getElementById('m_description').placeholder = isEm
-    ? 'مثال: RMU FARW 43 tripped — cable end termination burnt, needs urgent replacement.'
-    : 'مثال: Annual preventive maintenance for TR-2 — oil test, tap changer inspection, terminal tightening.';
-  if(isEm) document.getElementById('m_recurrence').value = 'none';
-  document.getElementById('modalSaveBtn').className = 'btn ' + (isEm ? 'emerg-add' : 'prev-add');
-  document.getElementById('modalSaveBtn').textContent = isEm ? '🚨 حفظ الصيانة الطارئة' : '🛡️ حفظ الصيانة الوقائية';
+  document.getElementById('plannedDateLabel').textContent = c.date;
+  document.getElementById('recurrenceField').style.display = cat === 'emergency' ? 'none' : '';
+  document.getElementById('batteryFields').style.display = cat === 'battery' ? 'block' : 'none';
+  document.getElementById('m_description').placeholder = c.desc;
+  if(cat === 'emergency') document.getElementById('m_recurrence').value = 'none';
+  document.getElementById('modalSaveBtn').className = 'btn ' + c.btn;
+  document.getElementById('modalSaveBtn').textContent = c.save;
 }
 document.querySelectorAll('.cat-switch button').forEach(b => b.addEventListener('click', () => {
   const cat = b.dataset.cat;
   applyModalCategory(cat);
-  if(!editingId && cat === 'emergency'){
-    if(document.getElementById('m_status').value === 'planned') document.getElementById('m_status').value = 'inprogress';
-    if(!document.getElementById('m_startDate').value){ document.getElementById('m_startDate').value = todayISO(); document.getElementById('m_startTime').value = nowHHMM(); }
-    if(document.getElementById('m_priority').value === 'medium') document.getElementById('m_priority').value = 'high';
+  if(editingId) return;
+  const el = id => document.getElementById(id);
+  if(cat === 'emergency'){
+    if(el('m_status').value === 'planned') el('m_status').value = 'inprogress';
+    if(!el('m_startDate').value){ el('m_startDate').value = todayISO(); el('m_startTime').value = nowHHMM(); }
+    if(el('m_priority').value === 'medium') el('m_priority').value = 'high';
+  } else {
+    if(el('m_recurrence').value === 'none') el('m_recurrence').value = cat === 'battery' ? 'semiannual' : 'y4';
+    if(cat === 'battery') el('m_equipType').value = 'Battery & Charger';
   }
 }));
 
@@ -2202,6 +2419,7 @@ function saveModal(){
   FIELDS.forEach(f => { rec[f] = document.getElementById('m_' + f).value.trim(); });
   rec.sstn = rec.sstn.toUpperCase();
   rec.duration = rec.duration === '' ? null : parseFloat(rec.duration);
+  if(rec.mtType !== 'battery') BATTERY_FIELDS.forEach(f => { rec[f] = ''; });
   if(!rec.sstn && !rec.equipment){ showToast('أدخل المحطة أو المعدة على الأقل', 'error'); return; }
   if(!rec.plannedDate && !rec.startDate){ showToast('أدخل التاريخ المخطط أو تاريخ البدء', 'error'); return; }
   if(rec.status === 'completed' && !rec.endDate){ rec.endDate = todayISO(); rec.endTime = rec.endTime || nowHHMM(); }
@@ -2286,6 +2504,7 @@ function detectEquipType(text){
 function detectMtType(text){
   const t = text.toLowerCase();
   if(/emergenc|urgent|breakdown|corrective|repair|trip|طارئ|عاجل|تصحيح|إصلاح|اصلاح|عطل/.test(t)) return 'emergency';
+  if(/batter|charger|بطاري|شاحن/.test(t)) return 'battery';
   if(/preventive|\bpm\b|routine|periodic|annual|inspect|patrol|\btest|وقائي|دوري|فحص|تفتيش|اختبار/.test(t)) return 'preventive';
   return '';
 }
@@ -2385,6 +2604,9 @@ function printWorkOrder(id){
         ${row('Maintenance Type / نوع الصيانة', MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].en + ' / ' + MT_TYPES[r.mtType].ar : '')}
         ${row('Priority / الأولوية', r.priority)}
         ${row('Status / الحالة', STATUSES[r.status] ? STATUSES[r.status].en + ' / ' + STATUSES[r.status].ar : '')}
+        ${r.mtType === 'battery' ? row('Battery / البطارية', [r.batType, r.batAh ? r.batAh + ' Ah' : '', r.batCells ? r.batCells + ' cells' : '', r.batInstall ? 'installed ' + r.batInstall : ''].filter(Boolean).join(' · '))
+          + row('Measured / القراءات', [r.batVoltage ? 'Battery ' + r.batVoltage + ' V' : '', r.chargerVolt ? 'Charger ' + r.chargerVolt + ' V' : ''].filter(Boolean).join(' · '))
+          + row('Result / النتيجة', BAT_RESULTS[r.batResult] || '') : ''}
         ${row('Planned Date / التاريخ المخطط', r.plannedDate)}
         ${row('Start / البدء', ((r.startDate || '') + ' ' + (r.startTime || '')).trim())}
         ${row('End / الانتهاء', ((r.endDate || '') + ' ' + (r.endTime || '')).trim())}
@@ -2402,20 +2624,37 @@ function printWorkOrder(id){
 }
 
 document.getElementById('demoAddBtn').addEventListener('click', () => {
-  if(data.some(r => r.demo)){ showToast('البيانات التجريبية موجودة — امسحها أول إذا تبي تعيد إضافتها', 'info'); return; }
-  const demo = buildDemoRecords(nextId());
-  data.push(...demo);
-  saveData();
-  logActivity('add', 'إضافة ' + demo.length + ' أمر صيانة تجريبي');
-  showToast('تمت إضافة ' + demo.length + ' أمر صيانة تجريبي 🧪', 'success');
+  const haveOrders = data.some(r => r.demo), haveOil = oil.items.some(i => i.demo);
+  if(haveOrders && haveOil){ showToast('البيانات التجريبية موجودة — امسحها أول إذا تبي تعيد إضافتها', 'info'); return; }
+  const parts = [];
+  if(!haveOrders){
+    const demo = buildDemoRecords(nextId());
+    data.push(...demo);
+    saveData();
+    parts.push(demo.length + ' أمر صيانة');
+  }
+  if(!haveOil){
+    const demo = buildDemoOil(nextOilId(oil.items), nextOilId(oil.moves));
+    oil.items.push(...demo.items);
+    oil.moves.push(...demo.moves);
+    saveOil();
+    parts.push(demo.items.length + ' أنواع زيت');
+  }
+  logActivity('add', 'إضافة بيانات تجريبية: ' + parts.join(' و'));
+  showToast('تمت إضافة ' + parts.join(' و') + ' تجريبية 🧪', 'success');
   render();
 });
 document.getElementById('demoClearBtn').addEventListener('click', () => {
   const n = data.filter(r => r.demo).length;
-  if(!n || !confirm('مسح ' + n + ' أمر صيانة تجريبي؟ بياناتك الحقيقية ما تنمسح.')) return;
+  const demoItems = oil.items.filter(i => i.demo).map(i => i.id);
+  const nOil = demoItems.length + oil.moves.filter(m => m.demo && !demoItems.includes(m.itemId)).length;
+  if(!(n + nOil) || !confirm('مسح البيانات التجريبية (' + n + ' أمر صيانة و' + demoItems.length + ' أنواع زيت)؟ بياناتك الحقيقية ما تنمسح.')) return;
   data = data.filter(r => !r.demo);
   saveData();
-  logActivity('del', 'مسح البيانات التجريبية (' + n + ')');
+  oil.items = oil.items.filter(i => !i.demo);
+  oil.moves = oil.moves.filter(m => !m.demo && !demoItems.includes(m.itemId));
+  saveOil();
+  logActivity('del', 'مسح البيانات التجريبية');
   showToast('تم مسح البيانات التجريبية', 'info');
   render();
 });
@@ -2429,6 +2668,9 @@ document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click',
 let categoryFilter = '';
 function setCategoryFilter(cat){
   categoryFilter = cat || '';
+  // صيانة الزيت is the oil store, not work orders: it has its own screen.
+  document.getElementById('ordersView').style.display = categoryFilter === 'oil' ? 'none' : '';
+  document.getElementById('oilView').style.display = categoryFilter === 'oil' ? 'block' : 'none';
   document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === categoryFilter));
   document.querySelectorAll('.cat-card').forEach(c => c.classList.toggle('active', c.dataset.cat === categoryFilter));
 }
@@ -2436,7 +2678,7 @@ document.querySelectorAll('.cat-tab').forEach(t => t.addEventListener('click', (
 document.querySelectorAll('.cat-card').forEach(c => c.addEventListener('click', () => {
   setCategoryFilter(categoryFilter === c.dataset.cat ? '' : c.dataset.cat);
   render();
-  document.querySelector('.cat-tabs').scrollIntoView({behavior:'smooth', block:'start'});
+  document.querySelector(categoryFilter === 'oil' ? '#oilView' : '.cat-tabs').scrollIntoView({behavior:'smooth', block:'start'});
 }));
 document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
 document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
@@ -2512,7 +2754,7 @@ function downloadBlob(blob, filename){
 }
 
 document.getElementById('exportBackupBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify({kind:'maintenance-backup', version:2, gov: currentGov, records: data, oil}, null, 2)], {type:'application/json'});
   downloadBlob(blob, 'maintenance-backup-' + currentGov + '-' + todayISO() + '.json');
   showToast('تم حفظ النسخة الاحتياطية', 'success');
 });
@@ -2523,13 +2765,17 @@ document.getElementById('fileInput').addEventListener('change', e => {
   const reader = new FileReader();
   reader.onload = () => {
     try{
-      const parsed = JSON.parse(reader.result);
+      const file = JSON.parse(reader.result);
+      // Older backups are a plain array of work orders; newer ones also carry the oil store.
+      const parsed = Array.isArray(file) ? file : (file && file.kind === 'maintenance-backup' ? file.records : null);
       if(!Array.isArray(parsed) || parsed.some(r => typeof r !== 'object' || r === null || typeof r.id !== 'number')){
         throw new Error('not a maintenance backup');
       }
+      const importedOil = (!Array.isArray(file) && file.oil && Array.isArray(file.oil.items) && Array.isArray(file.oil.moves)) ? file.oil : null;
       if(!confirm('استبدال ' + data.length + ' سجل حالي في ' + govName(currentGov) + ' بـ ' + parsed.length + ' سجل من الملف؟')) return;
       data = normalizeRecords(parsed);
       saveData();
+      if(importedOil){ oil = importedOil; saveOil(); }
       logActivity('edit', 'استيراد نسخة محفوظة (' + parsed.length + ' سجل)');
       showToast('تم استيراد ' + parsed.length + ' سجل', 'success');
       render();
@@ -2550,7 +2796,9 @@ function recordToExcelRow(r){
     'Start': ((r.startDate || '') + ' ' + (r.startTime || '')).trim(), 'End': ((r.endDate || '') + ' ' + (r.endTime || '')).trim(),
     'Duration (hr)': r.duration, 'PTW No.': r.ptw, 'Shutdown': r.shutdown === 'yes' ? 'Yes' : 'No', 'Affected': r.affected,
     'Priority': r.priority, 'Status': (STATUSES[r.status] || {}).en + (isOverdue(r) ? ' (Overdue)' : ''),
-    'Work Done': r.workDone, 'Spares / Materials': r.spares, 'Notes': r.notes
+    'Work Done': r.workDone, 'Spares / Materials': r.spares, 'Notes': r.notes,
+    'Battery Type': r.batType || '', 'Battery Ah': r.batAh || '', 'Cells': r.batCells || '', 'Battery V': r.batVoltage || '',
+    'Charger V': r.chargerVolt || '', 'Battery Installed': r.batInstall || '', 'Battery Result': BAT_RESULTS[r.batResult] || ''
   };
 }
 
@@ -2749,9 +2997,11 @@ function refreshActiveReport(){
 function categorySummaryHtml(rows){
   const p = computeStats(rows.filter(r => r.mtType === 'preventive'));
   const e = computeStats(rows.filter(r => r.mtType === 'emergency'));
-  return `<div class="report-cols" style="margin-bottom:18px;">
-    <div class="kpi ok"><div class="val">🛡️ ${p.total}</div><div class="lbl">صيانة وقائية — منجزة ${p.completed} · متأخرة ${p.overdue} · إنجاز ${p.rate}%</div></div>
+  const b = computeStats(rows.filter(r => r.mtType === 'battery'));
+  return `<div class="report-kpis" style="margin-bottom:18px;">
     <div class="kpi danger"><div class="val">🚨 ${e.total}</div><div class="lbl">صيانة طارئة — منجزة ${e.completed} · مفتوحة ${e.planned + e.inprogress + e.postponed} · متوسط ${e.avgDur} ساعة</div></div>
+    <div class="kpi ok"><div class="val">🛡️ ${p.total}</div><div class="lbl">دورية وقائية — منجزة ${p.completed} · متأخرة ${p.overdue} · إنجاز ${p.rate}%</div></div>
+    <div class="kpi warn"><div class="val">🔋 ${b.total}</div><div class="lbl">صيانة البطاريات — منجزة ${b.completed} · متأخرة ${b.overdue} · إنجاز ${b.rate}%</div></div>
   </div>`;
 }
 
@@ -2818,8 +3068,9 @@ function wireReportActions(){
       '📅 ' + lastReport.subtitle,
       '',
       'الإجمالي: ' + s.total,
-      '🛡️ صيانة وقائية: ' + lastReport.rows.filter(r => r.mtType === 'preventive').length,
+      '🛡️ دورية وقائية: ' + lastReport.rows.filter(r => r.mtType === 'preventive').length,
       '🚨 صيانة طارئة: ' + lastReport.rows.filter(r => r.mtType === 'emergency').length,
+      '🔋 صيانة البطاريات: ' + lastReport.rows.filter(r => r.mtType === 'battery').length,
       '📅 مجدولة: ' + s.planned,
       '🔧 قيد التنفيذ: ' + s.inprogress,
       '✅ منجزة: ' + s.completed,
@@ -2953,6 +3204,7 @@ function switchGovernorate(gov){
   currentGov = gov;
   try{ localStorage.setItem(GOV_KEY, gov); }catch(e){}
   data = loadData();
+  oil = loadOil();
   editingId = null;
   customRows = null;
   try{ activityLog = JSON.parse(localStorage.getItem(activityKeyFor(currentGov))) || []; }catch(e){ activityLog = []; }
@@ -2973,6 +3225,268 @@ updateGovBrand();
 
 renderActivity();
 
+/* ===== OIL STORE — صيانة الزيت: فحص كميات الزيت بالمخزن =====
+   Oil types held in the store, and every movement: received (in), issued
+   to a station (out), and stock checks (check) where the counted quantity
+   replaces the recorded balance and the difference is kept on record. */
+const oilKeyFor = gov => 'mtOil_v1_' + gov;
+const OIL_MOVE = {in:'📥 إدخال', out:'📤 صرف', check:'🔍 فحص كمية'};
+
+function buildDemoOil(firstItemId, firstMoveId){
+  const day = off => { const x = new Date(); x.setDate(x.getDate() + off); return toISO(x); };
+  const items = [
+    {name:'زيت محولات — Transformer Oil', unit:'لتر', minQty:400, location:'مخزن الطوارئ — رف 1', notes:''},
+    {name:'زيت قواطع — Switchgear Oil', unit:'لتر', minQty:100, location:'مخزن الطوارئ — رف 2', notes:''},
+    {name:'زيت مغير الجهد — Tap Changer Oil', unit:'برميل', minQty:2, location:'الساحة الخارجية', notes:''}
+  ].map((it, i) => Object.assign(it, {id: firstItemId + i, demo:true}));
+  const [t, sw, tc] = items.map(x => x.id);
+  const moves = [
+    {itemId:t,  date:day(-40), type:'in',    qty:1200, ref:'PO-2026-118', by:'أمين المخزن', notes:'توريد جديد'},
+    {itemId:t,  date:day(-20), type:'out',   qty:200,  station:'KHIT B', ref:'تعبئة محول TR-1', by:'فريق الصيانة B'},
+    {itemId:t,  date:day(-6),  type:'out',   qty:150,  station:'FARW D', ref:'LTR3 FARW 43', by:'فريق الطوارئ 2'},
+    {itemId:t,  date:day(-2),  type:'check', qty:820,  by:'أمين المخزن', notes:'جرد شهري'},
+    {itemId:sw, date:day(-35), type:'in',    qty:300,  ref:'PO-2026-121', by:'أمين المخزن'},
+    {itemId:sw, date:day(-10), type:'out',   qty:220,  station:'FARW Q', ref:'FARW 147', by:'فريق الصيانة B'},
+    {itemId:tc, date:day(-50), type:'in',    qty:4,    ref:'PO-2026-097', by:'أمين المخزن'},
+    {itemId:tc, date:day(-1),  type:'check', qty:4,    by:'أمين المخزن', notes:'جرد شهري'}
+  ].map((m, i) => Object.assign({station:'', ref:'', by:'', notes:''}, m, {id: firstMoveId + i, demo:true}));
+  return {items, moves};
+}
+
+function loadOil(){
+  try{
+    const raw = localStorage.getItem(oilKeyFor(currentGov));
+    const parsed = JSON.parse(raw);
+    if(parsed && Array.isArray(parsed.items) && Array.isArray(parsed.moves)) return parsed;
+    // First visit to the oil store in this governorate: start with demo data.
+    const flag = 'mtOilDemoSeeded_' + currentGov;
+    if(raw === null && !localStorage.getItem(flag)){
+      const demo = buildDemoOil(1, 1);
+      localStorage.setItem(oilKeyFor(currentGov), JSON.stringify(demo));
+      localStorage.setItem(flag, '1');
+      return demo;
+    }
+  }catch(e){}
+  return {items:[], moves:[]};
+}
+let oil = loadOil();
+function saveOil(){ try{ localStorage.setItem(oilKeyFor(currentGov), JSON.stringify(oil)); }catch(e){} }
+const nextOilId = list => list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
+function fmtQty(n){ return (Math.round(n * 10) / 10).toLocaleString('en-US'); }
+function fmtShort(iso){ if(!iso) return ''; const [y, m, d] = iso.split('-'); return d + '/' + m + '/' + y.slice(2); }
+
+// Walks each item's movements in date order: balance per item, the balance
+// after every movement, and for checks the recorded quantity it replaced.
+function computeOil(){
+  const bal = {}, after = {}, before = {}, lastCheck = {};
+  oil.items.forEach(i => { bal[i.id] = 0; });
+  oil.moves.slice().sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.id - b.id).forEach(m => {
+    if(!(m.itemId in bal)) return;
+    const q = parseFloat(m.qty) || 0;
+    before[m.id] = bal[m.itemId];
+    if(m.type === 'in') bal[m.itemId] += q;
+    else if(m.type === 'out') bal[m.itemId] -= q;
+    else if(m.type === 'check'){ bal[m.itemId] = q; lastCheck[m.itemId] = m; }
+    after[m.id] = bal[m.itemId];
+  });
+  return {bal, after, before, lastCheck};
+}
+function oilState(item, qty){
+  if(qty <= 0) return {cls:'out', label:'⛔ نفد'};
+  if(item.minQty && qty < item.minQty) return {cls:'low', label:'⚠️ تحت الحد'};
+  return {cls:'ok', label:'✅ كافي'};
+}
+function oilLowItems(){
+  const c = computeOil();
+  return oil.items.filter(i => i.minQty && c.bal[i.id] < i.minQty).map(i => ({item:i, bal:c.bal[i.id]}));
+}
+function oilSummary(){
+  const c = computeOil();
+  const checks = oil.moves.filter(m => m.type === 'check').map(m => m.date).sort();
+  return {
+    items: oil.items.length,
+    liters: fmtQty(oil.items.filter(i => i.unit === 'لتر').reduce((s, i) => s + c.bal[i.id], 0)),
+    low: oilLowItems().length,
+    lastCheck: checks.length ? checks[checks.length - 1] : ''
+  };
+}
+
+function renderOil(){
+  const c = computeOil();
+  const itemName = id => { const i = oil.items.find(x => x.id === id); return i ? i.name : '(محذوف)'; };
+  const unitOf = id => { const i = oil.items.find(x => x.id === id); return i ? i.unit : ''; };
+  const ib = document.getElementById('oilItemsBody');
+  ib.innerHTML = oil.items.length ? oil.items.map(i => {
+    const q = c.bal[i.id], st = oilState(i, q), lc = c.lastCheck[i.id];
+    const diff = lc ? lc.qty - c.before[lc.id] : 0;
+    return `<tr>
+      <td class="sstn-cell">${esc(i.name)}${i.demo ? '<span class="demo-badge" title="بيانات تجريبية">🧪</span>' : ''}</td>
+      <td>${esc(i.location) || '—'}</td>
+      <td class="mw-val">${fmtQty(q)} ${esc(i.unit)}</td>
+      <td>${i.minQty ? fmtQty(i.minQty) + ' ' + esc(i.unit) : '—'}</td>
+      <td><span class="oil-state ${st.cls}">${st.label}</span></td>
+      <td>${lc ? esc(fmtShort(lc.date)) + (diff ? ` <span class="oil-diff ${diff < 0 ? 'neg' : 'pos'}">(${diff > 0 ? '+' : ''}${fmtQty(diff)})</span>` : ' <span class="oil-diff pos">(مطابق)</span>') : '<span style="color:var(--amber);">لم يُفحص</span>'}</td>
+      <td><div class="row-actions">
+        <button class="icon-btn" data-oil-act="in" data-item="${i.id}" title="إدخال">📥</button>
+        <button class="icon-btn" data-oil-act="out" data-item="${i.id}" title="صرف">📤</button>
+        <button class="icon-btn" data-oil-act="check" data-item="${i.id}" title="فحص الكمية">🔍</button>
+        <button class="icon-btn edit" data-oil-act="edit-item" data-item="${i.id}" title="تعديل">✏️</button>
+        <button class="icon-btn del" data-oil-act="del-item" data-item="${i.id}" title="حذف">🗑️</button>
+      </div></td></tr>`;
+  }).join('') : '<tr class="empty-row"><td colspan="7">لا توجد أنواع زيت بعد — اضغط "➕ نوع زيت".</td></tr>';
+
+  const moves = oil.moves.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id - a.id);
+  const mb = document.getElementById('oilMovesBody');
+  mb.innerHTML = moves.length ? moves.map(m => {
+    const u = unitOf(m.itemId);
+    let qtyCell;
+    if(m.type === 'check'){
+      const d = m.qty - (c.before[m.id] || 0);
+      qtyCell = `عُدّ ${fmtQty(m.qty)} — المسجل ${fmtQty(c.before[m.id] || 0)} <span class="oil-diff ${d < 0 ? 'neg' : 'pos'}">(${d === 0 ? 'مطابق' : (d > 0 ? '+' : '') + fmtQty(d)})</span>`;
+    } else {
+      qtyCell = (m.type === 'in' ? '+' : '−') + fmtQty(m.qty) + ' ' + esc(u);
+    }
+    return `<tr>
+      <td>${esc(fmtShort(m.date))}</td>
+      <td><span class="mv-type ${m.type}">${OIL_MOVE[m.type]}</span></td>
+      <td>${esc(itemName(m.itemId))}${m.demo ? '<span class="demo-badge">🧪</span>' : ''}</td>
+      <td>${qtyCell}</td>
+      <td>${m.id in c.after ? fmtQty(c.after[m.id]) + ' ' + esc(u) : '—'}</td>
+      <td>${esc([m.station, m.ref].filter(Boolean).join(' — ')) || '—'}</td>
+      <td>${esc(m.by) || '—'}</td>
+      <td>${esc(m.notes) || '—'}</td>
+      <td><button class="icon-btn del" data-oil-act="del-move" data-move="${m.id}" title="حذف الحركة">🗑️</button></td></tr>`;
+  }).join('') : '<tr class="empty-row"><td colspan="9">لا توجد حركات بعد.</td></tr>';
+  document.getElementById('oilCount').textContent = oil.items.length + ' نوع';
+  document.getElementById('oilMovesCount').textContent = moves.length + ' حركة';
+}
+
+/* ---- oil modals ---- */
+let editingOilItemId = null;
+function openOilItem(id){
+  editingOilItemId = id || null;
+  const it = id ? oil.items.find(x => x.id === id) : null;
+  document.getElementById('oilItemTitle').textContent = it ? '✏️ تعديل نوع الزيت' : '🛢️ نوع زيت جديد';
+  ['name','unit','minQty','location','notes'].forEach(f => { document.getElementById('oi_' + f).value = it ? (it[f] ?? '') : (f === 'unit' ? 'لتر' : ''); });
+  document.getElementById('oi_opening').value = '';
+  document.getElementById('oi_openingWrap').style.display = it ? 'none' : '';
+  document.getElementById('oilItemModal').classList.add('show');
+}
+document.getElementById('oilItemSaveBtn').addEventListener('click', () => {
+  const v = f => document.getElementById('oi_' + f).value.trim();
+  if(!v('name')){ showToast('اكتب اسم نوع الزيت', 'error'); return; }
+  const rec = {name: v('name'), unit: v('unit'), minQty: parseFloat(v('minQty')) || 0, location: v('location'), notes: v('notes')};
+  if(editingOilItemId){
+    Object.assign(oil.items.find(x => x.id === editingOilItemId), rec);
+  } else {
+    const item = Object.assign({id: nextOilId(oil.items)}, rec);
+    oil.items.push(item);
+    const opening = parseFloat(v('opening'));
+    if(opening > 0) oil.moves.push({id: nextOilId(oil.moves), itemId: item.id, date: todayISO(), type:'in', qty: opening, station:'', ref:'', by:'', notes:'رصيد افتتاحي'});
+  }
+  saveOil();
+  document.getElementById('oilItemModal').classList.remove('show');
+  showToast('تم حفظ نوع الزيت', 'success');
+  render();
+});
+
+function openOilMove(type, itemId){
+  if(!oil.items.length){ showToast('أضف نوع زيت أول', 'info'); openOilItem(null); return; }
+  const titles = {in:'📥 إدخال زيت للمخزن', out:'📤 صرف زيت من المخزن', check:'🔍 فحص كمية الزيت بالمخزن'};
+  document.getElementById('oilMoveTitle').textContent = titles[type];
+  document.getElementById('om_type').value = type;
+  document.getElementById('om_item').innerHTML = oil.items.map(i => `<option value="${i.id}">${esc(i.name)} (${esc(i.unit)})</option>`).join('');
+  if(itemId) document.getElementById('om_item').value = itemId;
+  document.getElementById('om_date').value = todayISO();
+  ['qty','station','ref','by','notes'].forEach(f => { document.getElementById('om_' + f).value = ''; });
+  document.getElementById('om_qtyLabel').textContent = type === 'check' ? 'الكمية الموجودة فعليًا (بعد العد)' : 'الكمية';
+  document.getElementById('om_refLabel').textContent = type === 'in' ? 'المرجع (رقم الطلب / الفاتورة)' : 'المرجع (رقم أمر الصيانة)';
+  document.getElementById('om_stationWrap').style.display = type === 'out' ? '' : 'none';
+  document.getElementById('om_diffWrap').style.display = type === 'check' ? '' : 'none';
+  updateOilMoveInfo();
+  document.getElementById('oilMoveModal').classList.add('show');
+  setTimeout(() => document.getElementById('om_qty').focus(), 50);
+}
+function updateOilMoveInfo(){
+  const id = parseInt(document.getElementById('om_item').value);
+  const it = oil.items.find(x => x.id === id);
+  if(!it) return;
+  const bal = computeOil().bal[id] || 0;
+  document.getElementById('om_sysQty').innerHTML = `الرصيد المسجل الحين: <b>${fmtQty(bal)} ${esc(it.unit)}</b>`;
+  const qv = document.getElementById('om_qty').value;
+  const diffEl = document.getElementById('om_diff');
+  if(document.getElementById('om_type').value === 'check' && qv !== ''){
+    const d = parseFloat(qv) - bal;
+    diffEl.innerHTML = d === 0 ? '<span class="oil-diff pos">✅ مطابق للرصيد المسجل</span>'
+      : `الفرق: <span class="oil-diff ${d < 0 ? 'neg' : 'pos'}">${d > 0 ? '+' : ''}${fmtQty(d)} ${esc(it.unit)}</span> ${d < 0 ? '(نقص)' : '(زيادة)'}`;
+  } else diffEl.innerHTML = '';
+}
+document.getElementById('om_item').addEventListener('change', updateOilMoveInfo);
+document.getElementById('om_qty').addEventListener('input', updateOilMoveInfo);
+document.getElementById('oilMoveSaveBtn').addEventListener('click', () => {
+  const v = f => document.getElementById('om_' + f).value.trim();
+  const type = v('type'), itemId = parseInt(v('item')), qty = parseFloat(v('qty'));
+  if(isNaN(qty) || qty < 0 || (type !== 'check' && qty === 0)){ showToast('أدخل كمية صحيحة', 'error'); return; }
+  if(!v('date')){ showToast('أدخل التاريخ', 'error'); return; }
+  if(type === 'out'){
+    const bal = computeOil().bal[itemId] || 0;
+    if(qty > bal){ showToast('الكمية أكبر من الرصيد المسجل (' + fmtQty(bal) + ') — سجّل فحص كمية أول إذا الرصيد غلط', 'error'); return; }
+  }
+  oil.moves.push({id: nextOilId(oil.moves), itemId, date: v('date'), type, qty,
+    station: type === 'out' ? v('station').toUpperCase() : '', ref: v('ref'), by: v('by'), notes: v('notes')});
+  saveOil();
+  document.getElementById('oilMoveModal').classList.remove('show');
+  const it = oil.items.find(x => x.id === itemId);
+  logActivity(type === 'out' ? 'edit' : 'add', OIL_MOVE[type] + ' — ' + (it ? it.name : '') + ' ' + fmtQty(qty));
+  showToast('تم تسجيل ' + OIL_MOVE[type], 'success');
+  render();
+});
+document.querySelectorAll('[data-oil-close]').forEach(b => b.addEventListener('click', () => document.getElementById(b.dataset.oilClose).classList.remove('show')));
+['oilItemModal','oilMoveModal'].forEach(id => document.getElementById(id).addEventListener('click', e => { if(e.target.id === id) e.target.classList.remove('show'); }));
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-oil-act]');
+  if(!b) return;
+  e.stopPropagation();
+  const itemId = parseInt(b.dataset.item) || null;
+  switch(b.dataset.oilAct){
+    case 'item': openOilItem(null); break;
+    case 'edit-item': openOilItem(itemId); break;
+    case 'in': case 'out': case 'check': openOilMove(b.dataset.oilAct, itemId); break;
+    case 'del-item': {
+      const it = oil.items.find(x => x.id === itemId);
+      const n = oil.moves.filter(m => m.itemId === itemId).length;
+      if(!confirm('حذف "' + it.name + '" مع ' + n + ' حركة مسجلة له؟')) return;
+      oil.items = oil.items.filter(x => x.id !== itemId);
+      oil.moves = oil.moves.filter(m => m.itemId !== itemId);
+      saveOil(); render(); showToast('تم حذف نوع الزيت', 'info'); break;
+    }
+    case 'del-move':
+      if(!confirm('حذف هذه الحركة؟ الرصيد يتعدل تلقائيًا.')) return;
+      oil.moves = oil.moves.filter(m => m.id !== parseInt(b.dataset.move));
+      saveOil(); render(); showToast('تم حذف الحركة', 'info'); break;
+  }
+}, true);
+
+document.getElementById('oilExcelBtn').addEventListener('click', () => {
+  try{
+    const c = computeOil();
+    const name = id => (oil.items.find(x => x.id === id) || {}).name || '';
+    const items = oil.items.map(i => ({'Oil Type': i.name, 'Unit': i.unit, 'Balance': c.bal[i.id], 'Minimum': i.minQty,
+      'State': oilState(i, c.bal[i.id]).label, 'Last Check': c.lastCheck[i.id] ? c.lastCheck[i.id].date : '', 'Location': i.location}));
+    const moves = oil.moves.slice().sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.id - b.id).map(m => ({
+      'Date': m.date, 'Movement': {in:'In', out:'Out', check:'Stock check'}[m.type], 'Oil Type': name(m.itemId),
+      'Quantity': m.qty, 'Recorded Before': m.type === 'check' ? c.before[m.id] : '', 'Difference': m.type === 'check' ? m.qty - c.before[m.id] : '',
+      'Balance After': c.after[m.id], 'Station': m.station, 'Reference': m.ref, 'By': m.by, 'Notes': m.notes}));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(items), 'Oil Balances');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(moves), 'Oil Movements');
+    const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    downloadBlob(new Blob([wbout], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), 'Oil_Store_' + currentGov + '_' + todayISO() + '.xlsx');
+  }catch(err){ showToast('تعذر تصدير ملف Excel. حاولي مرة ثانية.', 'error'); }
+});
+document.getElementById('oilTabBack').addEventListener('click', () => { setCategoryFilter(''); render(); });
+
 /* ===== HOME SCREEN =====
    The first page: "الصيانة" opens two choices, and each one shows the
    system filtered to that kind. "🏠 الرئيسية" comes back here. */
@@ -2982,6 +3496,10 @@ function showHome(){
   document.getElementById('homeGov').textContent = 'المحافظة: ' + govName(currentGov);
   document.getElementById('homePrevCount').innerHTML = `<span style="color:var(--amber);">${p.planned + p.inprogress + p.postponed} مجدولة / جارية</span> · <span style="color:var(--red);">${p.overdue} متأخرة</span>`;
   document.getElementById('homeEmergCount').innerHTML = `<span style="color:var(--red);">${e.planned + e.inprogress + e.postponed} مفتوحة الآن</span> · <span style="color:var(--green);">${e.completed} منجزة</span>`;
+  const b = computeStats(data.filter(r => r.mtType === 'battery'));
+  document.getElementById('homeBatCount').innerHTML = `<span style="color:var(--amber);">${b.planned + b.inprogress + b.postponed} مجدولة / جارية</span> · <span style="color:var(--red);">${b.overdue} متأخرة</span>`;
+  const o = oilSummary();
+  document.getElementById('homeOilCount').innerHTML = `<span style="color:var(--green);">${o.liters} لتر بالمخزن</span> · <span style="color:var(--red);">${o.low} تحت الحد</span>`;
   document.getElementById('homeScreen').classList.remove('hidden');
 }
 function enterCategory(cat){
