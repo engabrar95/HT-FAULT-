@@ -1537,8 +1537,8 @@
     </div>
   </div>
 
-  <div class="overview-grid" style="grid-template-columns:1fr 1fr 1fr;">
-    <div class="panel">
+  <div class="overview-grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
+    <div class="panel" id="byTypePanel">
       <div class="panel-head"><h2>حسب نوع الصيانة</h2></div>
       <div class="panel-body-inner" id="byTypeBars"></div>
     </div>
@@ -1596,7 +1596,7 @@
       <button class="btn add" data-oil-act="check">🔍 فحص الكمية</button>
       <div class="grow"></div>
       <button class="btn excel" id="oilExcelBtn">📤 تصدير Excel</button>
-      <button class="btn ghost" id="oilTabBack">📋 أوامر الصيانة</button>
+      <button class="btn ghost" id="oilTabBack">🏠 الرئيسية</button>
     </div>
     <div class="panel">
       <div class="panel-head"><h2>🛢️ أرصدة الزيت بالمخزن</h2><span id="oilCount" style="font-size:12px;color:var(--mute);"></span></div>
@@ -2154,7 +2154,7 @@ function updateCategoryCards(){
 
 function updateStats(){
   updateCategoryCards();
-  const s = computeStats(data);
+  const s = computeStats(scoped());
   animateNumber(document.querySelector('#kTotal .num-part'), s.total, 0);
   animateNumber(document.querySelector('#kPlanned .num-part'), s.planned, 0);
   animateNumber(document.querySelector('#kProgress .num-part'), s.inprogress, 0);
@@ -2169,12 +2169,12 @@ function updateStats(){
   renderRanking();
   renderDonut(s);
   document.getElementById('byTypeBars').innerHTML = barsHtml(groupCount(data, r => MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].ar : ''));
-  document.getElementById('byEquipBars').innerHTML = barsHtml(groupCount(data, r => r.equipType));
+  document.getElementById('byEquipBars').innerHTML = barsHtml(groupCount(scoped(), r => r.equipType));
 }
 
 function updateAlarmBanner(){
-  const late = data.filter(isOverdue);
-  const openEmerg = data.filter(r => r.mtType === 'emergency' && PENDING.includes(r.status));
+  const late = scoped().filter(isOverdue);
+  const openEmerg = scoped().filter(r => r.mtType === 'emergency' && PENDING.includes(r.status));
   const banner = document.getElementById('alarmBanner');
   banner.style.display = 'flex';
   const parts = [];
@@ -2182,7 +2182,7 @@ function updateAlarmBanner(){
     openEmerg.slice(0, 6).map(r => `${fmtWid(r.id)} ${r.sstn || ''} ${r.equipment || ''}`).join(' • '));
   if(late.length) parts.push(`⏰ ${late.length} صيانة مجدولة متأخرة عن موعدها: ` +
     late.slice(0, 6).map(r => `${fmtWid(r.id)} ${MT_TYPES[r.mtType].icon} ${r.sstn || ''} ${r.equipment || ''} (${r.plannedDate})`).join(' • '));
-  const lowOil = oilLowItems();
+  const lowOil = (!categoryFilter || categoryFilter === 'oil') ? oilLowItems() : [];
   if(lowOil.length) parts.push(`🛢️ ${lowOil.length} نوع زيت تحت الحد الأدنى: ` +
     lowOil.map(x => `${x.item.name} (${fmtQty(x.bal)} ${x.item.unit})`).join(' • '));
   if(!parts.length){ banner.style.display = 'none'; return; }
@@ -2192,7 +2192,7 @@ function updateAlarmBanner(){
 function renderUpcoming(){
   const today = todayISO();
   const limit = toISO(new Date(Date.now() + 7 * 86400000));
-  const list = data.filter(r => PENDING.includes(r.status) && r.plannedDate && r.plannedDate <= limit)
+  const list = scoped().filter(r => PENDING.includes(r.status) && r.plannedDate && r.plannedDate <= limit)
     .sort((a, b) => a.plannedDate.localeCompare(b.plannedDate));
   const el = document.getElementById('upcomingList');
   if(!list.length){
@@ -2211,7 +2211,7 @@ function renderUpcoming(){
 
 function renderRanking(){
   const counts = {};
-  data.filter(r => r.status === 'completed').forEach(r => {
+  scoped().filter(r => r.status === 'completed').forEach(r => {
     (r.engineer || '').split(/[،,]/).map(s => s.trim()).filter(Boolean).forEach(n => { counts[n] = (counts[n] || 0) + 1; });
   });
   const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
@@ -2666,19 +2666,42 @@ document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click',
 
 /* ===== CATEGORY FILTER (tabs above the table + the two cards) ===== */
 let categoryFilter = '';
+const SECTION_LABEL = {emergency:'🚨 صيانة طارئة', preventive:'🛡️ دورية وقائية', battery:'🔋 صيانة البطاريات', oil:'🛢️ صيانة الزيت'};
+// A section chosen from the home page shows only that section: its card,
+// its add button, and numbers, lists, alerts, reports and exports built
+// from its own orders. "🏠 الرئيسية" goes back to choose another.
 function setCategoryFilter(cat){
   categoryFilter = cat || '';
+  const inSection = !!categoryFilter;
   // صيانة الزيت is the oil store, not work orders: it has its own screen.
   document.getElementById('ordersView').style.display = categoryFilter === 'oil' ? 'none' : '';
   document.getElementById('oilView').style.display = categoryFilter === 'oil' ? 'block' : 'none';
   document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === categoryFilter));
-  document.querySelectorAll('.cat-card').forEach(c => c.classList.toggle('active', c.dataset.cat === categoryFilter));
+  document.querySelectorAll('.cat-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.cat === categoryFilter);
+    c.style.display = (!inSection || c.dataset.cat === categoryFilter) ? '' : 'none';
+  });
+  document.querySelector('.cat-cards').style.gridTemplateColumns = inSection ? '1fr' : '';
+  document.querySelector('.cat-tabs').style.display = inSection ? 'none' : '';
+  document.querySelectorAll('.toolbar [data-add]').forEach(b => { b.style.display = (!inSection || b.dataset.add === categoryFilter) ? '' : 'none'; });
+  document.getElementById('byTypePanel').style.display = inSection ? 'none' : '';
+  document.querySelector('.cat-switch').style.display = inSection ? 'none' : '';
+  const cfType = document.getElementById('cf_type');
+  if(inSection) cfType.value = '';
+  cfType.closest('.field').style.display = inSection ? 'none' : '';
+  updateGovBrand();
+}
+// Records of the section being shown (all records when none is chosen).
+function scoped(){
+  if(categoryFilter === 'oil') return []; // the oil section has no work orders
+  return categoryFilter ? data.filter(r => r.mtType === categoryFilter) : data;
 }
 document.querySelectorAll('.cat-tab').forEach(t => t.addEventListener('click', () => { setCategoryFilter(t.dataset.cat); render(); }));
 document.querySelectorAll('.cat-card').forEach(c => c.addEventListener('click', () => {
-  setCategoryFilter(categoryFilter === c.dataset.cat ? '' : c.dataset.cat);
+  if(categoryFilter) return; // inside a section the card is just its summary
+  setCategoryFilter(c.dataset.cat);
   render();
-  document.querySelector(categoryFilter === 'oil' ? '#oilView' : '.cat-tabs').scrollIntoView({behavior:'smooth', block:'start'});
+  window.scrollTo(0, 0);
 }));
 document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
 document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
@@ -2819,7 +2842,7 @@ function exportRowsToExcel(rows, filename){
 }
 
 document.getElementById('exportExcelBtn').addEventListener('click', () => {
-  exportRowsToExcel(sortRows(data), 'Maintenance_Records_' + currentGov + '.xlsx');
+  exportRowsToExcel(sortRows(scoped()), 'Maintenance_Records_' + currentGov + (categoryFilter ? '_' + categoryFilter : '') + '.xlsx');
 });
 
 // jsPDF has no Arabic glyphs — render Arabic on a canvas and embed it as an image.
@@ -2914,7 +2937,7 @@ function exportPdf(rows, title, subtitle, filename){
 }
 
 document.getElementById('exportPdfBtn').addEventListener('click', () => {
-  exportPdf(data, 'MAINTENANCE — ' + (GOV_NAME_EN[currentGov] || currentGov) + ' Governorate', 'Maintenance Management System',
+  exportPdf(scoped(), 'MAINTENANCE — ' + (GOV_NAME_EN[currentGov] || currentGov) + ' Governorate', categoryFilter && MT_TYPES[categoryFilter] ? MT_TYPES[categoryFilter].en : 'Maintenance Management System',
     'Maintenance_Report_' + currentGov + '_' + todayISO() + '.pdf');
 });
 
@@ -2976,7 +2999,7 @@ function getMonthBounds(offset){
   return {start, end};
 }
 function rowsInRange(from, to){
-  return data.filter(r => { const d = refDate(r); return d && d >= from && d <= to; });
+  return scoped().filter(r => { const d = refDate(r); return d && d >= from && d <= to; });
 }
 
 function refreshActiveReport(){
@@ -3020,7 +3043,7 @@ function buildReport(rows, title, subtitle){
     </table></div>` : '<div class="no-data">لا توجد أوامر صيانة في هذه الفترة.</div>';
   return `
     <div class="report-summary-head">
-      <div><h3>${esc(title)} — ${esc(govName(currentGov))}</h3><div class="range-sub">${esc(subtitle)}</div></div>
+      <div><h3>${esc(title)}${MT_TYPES[categoryFilter] ? ' — ' + esc(MT_TYPES[categoryFilter].ar) : ''} — ${esc(govName(currentGov))}</h3><div class="range-sub">${esc(subtitle)}</div></div>
     </div>
     ${categorySummaryHtml(rows)}
     <div class="report-kpis">
@@ -3103,7 +3126,7 @@ document.getElementById('generateCustomBtn').addEventListener('click', () => {
   const from = v('cf_from'), to = v('cf_to');
   const sstn = v('cf_sstn').toLowerCase(), eng = v('cf_engineer').toLowerCase();
   const type = v('cf_type'), equip = v('cf_equip'), status = v('cf_status');
-  customRows = data.filter(r => {
+  customRows = scoped().filter(r => {
     const d = refDate(r);
     if(from && (!d || d < from)) return false;
     if(to && (!d || d > to)) return false;
@@ -3197,7 +3220,8 @@ document.getElementById('logoFileInput').addEventListener('change', e => {
 
 /* ===== GOVERNORATE SWITCHER ===== */
 function updateGovBrand(){
-  document.querySelector('.brand .tagline').textContent = 'نظام إدارة الصيانة — ' + govName(currentGov);
+  const sec = (typeof categoryFilter !== 'undefined' && SECTION_LABEL[categoryFilter]) ? SECTION_LABEL[categoryFilter] + ' — ' : '';
+  document.querySelector('.brand .tagline').textContent = 'نظام إدارة الصيانة — ' + sec + govName(currentGov);
 }
 function switchGovernorate(gov){
   if(gov === currentGov) return;
@@ -3212,7 +3236,7 @@ function switchGovernorate(gov){
   document.getElementById('searchBox').value = '';
   document.getElementById('dateFilter').value = '';
   document.getElementById('statusFilter').value = 'all';
-  setCategoryFilter('');
+  setCategoryFilter(categoryFilter);
   render();
   renderActivity();
   showToast('تم التبديل إلى محافظة ' + govName(currentGov), 'info');
@@ -3485,7 +3509,7 @@ document.getElementById('oilExcelBtn').addEventListener('click', () => {
     downloadBlob(new Blob([wbout], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), 'Oil_Store_' + currentGov + '_' + todayISO() + '.xlsx');
   }catch(err){ showToast('تعذر تصدير ملف Excel. حاولي مرة ثانية.', 'error'); }
 });
-document.getElementById('oilTabBack').addEventListener('click', () => { setCategoryFilter(''); render(); });
+document.getElementById('oilTabBack').addEventListener('click', () => showHome());
 
 /* ===== HOME SCREEN =====
    The first page: "الصيانة" opens two choices, and each one shows the
