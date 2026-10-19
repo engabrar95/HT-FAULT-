@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MAINTENANCE — Maintenance Management System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -1230,12 +1230,6 @@
   .modal-head.preventive{background:linear-gradient(120deg,#0f5c38,#1f9d5b);}
   .modal-head.emergency{background:linear-gradient(120deg,#7a1f1f,#c33);}
   /* ===== HOME SCREEN (first page of the maintenance system) ===== */
-  #homeScreen{
-    position:fixed;inset:0;z-index:150;overflow-y:auto;
-    background:radial-gradient(ellipse at top, var(--panel2), var(--bg) 70%);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 16px;text-align:center;
-  }
-  #homeScreen.hidden{display:none;}
   .home-logo{
     width:76px;height:76px;border-radius:18px;margin-bottom:16px;
     background:radial-gradient(circle at 30% 20%, #ffb020, #d9861a);box-shadow:0 0 30px rgba(255,176,32,0.45);
@@ -1273,7 +1267,6 @@
   .home-choice.battery .t{color:#f2c94c;}
   .home-choice.oil{border-color:rgba(200,137,59,0.6);}
   .home-choice.oil .t{color:#e0a15a;}
-  @media print{ #homeScreen{display:none !important;} }
 
   @media (max-width:900px){
     .oil-kpis{grid-template-columns:repeat(2,1fr);}
@@ -1313,6 +1306,151 @@
   .wo-sheet .wo-label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;margin-top:8px;}
   .wo-sheet .wo-signs{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px;font-size:12px;}
   .wo-sheet .wo-signs div{border-top:1px solid #333;padding-top:6px;text-align:center;}
+
+  /* =====================================================================
+     OFFICIAL LAYOUT — Arabic font, ministry header, menu on the right,
+     and every screen (forms included) shown as a full page.
+     ===================================================================== */
+  body{font-family:'Cairo','Inter',sans-serif;}
+  .kpi .lbl, .cat-stat .l, .activity-time, .range-label, .tagline, .home-gov, .hdr-clock .d,
+  .panel-head h2, .field label, .report-block h4, .sld-modal-sub{
+    font-family:'Cairo',sans-serif !important;letter-spacing:0 !important;text-transform:none !important;
+  }
+  .kpi .lbl{font-size:12.5px;font-weight:600;}
+  .panel-head h2{font-size:15px;font-weight:800;color:var(--text);}
+  .topbar{background:linear-gradient(120deg,#08264a,#0d3868);border-bottom:4px solid #c9a227;}
+  .top-emblem-wrap{width:56px;height:56px;border-radius:50%;background:#fff;padding:4px;flex-shrink:0;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 0 2px rgba(201,162,39,0.6);}
+  .top-emblem-wrap img{width:100%;height:100%;object-fit:contain;}
+  .brand h1{font-family:'Cairo',sans-serif;font-size:21px;font-weight:800;letter-spacing:0;}
+  .brand .tagline{font-size:12.5px;color:#c9d9ea;}
+  .cat-cards, .cat-tabs{display:none !important;}
+
+  .app-shell{display:flex;align-items:flex-start;gap:22px;max-width:1520px;margin:0 auto;padding:22px 20px 60px;}
+  .app-main{flex:1;min-width:0;}
+  #appMain [data-page]:not(.page-active){display:none !important;}
+  #appMain [data-page].page-active{display:block !important;}
+  #appMain [data-page].page-active{animation:pageIn .2s ease;}
+  @keyframes pageIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .page-title{display:flex;align-items:baseline;gap:12px;direction:rtl;margin:0 0 18px;padding-bottom:12px;border-bottom:2px solid var(--line);}
+  .page-title h2{margin:0;font-size:22px;font-weight:800;color:var(--text);}
+  .page-title .page-sec{font-size:13.5px;color:var(--mute);font-weight:600;}
+
+  /* ---- right-hand menu ---- */
+  .side-nav{
+    width:260px;flex-shrink:0;position:sticky;top:12px;direction:rtl;color:#e6eef8;
+    background:linear-gradient(180deg,#08264a,#0d3868);border-radius:14px;padding:14px 10px 16px;
+    box-shadow:0 8px 24px rgba(8,38,74,0.25);
+  }
+  .nav-head{display:flex;align-items:center;gap:10px;padding:6px 8px 14px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.14);}
+  .nav-head .ic{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.12);flex-shrink:0;}
+  .nav-head .ic svg{width:24px;height:24px;fill:#fff;}
+  .nav-head.emergency .ic{background:#c0392b;} .nav-head.preventive .ic{background:#1f8a52;}
+  .nav-head.battery .ic{background:#b8930f;} .nav-head.oil .ic{background:#a86b2d;}
+  .nav-head .t{font-size:15.5px;font-weight:800;color:#fff;line-height:1.3;}
+  .nav-head .s{font-size:11.5px;color:#a9c3de;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;width:100%;padding:11px 12px;margin:2px 0;border:none;border-radius:9px;
+    background:transparent;color:#dce8f5;font-family:'Cairo',sans-serif;font-size:14px;font-weight:600;cursor:pointer;
+    text-align:right;direction:rtl;transition:background .12s ease;
+  }
+  .nav-item svg{width:20px;height:20px;fill:currentColor;flex-shrink:0;opacity:.9;}
+  .nav-item:hover{background:rgba(255,255,255,0.09);color:#fff;}
+  .nav-item.active{background:#fff;color:#08264a;font-weight:800;box-shadow:inset -4px 0 0 #c9a227;}
+  .nav-item .caret{margin-right:auto;font-size:11px;opacity:.8;transition:transform .15s ease;}
+  .nav-item.expanded .caret{transform:rotate(180deg);}
+  .nav-sub{display:none;flex-direction:column;padding-right:14px;}
+  .nav-sub.open{display:flex;}
+  .nav-sub .nav-item{font-size:13.5px;padding:9px 12px;}
+  .nav-sep{height:1px;background:rgba(255,255,255,0.14);margin:10px 4px;}
+  .nav-label{font-size:11px;color:#8fb0cc;padding:4px 12px 2px;font-weight:700;}
+
+  /* ---- windows shown as full pages inside the main area ---- */
+  #appMain .modal-overlay, #appMain .sld-modal-overlay{
+    position:static;inset:auto;background:none;backdrop-filter:none;padding:0;z-index:auto;
+  }
+  #appMain .modal, #appMain .sld-modal-box{max-width:none !important;width:100%;max-height:none;overflow:visible;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,0.08);}
+  #appMain .modal-head{padding:16px 22px;direction:rtl;}
+  #appMain .modal-head h3{font-family:'Cairo',sans-serif;font-size:19px;font-weight:800;}
+  #appMain .modal-close.page-back, #appMain .sld-modal-close.page-back{
+    width:auto;height:auto;font-family:'Cairo',sans-serif;font-size:13.5px;font-weight:700;color:#fff;
+    background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.35);border-radius:8px;padding:7px 16px;
+  }
+  #appMain .sld-modal-head{direction:rtl;}
+  #appMain .sld-modal-body{background:transparent !important;}
+  #appMain .modal-body{padding:24px 26px;}
+  #appMain .form-grid{grid-template-columns:repeat(3,1fr);}
+  #appMain .form-grid .span2{grid-column:span 3;}
+  #appMain .modal-foot{direction:rtl;justify-content:flex-start;padding:18px 26px;}
+  #appMain .modal-foot .btn{padding:11px 26px;font-size:14px;}
+
+  /* ---- data page ---- */
+  .data-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;direction:rtl;}
+  .data-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;}
+  .data-card h3{margin:0 0 8px;font-size:16px;}
+  .data-card p{margin:0 0 16px;color:var(--mute);font-size:13px;line-height:1.8;}
+
+  /* ---- official home page ---- */
+  .home-page .home-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:40px 24px 44px;text-align:center;
+    box-shadow:0 8px 28px rgba(8,38,74,0.10);border-top:5px solid #c9a227;
+  }
+  .home-emblem{height:96px;display:block;margin:0 auto 14px;}
+  .home-ministry{font-size:20px;font-weight:800;color:var(--text);}
+  .home-ministry-en{font-size:12px;color:var(--mute);margin-top:2px;font-family:'Inter',sans-serif;}
+  .home-divider{width:90px;height:3px;background:#c9a227;border-radius:3px;margin:18px auto;}
+  .home-page .home-title{font-size:30px;font-weight:800;margin:0 0 4px;color:var(--text);letter-spacing:0;}
+  .home-page .home-gov{font-size:13px;color:var(--mute);margin-bottom:26px;font-family:'Cairo',sans-serif;}
+  .home-page .home-main-btn{
+    margin:0 auto;font-family:'Cairo',sans-serif;font-size:21px;padding:14px 52px;border-radius:12px;
+    background:linear-gradient(120deg,#08264a,#0d3868);border:2px solid #c9a227;box-shadow:0 8px 22px rgba(8,38,74,0.28);
+  }
+  .home-page .home-main-btn svg{width:24px;height:24px;fill:#c9a227;}
+  .home-page .home-choices{max-width:860px;margin:26px auto 0;grid-template-columns:repeat(4,1fr);}
+  .home-page .home-choice{background:var(--panel2);border:1px solid var(--line);border-top:4px solid var(--line);border-radius:12px;font-family:'Cairo',sans-serif;}
+  .home-page .home-choice .ic svg{width:40px;height:40px;}
+  .home-page .home-choice.emergency{border-top-color:#c0392b;} .home-page .home-choice.emergency .ic svg{fill:#c0392b;}
+  .home-page .home-choice.preventive{border-top-color:#1f8a52;} .home-page .home-choice.preventive .ic svg{fill:#1f8a52;}
+  .home-page .home-choice.battery{border-top-color:#c9a227;} .home-page .home-choice.battery .ic svg{fill:#b8930f;}
+  .home-page .home-choice.oil{border-top-color:#a86b2d;} .home-page .home-choice.oil .ic svg{fill:#a86b2d;}
+  .home-page .home-choice .t{font-size:17px;}
+  body.light .home-page .home-choice.emergency .t{color:#c0392b;}
+  body.light .home-page .home-choice.preventive .t{color:#1f8a52;}
+  body.light .home-page .home-choice.battery .t{color:#9a7a0a;}
+  body.light .home-page .home-choice.oil .t{color:#8a5622;}
+
+  @media print{ .side-nav{display:none !important;} .app-shell{display:block;padding:0;} }
+  @media (max-width:1000px){
+    .home-page .home-choices{grid-template-columns:repeat(2,1fr);}
+    #appMain .form-grid{grid-template-columns:1fr 1fr;}
+    #appMain .form-grid .span2{grid-column:span 2;}
+  }
+  @media (max-width:900px){
+    .app-shell{flex-direction:column;align-items:stretch;padding:14px 12px 50px;}
+    .side-nav{order:-1;width:100%;position:static;display:flex;align-items:center;gap:4px;overflow-x:auto;padding:8px;}
+    .nav-head, .nav-sep, .nav-label{display:none;}
+    .nav-item{width:auto;white-space:nowrap;margin:0;}
+    .nav-sub.open{flex-direction:row;padding:0;}
+  }
+
+  /* ---- Arabic reading direction for the whole working area ---- */
+  #appMain{direction:rtl;}
+  #appMain thead th, #appMain tbody td{text-align:right;}
+  /* English text inside Arabic pages keeps its own order ("110 V DC", "TR-2 / KHIT 69"). */
+  #appMain tbody td, #appMain .up-item .what, #appMain input, #appMain textarea{unicode-bidi:plaintext;}
+  #appMain .kpi::before, #appMain .cat-card::before{left:auto;right:0;}
+  #appMain .search-wrap .icn{left:auto;right:11px;}
+  #appMain .search-wrap input{padding:9px 34px 9px 12px;}
+  #appMain tbody tr.cat-emergency td:first-child{box-shadow:inset -4px 0 0 var(--red);}
+  #appMain tbody tr.cat-preventive td:first-child{box-shadow:inset -4px 0 0 var(--green);}
+  #appMain tbody tr.cat-battery td:first-child{box-shadow:inset -4px 0 0 #f2c94c;}
+  #appMain .status-pill.overdue, #appMain .shutdown-badge, #appMain .recur-badge, #appMain .bat-result, #appMain .demo-badge, #appMain .src-badge{margin-left:0;margin-right:5px;}
+  #appMain .rbar-val{text-align:left;}
+  .gov-bar-inner{direction:rtl;}
+  body.light .gov-select{color:var(--text);background:var(--panel2);border-color:var(--line);}
+  body.light .gov-select option{color:var(--text);}
+  .toast-container{right:auto;left:22px;}
 </style>
 </head>
 <body>
@@ -1326,36 +1464,12 @@
   <img class="mew-logo" src="" alt="">
 </div>
 
-<div id="homeScreen">
-  <div class="home-logo"><svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg></div>
-  <div class="home-title">MAINTENANCE</div>
-  <div class="home-sub">نظام إدارة الصيانة — وزارة الكهرباء والماء والطاقة المتجددة</div>
-  <div class="home-gov" id="homeGov"></div>
-  <button class="home-main-btn" id="homeMainBtn" type="button">🛠️ الصيانة <span class="caret">▾</span></button>
-  <div class="home-choices" id="homeChoices">
-    <button class="home-choice emergency" data-home-cat="emergency" type="button">
-      <div class="ic">🚨</div><div class="t">صيانة طارئة</div><div class="d">أعمال مفاجئة تحتاج تدخل فوري</div><div class="n" id="homeEmergCount"></div>
-    </button>
-    <button class="home-choice preventive" data-home-cat="preventive" type="button">
-      <div class="ic">🛡️</div><div class="t">دورية وقائية</div><div class="d">صيانة شاملة كل 4 إلى 5 سنوات</div><div class="n" id="homePrevCount"></div>
-    </button>
-    <button class="home-choice battery" data-home-cat="battery" type="button">
-      <div class="ic">🔋</div><div class="t">صيانة البطاريات</div><div class="d">فحص البطاريات والشواحن بالمحطات</div><div class="n" id="homeBatCount"></div>
-    </button>
-    <button class="home-choice oil" data-home-cat="oil" type="button">
-      <div class="ic">🛢️</div><div class="t">صيانة الزيت</div><div class="d">فحص كميات الزيت بالمخزن</div><div class="n" id="homeOilCount"></div>
-    </button>
-  </div>
-</div>
-
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="bolt mt" id="logoSlot" title="Click to upload your company/ministry logo">
-      <svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
-    </div>
+    <div class="top-emblem-wrap" id="logoSlot" title="شعار الجهة (اضغط لتغييره)"><img id="topEmblem" alt=""></div>
     <input type="file" id="logoFileInput" accept="image/*" style="display:none;">
     <div class="brand">
-      <h1>MAINTENANCE</h1>
+      <h1>نظام إدارة الصيانة</h1>
       <div class="tagline">نظام إدارة الصيانة</div>
     </div>
     <div class="grow"></div>
@@ -1375,8 +1489,6 @@
     <span class="gov-bar-label">المحافظة:</span>
     <select id="govSelect" class="gov-select" title="اختر المحافظة"></select>
     <div class="grow"></div>
-    <button class="btn ghost" id="allGovStatsBtn">📊 إحصائية كل المحافظات</button>
-    <button class="btn ghost" id="homeBtn">🏠 الرئيسية</button>
   </div>
 </div>
 
@@ -1385,7 +1497,35 @@
   <span class="alarm-ticker-wrap"><span class="alarm-text" id="alarmText"></span></span>
 </div>
 
-<div class="wrap">
+<div class="app-shell">
+  <main class="app-main" id="appMain">
+
+    <!-- ===== HOME PAGE ===== -->
+    <section data-page="home" class="home-page">
+      <div class="home-card">
+        <img class="home-emblem" id="homeEmblem" alt="">
+        <div class="home-ministry">وزارة الكهرباء والماء والطاقة المتجددة</div>
+        <div class="home-ministry-en">Ministry of Electricity, Water &amp; Renewable Energy — State of Kuwait</div>
+        <div class="home-divider"></div>
+        <h1 class="home-title">نظام إدارة الصيانة</h1>
+        <div class="home-gov" id="homeGov"></div>
+        <button class="home-main-btn" id="homeMainBtn" type="button"><svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg> الصيانة <span class="caret">▾</span></button>
+        <div class="home-choices" id="homeChoices">
+          <button class="home-choice emergency" data-home-cat="emergency" type="button">
+            <div class="ic"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></div><div class="t">صيانة طارئة</div><div class="d">أعمال مفاجئة تحتاج تدخل فوري</div><div class="n" id="homeEmergCount"></div>
+          </button>
+          <button class="home-choice preventive" data-home-cat="preventive" type="button">
+            <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></div><div class="t">دورية وقائية</div><div class="d">صيانة شاملة كل 4 إلى 5 سنوات</div><div class="n" id="homePrevCount"></div>
+          </button>
+          <button class="home-choice battery" data-home-cat="battery" type="button">
+            <div class="ic"><svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM11 20v-5.5H9L13 7v5.5h2L11 20z"/></svg></div><div class="t">صيانة البطاريات</div><div class="d">فحص البطاريات والشواحن بالمحطات</div><div class="n" id="homeBatCount"></div>
+          </button>
+          <button class="home-choice oil" data-home-cat="oil" type="button">
+            <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg></div><div class="t">صيانة الزيت</div><div class="d">فحص كميات الزيت بالمخزن</div><div class="n" id="homeOilCount"></div>
+          </button>
+        </div>
+      </div>
+    </section>
 
   <div class="cat-cards">
     <div class="cat-card preventive" data-cat="preventive">
@@ -1444,6 +1584,8 @@
 
   <div id="ordersView">
 
+  <section data-page="records">
+    <div class="page-title"><h2>سجل أوامر الصيانة</h2><span class="page-sec"></span></div>
   <div class="kpis">
     <div class="kpi"><div class="val" id="kTotal"><span class="num-part">0</span></div><div class="lbl">إجمالي أوامر الصيانة</div></div>
     <div class="kpi"><div class="val" id="kPlanned"><span class="num-part">0</span></div><div class="lbl">📅 مجدولة</div></div>
@@ -1456,9 +1598,6 @@
   </div>
 
   <div class="toolbar">
-    <button class="btn emerg-add" data-add="emergency">🚨 صيانة طارئة</button>
-    <button class="btn prev-add" data-add="preventive">🛡️ دورية وقائية</button>
-    <button class="btn bat-add" data-add="battery">🔋 صيانة بطاريات</button>
     <button class="btn refresh" id="refreshBtn">🔄 تحديث</button>
     <div class="search-wrap"><span class="icn">🔍</span><input id="searchBox" placeholder="بحث بالمحطة، المعدة، الفريق، رقم التصريح..."></div>
     <input type="date" id="dateFilter" title="تصفية حسب التاريخ المخطط">
@@ -1471,11 +1610,6 @@
       <option value="cancelled">ملغاة</option>
       <option value="overdue">⏰ متأخرة</option>
     </select>
-    <button class="btn ghost" id="exportBackupBtn">💾 حفظ نسخة احتياطية</button>
-    <input type="file" id="fileInput" accept=".json,application/json,text/json,text/plain,*/*" style="display:none;">
-    <button class="btn ghost" id="importBtn">📂 استيراد نسخة محفوظة</button>
-    <button class="btn ghost" id="demoAddBtn">🧪 بيانات تجريبية</button>
-    <button class="btn ghost" id="demoClearBtn" style="display:none;border-color:rgba(255,92,92,0.5);color:var(--red);">🧹 مسح البيانات التجريبية</button>
   </div>
 
   <div class="panel">
@@ -1522,7 +1656,11 @@
     </div>
   </div>
 
-  <div class="overview-grid" style="margin-top:22px;grid-template-columns:1.2fr 1fr 0.8fr;">
+  </section>
+
+  <section data-page="dashboard">
+    <div class="page-title"><h2>لوحة المتابعة</h2><span class="page-sec"></span></div>
+  <div class="overview-grid" style="grid-template-columns:1.2fr 1fr 0.8fr;">
     <div class="panel">
       <div class="panel-head"><h2>⏰ المتأخرة والقادمة (7 أيام)</h2></div>
       <div class="panel-body-inner"><div id="upcomingList" class="up-list"></div></div>
@@ -1552,8 +1690,12 @@
     </div>
   </div>
 
+  </section>
+
   <!-- ===== REPORTS ===== -->
-  <div class="panel" style="margin-top:22px;">
+  <section data-page="reports">
+    <div class="page-title"><h2>التقارير والتحليلات</h2><span class="page-sec"></span></div>
+  <div class="panel">
     <div class="panel-head"><h2>التقارير والتحليلات</h2></div>
     <div class="panel-body-inner">
       <div class="report-tabs">
@@ -1585,19 +1727,37 @@
     </div>
   </div>
 
+  </section>
   </div><!-- /ordersView -->
+
+  <!-- ===== DATA & BACKUP ===== -->
+  <section data-page="data">
+    <div class="page-title"><h2>البيانات والنسخ الاحتياطي</h2><span class="page-sec"></span></div>
+    <div class="data-grid">
+      <div class="data-card"><h3>💾 حفظ نسخة احتياطية</h3><p>ينزّل ملف فيه كل أوامر الصيانة ومخزن الزيت لهذه المحافظة، عشان تنقله لجهاز ثاني أو تحفظه.</p>
+        <button class="btn add" id="exportBackupBtn">حفظ نسخة احتياطية</button></div>
+      <div class="data-card"><h3>📂 استيراد نسخة محفوظة</h3><p>يستبدل بيانات هذه المحافظة بمحتوى ملف نسخة احتياطية.</p>
+        <input type="file" id="fileInput" accept=".json,application/json,text/json,text/plain,*/*" style="display:none;">
+        <button class="btn ghost" id="importBtn">اختيار ملف</button></div>
+      <div class="data-card"><h3>🧪 البيانات التجريبية</h3><p>أمثلة لكل الأقسام عشان تجرب النظام. المسح يشيل التجريبية بس، وبياناتك الحقيقية ما تنمسح.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn ghost" id="demoAddBtn">إضافة بيانات تجريبية</button>
+          <button class="btn ghost" id="demoClearBtn" style="display:none;border-color:rgba(255,92,92,0.5);color:var(--red);">مسح البيانات التجريبية</button>
+        </div></div>
+    </div>
+  </section>
 
   <!-- ===== OIL STORE (صيانة الزيت — فحص كميات الزيت بالمخزن) ===== -->
   <div id="oilView" style="display:none;">
-    <div class="toolbar">
-      <button class="btn oil-add" data-oil-act="item">➕ نوع زيت</button>
-      <button class="btn prev-add" data-oil-act="in">📥 إدخال للمخزن</button>
-      <button class="btn bat-add" data-oil-act="out">📤 صرف من المخزن</button>
-      <button class="btn add" data-oil-act="check">🔍 فحص الكمية</button>
-      <div class="grow"></div>
-      <button class="btn excel" id="oilExcelBtn">📤 تصدير Excel</button>
-      <button class="btn ghost" id="oilTabBack">🏠 الرئيسية</button>
+    <section data-page="oilBalances">
+    <div class="page-title"><h2>أرصدة الزيت بالمخزن</h2><span class="page-sec"></span></div>
+    <div class="kpis oil-kpis">
+      <div class="kpi"><div class="val" id="okItems">0</div><div class="lbl">أنواع الزيت</div></div>
+      <div class="kpi ok"><div class="val" id="okLiters">0</div><div class="lbl">الرصيد الحالي (لتر)</div></div>
+      <div class="kpi danger"><div class="val" id="okLow">0</div><div class="lbl">تحت الحد الأدنى</div></div>
+      <div class="kpi"><div class="val" id="okLastCheck" style="font-size:20px;">—</div><div class="lbl">آخر فحص كمية</div></div>
     </div>
+    <div class="toolbar"><div class="grow"></div><button class="btn excel" id="oilExcelBtn">📤 تصدير Excel</button></div>
     <div class="panel">
       <div class="panel-head"><h2>🛢️ أرصدة الزيت بالمخزن</h2><span id="oilCount" style="font-size:12px;color:var(--mute);"></span></div>
       <div class="table-scroll">
@@ -1607,7 +1767,10 @@
         </table>
       </div>
     </div>
-    <div class="panel" style="margin-top:22px;">
+    </section>
+    <section data-page="oilMoves">
+    <div class="page-title"><h2>سجل حركات الزيت</h2><span class="page-sec"></span></div>
+    <div class="panel">
       <div class="panel-head"><h2>سجل حركات الزيت</h2><span id="oilMovesCount" style="font-size:12px;color:var(--mute);"></span></div>
       <div class="table-scroll">
         <table class="oil-table">
@@ -1616,20 +1779,15 @@
         </table>
       </div>
     </div>
+    </section>
   </div>
 
-  <footer class="page-footer">MAINTENANCE — نظام إدارة الصيانة</footer>
-</div>
-
-<div id="printReportRoot" style="display:none;"></div>
-<div class="dashboard-print-footer" id="dashboardPrintFooter">م.ابرار المويزري</div>
-
 <!-- ALL GOVERNORATES STATS -->
-<div class="sld-modal-overlay" id="govStatsModal" style="display:none;">
+<div class="sld-modal-overlay" id="govStatsModal" data-page="govstats">
   <div class="sld-modal-box" style="max-width:1000px;">
     <div class="sld-modal-head">
       <div><div class="sld-modal-title">📊 إحصائية الصيانة — كل المحافظات</div><div class="sld-modal-sub">من البيانات المحفوظة على هذا الجهاز</div></div>
-      <button class="sld-modal-close" id="govStatsCloseBtn" aria-label="Close">✕</button>
+      <button class="sld-modal-close page-back" id="govStatsCloseBtn" aria-label="رجوع">→ رجوع</button>
     </div>
     <div class="sld-modal-body" style="display:block;background:var(--bg);padding:18px;">
       <div id="govStatsGrid" class="gov-stats-grid"></div>
@@ -1638,11 +1796,11 @@
 </div>
 
 <!-- ADD / EDIT MODAL -->
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="modalOverlay" data-page="form">
   <div class="modal" style="max-width:720px;">
     <div class="modal-head" id="modalHead">
       <h3 id="modalTitle">إضافة أمر صيانة</h3>
-      <button class="modal-close" id="modalCloseBtn">✕</button>
+      <button class="modal-close page-back" id="modalCloseBtn">→ رجوع</button>
     </div>
     <div class="modal-body">
 
@@ -1726,10 +1884,10 @@
   </div>
 </div>
 
-<!-- OIL ITEM MODAL -->
-<div class="modal-overlay" id="oilItemModal">
+<!-- OIL ITEM PAGE -->
+<div class="modal-overlay" id="oilItemModal" data-page="oilItem">
   <div class="modal" style="max-width:560px;">
-    <div class="modal-head oil"><h3 id="oilItemTitle">🛢️ نوع زيت</h3><button class="modal-close" data-oil-close="oilItemModal">✕</button></div>
+    <div class="modal-head oil"><h3 id="oilItemTitle">🛢️ نوع زيت</h3><button class="modal-close page-back" data-oil-close="oilItemModal">→ رجوع</button></div>
     <div class="modal-body">
       <div class="form-grid">
         <div class="field span2"><label>اسم / نوع الزيت</label><input id="oi_name" placeholder="مثال: زيت محولات — Transformer Oil"></div>
@@ -1744,10 +1902,10 @@
   </div>
 </div>
 
-<!-- OIL MOVEMENT / STOCK CHECK MODAL -->
-<div class="modal-overlay" id="oilMoveModal">
+<!-- OIL MOVEMENT / STOCK CHECK PAGE -->
+<div class="modal-overlay" id="oilMoveModal" data-page="oilMove">
   <div class="modal" style="max-width:560px;">
-    <div class="modal-head oil"><h3 id="oilMoveTitle">🛢️ حركة زيت</h3><button class="modal-close" data-oil-close="oilMoveModal">✕</button></div>
+    <div class="modal-head oil"><h3 id="oilMoveTitle">🛢️ حركة زيت</h3><button class="modal-close page-back" data-oil-close="oilMoveModal">→ رجوع</button></div>
     <div class="modal-body">
       <input type="hidden" id="om_type">
       <div class="form-grid">
@@ -1765,6 +1923,14 @@
     <div class="modal-foot"><button class="btn ghost" data-oil-close="oilMoveModal">إلغاء</button><button class="btn oil-add" id="oilMoveSaveBtn">حفظ</button></div>
   </div>
 </div>
+
+  <footer class="page-footer">وزارة الكهرباء والماء والطاقة المتجددة — نظام إدارة الصيانة</footer>
+  </main>
+  <aside class="side-nav" id="sideNav"></aside>
+</div>
+
+<div id="printReportRoot" style="display:none;"></div>
+<div class="dashboard-print-footer" id="dashboardPrintFooter">م.ابرار المويزري</div>
 
 <datalist id="stationList"></datalist>
 <div class="toast-container" id="toastContainer"></div>
@@ -2298,23 +2464,19 @@ function startWork(id){
   render();
 }
 
+// ✔️ opens the order's full page already set to completed (end = now),
+// so the work done is written there and saved with the rest.
 function completeWork(id){
   const rec = data.find(d => d.id === id);
   if(!rec) return;
-  const workDone = prompt('العمل المنجز (اختياري):', rec.workDone || '');
-  if(workDone === null) return;
-  rec.workDone = workDone.trim();
-  rec.status = 'completed';
-  if(!rec.startDate){ rec.startDate = rec.plannedDate || todayISO(); }
-  rec.endDate = todayISO();
-  rec.endTime = nowHHMM();
-  const dur = calcDurationHours(rec.startDate, rec.startTime, rec.endDate, rec.endTime);
-  if(dur !== null) rec.duration = dur;
-  const next = scheduleNextRecurrence(rec);
-  saveData();
-  logActivity('close', 'إنجاز ' + fmtWid(id) + ' — ' + (rec.sstn || ''));
-  showToast(fmtWid(id) + ' تم تحديده كمنجز' + (next ? ' — وتمت جدولة الدورة القادمة ' + fmtWid(next.id) : ''), 'success');
-  render();
+  openModal(id);
+  const el = f => document.getElementById('m_' + f);
+  el('status').value = 'completed';
+  if(!el('startDate').value) el('startDate').value = rec.plannedDate || todayISO();
+  if(!el('endDate').value){ el('endDate').value = todayISO(); el('endTime').value = nowHHMM(); }
+  autoDuration();
+  document.getElementById('modalTitle').textContent = '✔️ إنجاز ' + fmtWid(id) + ' — اكتب العمل المنجز واضغط حفظ';
+  setTimeout(() => el('workDone').focus(), 80);
 }
 
 // When a recurring order is completed, create the next cycle automatically
@@ -2361,7 +2523,7 @@ function openModal(id, category){
   setEntryMode('manual');
   document.getElementById('scanPasteBox').value = '';
   setScanStatus('', '');
-  document.getElementById('modalOverlay').classList.add('show');
+  showPage('form');
   setTimeout(() => document.getElementById('m_sstn').focus(), 50);
 }
 
@@ -2403,7 +2565,7 @@ document.querySelectorAll('.cat-switch button').forEach(b => b.addEventListener(
 }));
 
 function closeModal(){
-  document.getElementById('modalOverlay').classList.remove('show');
+  if(currentPage === 'form') goBack();
   editingId = null;
 }
 
@@ -2681,7 +2843,6 @@ function setCategoryFilter(cat){
     c.classList.toggle('active', c.dataset.cat === categoryFilter);
     c.style.display = (!inSection || c.dataset.cat === categoryFilter) ? '' : 'none';
   });
-  document.querySelector('.cat-cards').style.gridTemplateColumns = inSection ? '1fr' : '';
   document.querySelector('.cat-tabs').style.display = inSection ? 'none' : '';
   document.querySelectorAll('.toolbar [data-add]').forEach(b => { b.style.display = (!inSection || b.dataset.add === categoryFilter) ? '' : 'none'; });
   document.getElementById('byTypePanel').style.display = inSection ? 'none' : '';
@@ -2689,6 +2850,7 @@ function setCategoryFilter(cat){
   const cfType = document.getElementById('cf_type');
   if(inSection) cfType.value = '';
   cfType.closest('.field').style.display = inSection ? 'none' : '';
+  document.querySelectorAll('.page-sec').forEach(el => { el.textContent = SECTION_LABEL[categoryFilter] ? '— ' + SECTION_LABEL[categoryFilter].replace(/^\S+\s/, '') : ''; });
   updateGovBrand();
 }
 // Records of the section being shown (all records when none is chosen).
@@ -2706,11 +2868,8 @@ document.querySelectorAll('.cat-card').forEach(c => c.addEventListener('click', 
 document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
 document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
 document.getElementById('modalSaveBtn').addEventListener('click', saveModal);
-document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target.id === 'modalOverlay') closeModal(); });
 document.addEventListener('keydown', e => {
-  if(e.key !== 'Escape') return;
-  closeModal();
-  document.getElementById('govStatsModal').style.display = 'none';
+  if(e.key === 'Escape' && SUB_PAGES.includes(currentPage)) goBack();
 });
 
 ['searchBox'].forEach(id => document.getElementById(id).addEventListener('input', render));
@@ -3150,7 +3309,7 @@ function loadGovRecords(gov){
   if(gov === currentGov) return data;
   try{ const p = JSON.parse(localStorage.getItem(storageKeyFor(gov))); return Array.isArray(p) ? p : []; }catch(e){ return []; }
 }
-document.getElementById('allGovStatsBtn').addEventListener('click', () => {
+function openGovStats(){
   document.getElementById('govStatsGrid').innerHTML = GOVERNORATES.map(g => {
     const s = computeStats(loadGovRecords(g.code));
     return `<div class="gov-stats-card ${g.code === currentGov ? 'current' : ''}">
@@ -3165,10 +3324,9 @@ document.getElementById('allGovStatsBtn').addEventListener('click', () => {
       </div>
     </div>`;
   }).join('');
-  document.getElementById('govStatsModal').style.display = 'flex';
-});
-document.getElementById('govStatsCloseBtn').addEventListener('click', () => { document.getElementById('govStatsModal').style.display = 'none'; });
-document.getElementById('govStatsModal').addEventListener('click', e => { if(e.target.id === 'govStatsModal') e.target.style.display = 'none'; });
+  showPage('govstats');
+}
+document.getElementById('govStatsCloseBtn').addEventListener('click', goBack);
 
 /* ===== THEME / CLOCK / LOGO ===== */
 const themeToggle = document.getElementById('themeToggle');
@@ -3179,11 +3337,11 @@ themeToggle.addEventListener('click', () => {
   try{ localStorage.setItem('mtTheme', isLight ? 'light' : 'dark'); }catch(e){}
 });
 try{
-  if(localStorage.getItem('mtTheme') === 'light'){
+  if(localStorage.getItem('mtTheme') !== 'dark'){
     document.body.classList.add('light');
     themeToggle.textContent = '☀️ فاتح';
   }
-}catch(e){}
+}catch(e){ document.body.classList.add('light'); themeToggle.textContent = '☀️ فاتح'; }
 
 function updateHeaderClock(){
   const now = new Date();
@@ -3215,6 +3373,8 @@ document.getElementById('logoFileInput').addEventListener('change', e => {
   const emblemImg = document.querySelector('#dashboardPrintHeader .emblem');
   const logoImg = document.querySelector('#dashboardPrintHeader .mew-logo');
   if(emblemImg) emblemImg.src = KW_EMBLEM_B64;
+  document.getElementById('topEmblem').src = KW_EMBLEM_B64;
+  document.getElementById('homeEmblem').src = KW_EMBLEM_B64;
   if(logoImg) logoImg.src = MEW_LOGO_B64;
 })();
 
@@ -3239,6 +3399,8 @@ function switchGovernorate(gov){
   setCategoryFilter(categoryFilter);
   render();
   renderActivity();
+  if(currentPage === 'home') showHome();
+  else if(SUB_PAGES.includes(currentPage)) goBack();
   showToast('تم التبديل إلى محافظة ' + govName(currentGov), 'info');
 }
 const govSel = document.getElementById('govSelect');
@@ -3383,6 +3545,11 @@ function renderOil(){
   }).join('') : '<tr class="empty-row"><td colspan="9">لا توجد حركات بعد.</td></tr>';
   document.getElementById('oilCount').textContent = oil.items.length + ' نوع';
   document.getElementById('oilMovesCount').textContent = moves.length + ' حركة';
+  const o = oilSummary();
+  document.getElementById('okItems').textContent = o.items;
+  document.getElementById('okLiters').textContent = o.liters;
+  document.getElementById('okLow').textContent = o.low;
+  document.getElementById('okLastCheck').textContent = o.lastCheck ? fmtShort(o.lastCheck) : '—';
 }
 
 /* ---- oil modals ---- */
@@ -3394,7 +3561,7 @@ function openOilItem(id){
   ['name','unit','minQty','location','notes'].forEach(f => { document.getElementById('oi_' + f).value = it ? (it[f] ?? '') : (f === 'unit' ? 'لتر' : ''); });
   document.getElementById('oi_opening').value = '';
   document.getElementById('oi_openingWrap').style.display = it ? 'none' : '';
-  document.getElementById('oilItemModal').classList.add('show');
+  showPage('oilItem');
 }
 document.getElementById('oilItemSaveBtn').addEventListener('click', () => {
   const v = f => document.getElementById('oi_' + f).value.trim();
@@ -3409,7 +3576,7 @@ document.getElementById('oilItemSaveBtn').addEventListener('click', () => {
     if(opening > 0) oil.moves.push({id: nextOilId(oil.moves), itemId: item.id, date: todayISO(), type:'in', qty: opening, station:'', ref:'', by:'', notes:'رصيد افتتاحي'});
   }
   saveOil();
-  document.getElementById('oilItemModal').classList.remove('show');
+  goBack();
   showToast('تم حفظ نوع الزيت', 'success');
   render();
 });
@@ -3428,7 +3595,7 @@ function openOilMove(type, itemId){
   document.getElementById('om_stationWrap').style.display = type === 'out' ? '' : 'none';
   document.getElementById('om_diffWrap').style.display = type === 'check' ? '' : 'none';
   updateOilMoveInfo();
-  document.getElementById('oilMoveModal').classList.add('show');
+  showPage('oilMove');
   setTimeout(() => document.getElementById('om_qty').focus(), 50);
 }
 function updateOilMoveInfo(){
@@ -3459,14 +3626,13 @@ document.getElementById('oilMoveSaveBtn').addEventListener('click', () => {
   oil.moves.push({id: nextOilId(oil.moves), itemId, date: v('date'), type, qty,
     station: type === 'out' ? v('station').toUpperCase() : '', ref: v('ref'), by: v('by'), notes: v('notes')});
   saveOil();
-  document.getElementById('oilMoveModal').classList.remove('show');
+  goBack();
   const it = oil.items.find(x => x.id === itemId);
   logActivity(type === 'out' ? 'edit' : 'add', OIL_MOVE[type] + ' — ' + (it ? it.name : '') + ' ' + fmtQty(qty));
   showToast('تم تسجيل ' + OIL_MOVE[type], 'success');
   render();
 });
-document.querySelectorAll('[data-oil-close]').forEach(b => b.addEventListener('click', () => document.getElementById(b.dataset.oilClose).classList.remove('show')));
-['oilItemModal','oilMoveModal'].forEach(id => document.getElementById(id).addEventListener('click', e => { if(e.target.id === id) e.target.classList.remove('show'); }));
+document.querySelectorAll('[data-oil-close]').forEach(b => b.addEventListener('click', goBack));
 
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-oil-act]');
@@ -3509,37 +3675,118 @@ document.getElementById('oilExcelBtn').addEventListener('click', () => {
     downloadBlob(new Blob([wbout], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), 'Oil_Store_' + currentGov + '_' + todayISO() + '.xlsx');
   }catch(err){ showToast('تعذر تصدير ملف Excel. حاولي مرة ثانية.', 'error'); }
 });
-document.getElementById('oilTabBack').addEventListener('click', () => showHome());
 
-/* ===== HOME SCREEN =====
-   The first page: "الصيانة" opens two choices, and each one shows the
-   system filtered to that kind. "🏠 الرئيسية" comes back here. */
+/* ===== PAGES & RIGHT-HAND MENU =====
+   One page shows at a time inside the main area. The menu on the right
+   lists what the current place offers: on the home page only "الصيانة"
+   and its four sections; inside a section, that section's pages. Forms
+   (add/edit, oil entries) and the governorates page are full pages too,
+   and "→ رجوع" returns to the page they were opened from. */
+const SUB_PAGES = ['form', 'oilItem', 'oilMove', 'govstats'];
+let currentPage = 'home', returnPage = 'home';
+function showPage(name){
+  if(!SUB_PAGES.includes(name)) returnPage = name;
+  currentPage = name;
+  document.querySelectorAll('#appMain [data-page]').forEach(el => el.classList.toggle('page-active', el.dataset.page === name));
+  renderNav();
+  window.scrollTo(0, 0);
+}
+function goBack(){ showPage(returnPage); }
+
+const NAV_ICON = {
+  home:'<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>',
+  list:'<path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>',
+  add:'<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>',
+  dashboard:'<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>',
+  report:'<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>',
+  globe:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>',
+  data:'<path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/>',
+  wrench:'<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>',
+  emergency:'<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>',
+  preventive:'<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>',
+  battery:'<path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM11 20v-5.5H9L13 7v5.5h2L11 20z"/>',
+  oil:'<path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/>',
+  inbox:'<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>',
+  outbox:'<path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>',
+  search:'<path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>',
+  history:'<path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>'
+};
+const navSvg = name => `<svg viewBox="0 0 24 24">${NAV_ICON[name]}</svg>`;
+const SECTION_NAME = {emergency:'صيانة طارئة', preventive:'دورية وقائية', battery:'صيانة البطاريات', oil:'صيانة الزيت'};
+let navMaintOpen = true;
+
+function renderNav(){
+  const item = (act, icon, label, page) =>
+    `<button class="nav-item${page && currentPage === page ? ' active' : ''}" data-nav="${act}">${navSvg(icon)}<span>${label}</span></button>`;
+  let h = '';
+  if(!categoryFilter){
+    h += `<div class="nav-head"><div class="ic">${navSvg('home')}</div><div><div class="t">الصفحة الرئيسية</div><div class="s">${esc(govName(currentGov))}</div></div></div>`;
+    h += `<button class="nav-item${navMaintOpen ? ' expanded' : ''}" data-nav="toggle">${navSvg('wrench')}<span>الصيانة</span><span class="caret">▾</span></button>`;
+    h += `<div class="nav-sub${navMaintOpen ? ' open' : ''}">` +
+      ['emergency', 'preventive', 'battery', 'oil'].map(c => item('cat:' + c, c, SECTION_NAME[c])).join('') + '</div>';
+  } else {
+    h += `<div class="nav-head ${categoryFilter}"><div class="ic">${navSvg(categoryFilter)}</div><div><div class="t">${SECTION_NAME[categoryFilter]}</div><div class="s">${esc(govName(currentGov))}</div></div></div>`;
+    if(categoryFilter === 'oil'){
+      h += item('page:oilBalances', 'oil', 'أرصدة المخزن', 'oilBalances');
+      h += item('page:oilMoves', 'history', 'سجل الحركات', 'oilMoves');
+      h += '<div class="nav-sep"></div>';
+      h += item('oil:in', 'inbox', 'إدخال للمخزن', currentPage === 'oilMove' && document.getElementById('om_type').value === 'in' ? 'oilMove' : '');
+      h += item('oil:out', 'outbox', 'صرف من المخزن', currentPage === 'oilMove' && document.getElementById('om_type').value === 'out' ? 'oilMove' : '');
+      h += item('oil:check', 'search', 'فحص الكمية', currentPage === 'oilMove' && document.getElementById('om_type').value === 'check' ? 'oilMove' : '');
+      h += item('oil:item', 'add', 'نوع زيت جديد', 'oilItem');
+    } else {
+      h += item('page:records', 'list', 'سجل الأوامر', 'records');
+      h += item('add', 'add', 'إضافة أمر جديد', currentPage === 'form' && !editingId ? 'form' : '');
+      h += item('page:dashboard', 'dashboard', 'لوحة المتابعة', 'dashboard');
+      h += item('page:reports', 'report', 'التقارير', 'reports');
+    }
+    h += '<div class="nav-sep"></div>';
+    h += item('govstats', 'globe', 'إحصائية المحافظات', 'govstats');
+    h += item('page:data', 'data', 'البيانات والنسخ الاحتياطي', 'data');
+    h += '<div class="nav-sep"></div>';
+    h += item('home', 'home', 'الرئيسية', '');
+  }
+  document.getElementById('sideNav').innerHTML = h;
+}
+document.getElementById('sideNav').addEventListener('click', e => {
+  const b = e.target.closest('[data-nav]');
+  if(!b) return;
+  const [act, arg] = b.dataset.nav.split(':');
+  if(act === 'toggle'){ navMaintOpen = !navMaintOpen; renderNav(); }
+  else if(act === 'cat') enterCategory(arg);
+  else if(act === 'page') showPage(arg);
+  else if(act === 'add') openModal(null, categoryFilter);
+  else if(act === 'oil') arg === 'item' ? openOilItem(null) : openOilMove(arg, null);
+  else if(act === 'govstats') openGovStats();
+  else if(act === 'home') showHome();
+});
+
+/* ===== HOME PAGE ===== */
 function showHome(){
+  setCategoryFilter('');
+  render();
   const p = computeStats(data.filter(r => r.mtType === 'preventive'));
   const e = computeStats(data.filter(r => r.mtType === 'emergency'));
-  document.getElementById('homeGov').textContent = 'المحافظة: ' + govName(currentGov);
-  document.getElementById('homePrevCount').innerHTML = `<span style="color:var(--amber);">${p.planned + p.inprogress + p.postponed} مجدولة / جارية</span> · <span style="color:var(--red);">${p.overdue} متأخرة</span>`;
-  document.getElementById('homeEmergCount').innerHTML = `<span style="color:var(--red);">${e.planned + e.inprogress + e.postponed} مفتوحة الآن</span> · <span style="color:var(--green);">${e.completed} منجزة</span>`;
   const b = computeStats(data.filter(r => r.mtType === 'battery'));
-  document.getElementById('homeBatCount').innerHTML = `<span style="color:var(--amber);">${b.planned + b.inprogress + b.postponed} مجدولة / جارية</span> · <span style="color:var(--red);">${b.overdue} متأخرة</span>`;
   const o = oilSummary();
+  document.getElementById('homeGov').textContent = 'المحافظة: ' + govName(currentGov);
+  document.getElementById('homeEmergCount').innerHTML = `<span style="color:var(--red);">${e.planned + e.inprogress + e.postponed} مفتوحة الآن</span> · <span style="color:var(--green);">${e.completed} منجزة</span>`;
+  document.getElementById('homePrevCount').innerHTML = `<span style="color:var(--amber);">${p.planned + p.inprogress + p.postponed} مجدولة / جارية</span> · <span style="color:var(--red);">${p.overdue} متأخرة</span>`;
+  document.getElementById('homeBatCount').innerHTML = `<span style="color:var(--amber);">${b.planned + b.inprogress + b.postponed} مجدولة / جارية</span> · <span style="color:var(--red);">${b.overdue} متأخرة</span>`;
   document.getElementById('homeOilCount').innerHTML = `<span style="color:var(--green);">${o.liters} لتر بالمخزن</span> · <span style="color:var(--red);">${o.low} تحت الحد</span>`;
-  document.getElementById('homeScreen').classList.remove('hidden');
+  showPage('home');
 }
 function enterCategory(cat){
   setCategoryFilter(cat);
   render();
-  document.getElementById('homeScreen').classList.add('hidden');
-  window.scrollTo(0, 0);
+  showPage(cat === 'oil' ? 'oilBalances' : 'records');
 }
 document.getElementById('homeMainBtn').addEventListener('click', e => {
   e.currentTarget.classList.toggle('open');
   document.getElementById('homeChoices').classList.toggle('open');
 });
 document.querySelectorAll('[data-home-cat]').forEach(b => b.addEventListener('click', () => enterCategory(b.dataset.homeCat)));
-document.getElementById('homeBtn').addEventListener('click', showHome);
 
-render();
 showHome();
 </script>
 
