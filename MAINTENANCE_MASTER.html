@@ -2381,7 +2381,21 @@ function loadData(){
   try{
     const raw = localStorage.getItem(storageKeyFor(currentGov));
     const parsed = JSON.parse(raw);
-    if(Array.isArray(parsed)) return normalizeRecords(parsed);
+    if(Array.isArray(parsed)){
+      // The demo set grew (v2): swap an older one for it, once.
+      const v2 = 'mtDemoV2_' + currentGov;
+      if(!localStorage.getItem(v2)){
+        localStorage.setItem(v2, '1');
+        if(parsed.some(r => r && r.demo)){
+          const kept = parsed.filter(r => !(r && r.demo));
+          const first = kept.length ? Math.max(...kept.map(r => r.id)) + 1 : 1;
+          const fresh = kept.concat(buildDemoRecords(first));
+          localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(fresh));
+          return normalizeRecords(fresh);
+        }
+      }
+      return normalizeRecords(parsed);
+    }
     // First visit to this governorate: start with demo data so the system
     // isn't empty. Only once — clearing it later doesn't bring it back.
     const flag = 'mtDemoSeeded_' + currentGov;
@@ -2389,6 +2403,7 @@ function loadData(){
       const demo = buildDemoRecords(1);
       localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(demo));
       localStorage.setItem(flag, '1');
+      localStorage.setItem('mtDemoV2_' + currentGov, '1');
       return demo;
     }
   }catch(e){}
@@ -2479,6 +2494,7 @@ function buildDemoRecords(firstId){
      batType:'Ni-Cd', batAh:'150', batCells:'92', batVoltage:'124.0', chargerVolt:'121.5', batInstall:'2018-05-20', batResult:'ok',
      description:'Semi-annual battery check.', workDone:'All cells within limits.'}
   ];
+  list.push(...buildDemoHistory(day));
   const now = new Date().toISOString();
   const out = list.map((r, i) => Object.assign({}, base, r, {id: firstId + i, createdAt: now}));
   // TR-1's completed cycle points at the order it scheduled.
@@ -2503,6 +2519,101 @@ function buildDemoRecords(firstId){
     if(c.other){ r.otherCost = String(c.other[0]); r.otherNote = c.other[1]; }
     if(!r.duration && r.status === 'inprogress') r.duration = 2;
   });
+  return out;
+}
+
+// Six months of generated history (plus the next six weeks), so every
+// section, chart and report has enough to show. A fixed seed keeps the
+// sample the same on every device.
+function buildDemoHistory(day){
+  let seed = 20261;
+  const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const num = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+  const STATIONS = ['KHIT B', 'KHIT C', 'FARW Q', 'FARW D', 'FARW M', 'JALB B', 'JALB N', 'ARDY B', 'ARDY G',
+    'SULB B', 'SULB H', 'RABA A', 'AIRP M', 'YARK A', 'JAL A', 'JAL B', 'ABDL A', 'OMAR B'];
+  // [equipType, equipment, description, workDone, parts [[name, qty, price]], other [KD, note]]
+  const PREV = [
+    ['Distribution Transformer (11/0.415 kV)', n => `TR-${n} distribution transformer`, 'Periodic transformer maintenance — oil level, bushings, LV terminals.', 'Bushings cleaned, LV links tightened, oil level OK.', [['Silica gel 2 kg', 1, 8]]],
+    ['Switchgear / Circuit Breaker', n => `11 kV panel F${n}`, 'Breaker timing test and mechanism lubrication.', 'Timing within limits, mechanism lubricated.', [['Mechanism grease', 2, 3.75]]],
+    ['RMU', n => `RMU-${n}`, 'RMU overhaul — SF6 pressure, cable boxes, earthing.', 'SF6 pressure OK, cable boxes cleaned and resealed.', [['Cable box gasket', 2, 12]]],
+    ['Protection Relay', n => `Relay — feeder F${n}`, 'Secondary injection test of O/C & E/F relay.', 'Relay tested, settings verified against the setting sheet.', []],
+    ['Cable', n => `11 kV cable F${n}`, 'Cable insulation (IR) test.', 'IR values within limits.', []],
+    ['Earthing System', () => 'Earthing grid', 'Earth resistance measurement.', 'Earth resistance within limits, clamps tightened.', [['Earthing clamp', 2, 4.5]]],
+    ['OHL', n => `11 kV OHL F${n}`, 'Line patrol — insulators, jumpers and vegetation clearance.', 'Two pin insulators replaced.', [['Pin insulator 11 kV', 2, 14]]],
+    ['RTU / SCADA', () => 'RTU panel', 'RTU functional test and point-to-point checks.', 'All points checked OK.', []],
+    ['Power Transformer', n => `Power transformer TR-${n}`, 'Transformer overhaul — oil sampling and tap-changer inspection.', 'Oil sample taken (BDV OK), tap-changer contacts cleaned.', [['Oil sample test (lab)', 1, 25]], [40, 'Crane hire']]
+  ];
+  const EMERG = [
+    ['Cable', n => `11 kV cable F${n}`, 'Cable fault after E/F trip.', 'Faulty section located, joint made, cable tested and energized.', [['11 kV straight joint kit', 1, 85]], [60, 'Excavation contractor']],
+    ['Distribution Transformer (11/0.415 kV)', n => `LTR${n}`, 'Transformer overheating — LV fuse failure.', 'LV fuses replaced, links tightened, load shared.', [['LV fuse 400 A', 3, 6.5]]],
+    ['Switchgear / Circuit Breaker', n => `CB F${n}`, 'Breaker failed to close remotely.', 'Closing coil replaced, breaker tested OK.', [['Breaker closing coil', 1, 120]]],
+    ['RMU', n => `RMU-${n} cable termination`, 'Burnt cable termination found.', 'Termination remade and tested OK.', [['Termination kit 11 kV', 1, 65]]],
+    ['Protection Relay', n => `Relay F${n}`, 'Relay maloperation — unwanted trip.', 'Relay replaced and tested.', [['O/C & E/F relay', 1, 340]]],
+    ['Battery & Charger', () => 'Battery charger', 'Charger failure — DC low voltage alarm.', 'Rectifier card replaced, output normal.', [['Charger rectifier card', 1, 210]]],
+    ['OHL', n => `11 kV OHL F${n}`, 'Jumper burnt — line tripped.', 'Jumper replaced, line energized.', [['Jumper clamp', 2, 9]]]
+  ];
+  // One DC battery bank per station: [type, Ah, cells, nominal V, installed]
+  const BANKS = [['Ni-Cd', '150', 92, 122, '2018-05-20'], ['Lead-Acid (VLA)', '200', 55, 121, '2020-02-10'], ['VRLA / Sealed', '65', 24, 53, '2023-03-01']];
+  const bankOf = s => BANKS[STATIONS.indexOf(s) % BANKS.length];
+  const AREA = {KHIT:'خيطان', FARW:'الفروانية', JALB:'جليب الشيوخ', ARDY:'العارضية', SULB:'الصليبية', RABA:'الرابية', AIRP:'المطار', YARK:'اليرموك', JAL:'جليب الشيوخ', ABDL:'العبدلي', OMAR:'العمرية'};
+  const time = h => String(h).padStart(2, '0') + ':' + pick(['00', '15', '30', '45']);
+  const out = [];
+  const make = (off, mtType, tpl) => {
+    // Emergencies cluster on a few weak stations, as they do in the field.
+    const sstn = mtType === 'emergency' && rnd() < 0.6 ? pick(['YARK A', 'FARW D', 'KHIT C', 'JALB N']) : pick(STATIONS);
+    const n = mtType === 'emergency' ? num(1, 3) : num(1, 12);
+    const r = {sstn, plannedDate: day(off), mtType};
+    if(mtType === 'battery'){
+      const [batType, batAh, cells, nom, batInstall] = bankOf(sstn);
+      Object.assign(r, {equipment: `110 V DC battery bank — ${sstn}`, equipType: 'Battery & Charger', priority: pick(['low', 'medium', 'medium']),
+        engineer: 'فريق البطاريات', recurrence: 'semiannual', batType, batAh, batCells: String(cells), batInstall,
+        description: 'Semi-annual battery check — cell voltages, electrolyte level, charger output.'});
+      if(nom !== 122) r.equipment = (nom > 100 ? '110' : '48') + ' V DC battery bank — ' + sstn;
+      r._done = () => {
+        const q = rnd(), res = q < 0.78 ? 'ok' : q < 0.95 ? 'weak' : 'replace';
+        const v = nom * (res === 'ok' ? 0.99 + rnd() * 0.03 : res === 'weak' ? 0.965 + rnd() * 0.01 : 0.91);
+        Object.assign(r, {batResult: res, batVoltage: v.toFixed(1), chargerVolt: (nom * 1.01).toFixed(1),
+          workDone: res === 'ok' ? 'All cells within limits, terminals cleaned.' : res === 'weak' ? 'Some cells low — equalizing charge applied, recheck in 3 months.' : 'Low capacity on discharge test — replacement requested.',
+          costLines: [{name: 'Distilled water 5 L', qty: 1, price: 1.5}]});
+      };
+    } else {
+      const [equipType, eq, description, workDone, parts, other] = tpl;
+      Object.assign(r, {equipment: eq(n), equipType, description,
+        priority: mtType === 'emergency' ? pick(['critical', 'high', 'high', 'medium']) : pick(['low', 'medium', 'medium', 'high']),
+        engineer: mtType === 'emergency' ? pick(['فريق الطوارئ 1', 'فريق الطوارئ 2']) : pick(['فريق الصيانة A', 'فريق الصيانة B', 'فريق الوقاية']),
+        recurrence: mtType === 'preventive' ? pick(['annual', 'annual', 'y4', 'y5', 'semiannual']) : 'none'});
+      if(mtType === 'emergency') r.affected = 'جزء من ' + (AREA[sstn.split(' ')[0]] || sstn);
+      if(rnd() < 0.4){ r.shutdown = 'yes'; r.ptw = 'PTW-2026-' + String(num(200, 899)).padStart(4, '0'); }
+      r._done = () => Object.assign(r, {workDone, spares: parts.map(p => p[1] + ' × ' + p[0]).join(', '),
+        costLines: parts.map(([name, qty, price]) => ({name, qty, price})),
+        otherCost: other ? String(other[0]) : '', otherNote: other ? other[1] : ''});
+    }
+    const finish = () => {
+      const h = num(7, 15), dur = Math.round((1 + rnd() * 5) * 2) / 2;
+      const end = h + Math.floor(dur), mins = Math.round((dur % 1) * 60);
+      Object.assign(r, {status: 'completed', startDate: day(off), startTime: time(h), endDate: day(off),
+        endTime: String(Math.min(end, 23)).padStart(2, '0') + ':' + String(mins).padStart(2, '0'), duration: dur,
+        techs: String(num(2, 4)), laborRate: '6'});
+      r._done();
+    };
+    if(off > 0) r.status = 'planned';
+    else if(mtType === 'emergency'){
+      if(off >= -1 && rnd() < 0.5){ r.status = 'inprogress'; r.startDate = day(off); r.startTime = time(num(7, 12)); }
+      else if(rnd() < 0.06){ r.status = 'cancelled'; r.notes = 'تبين أن الفصل من جهة المستهلك — لا يحتاج صيانة'; }
+      else finish();
+    }
+    else if(off > -21 && rnd() < 0.3){ r.status = rnd() < 0.4 ? 'postponed' : 'planned'; if(r.status === 'postponed') r.notes = 'تأجيل بسبب الأحمال العالية'; }
+    else if(rnd() < 0.04){ r.status = 'cancelled'; r.notes = 'ألغيت — المعدة خارج الخدمة'; }
+    else finish();
+    delete r._done;
+    out.push(r);
+  };
+  for(let off = -180; off <= 40; off++){
+    if(off <= 0 && rnd() < 0.15) make(off, 'emergency', pick(EMERG));
+    if(rnd() < 0.22) make(off, 'preventive', pick(PREV));
+    if(rnd() < 0.12) make(off, 'battery');
+  }
   return out;
 }
 
@@ -3803,22 +3914,51 @@ const OIL_MOVE = {in:'📥 إدخال', out:'📤 صرف', check:'🔍 فحص ك
 
 function buildDemoOil(firstItemId, firstMoveId){
   const day = off => { const x = new Date(); x.setDate(x.getDate() + off); return toISO(x); };
-  const items = [
-    {name:'زيت محولات — Transformer Oil', unit:'لتر', minQty:400, location:'مخزن الطوارئ — رف 1', notes:'', price:0.9},
-    {name:'زيت قواطع — Switchgear Oil', unit:'لتر', minQty:100, location:'مخزن الطوارئ — رف 2', notes:'', price:1.2},
-    {name:'زيت مغير الجهد — Tap Changer Oil', unit:'برميل', minQty:2, location:'الساحة الخارجية', notes:'', price:180}
-  ].map((it, i) => Object.assign(it, {id: firstItemId + i, demo:true}));
-  const [t, sw, tc] = items.map(x => x.id);
-  const moves = [
-    {itemId:t,  date:day(-40), type:'in',    qty:1200, ref:'PO-2026-118', by:'أمين المخزن', notes:'توريد جديد'},
-    {itemId:t,  date:day(-20), type:'out',   qty:200,  station:'KHIT B', ref:'تعبئة محول TR-1', by:'فريق الصيانة B'},
-    {itemId:t,  date:day(-6),  type:'out',   qty:150,  station:'FARW D', ref:'LTR3 FARW 43', by:'فريق الطوارئ 2'},
-    {itemId:t,  date:day(-2),  type:'check', qty:820,  by:'أمين المخزن', notes:'جرد شهري'},
-    {itemId:sw, date:day(-35), type:'in',    qty:300,  ref:'PO-2026-121', by:'أمين المخزن'},
-    {itemId:sw, date:day(-10), type:'out',   qty:220,  station:'FARW Q', ref:'FARW 147', by:'فريق الصيانة B'},
-    {itemId:tc, date:day(-50), type:'in',    qty:4,    ref:'PO-2026-097', by:'أمين المخزن'},
-    {itemId:tc, date:day(-1),  type:'check', qty:4,    by:'أمين المخزن', notes:'جرد شهري'}
-  ].map((m, i) => Object.assign({station:'', ref:'', by:'', notes:''}, m, {id: firstMoveId + i, demo:true}));
+  let seed = 4421;
+  const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  // [name, unit, minQty, location, price, opening stock, received per delivery, typical issue, final balance target]
+  const SPEC = [
+    ['زيت محولات — Transformer Oil', 'لتر', 400, 'مخزن الطوارئ — رف 1', 0.9, 900, 1000, [60, 220]],
+    ['زيت قواطع — Switchgear Oil', 'لتر', 100, 'مخزن الطوارئ — رف 2', 1.2, 260, 200, [20, 70], 'low'],
+    ['زيت مغير الجهد — Tap Changer Oil', 'برميل', 2, 'الساحة الخارجية', 180, 5, 4, [1, 1]],
+    ['زيت هيدروليك — Hydraulic Oil', 'لتر', 60, 'مخزن الطوارئ — رف 3', 1.6, 150, 120, [8, 30]],
+    ['زيت عزل الكابلات — Cable Oil', 'لتر', 80, 'مخزن الكابلات', 2.1, 180, 150, [15, 45]],
+    ['زيت مولدات الديزل — Generator Oil', 'لتر', 50, 'مخزن الطوارئ — رف 4', 1.1, 120, 100, [10, 35], 'low']
+  ];
+  const STATIONS = ['KHIT B', 'KHIT C', 'FARW Q', 'FARW D', 'FARW M', 'JALB B', 'ARDY G', 'SULB B', 'YARK A', 'AIRP M', 'JAL A', 'OMAR B'];
+  const TEAMS = ['فريق الصيانة A', 'فريق الصيانة B', 'فريق الطوارئ 1', 'فريق الطوارئ 2'];
+  const items = [], moves = [];
+  let po = 90;
+  SPEC.forEach(([name, unit, minQty, location, price, opening, delivery, [lo, hi], low], i) => {
+    const id = firstItemId + i;
+    items.push({id, name, unit, minQty, location, notes: '', price, demo: true});
+    let bal = 0;
+    const add = (off, type, qty, extra) => { moves.push(Object.assign({itemId: id, date: day(off), type, qty, station: '', ref: '', by: 'أمين المخزن', notes: ''}, extra)); };
+    add(-180, 'in', opening, {ref: 'رصيد افتتاحي', notes: 'رصيد أول المدة'}); bal = opening;
+    for(let off = -176; off <= -1; off++){
+      // Monthly stock check on the first working days of each month.
+      if(new Date(day(off) + 'T00:00').getDate() === 2){
+        const counted = Math.max(0, unit === 'برميل' ? bal : Math.round(bal - rnd() * 6));
+        add(off, 'check', counted, {notes: 'جرد شهري'}); bal = counted;
+      }
+      if(rnd() < 0.07){
+        const want = lo + Math.round(rnd() * (hi - lo));
+        const qty = Math.min(want, Math.floor(bal * 0.6));
+        if(qty > 0){ add(off, 'out', qty, {station: pick(STATIONS), by: pick(TEAMS), ref: pick(['تعبئة محول', 'صيانة قاطع', 'إصلاح طارئ', 'صيانة دورية'])}); bal -= qty; }
+      }
+      // Reorder when stock nears the minimum — except the items meant to end low.
+      if(bal < minQty * 1.3 && !(low && off > -25)){
+        add(off, 'in', delivery, {ref: 'PO-2026-' + String(++po).padStart(3, '0'), notes: 'توريد'}); bal += delivery;
+      }
+    }
+    if(low && bal >= minQty){
+      const qty = Math.round(bal - minQty * 0.7);
+      add(-3, 'out', qty, {station: pick(STATIONS), by: pick(TEAMS), ref: 'إصلاح طارئ'}); bal -= qty;
+    }
+  });
+  moves.sort((a, b) => a.date.localeCompare(b.date) || a.itemId - b.itemId);
+  moves.forEach((m, i) => { m.id = firstMoveId + i; m.demo = true; });
   return {items, moves};
 }
 
@@ -3826,21 +3966,36 @@ function loadOil(){
   try{
     const raw = localStorage.getItem(oilKeyFor(currentGov));
     const parsed = JSON.parse(raw);
-    if(parsed && Array.isArray(parsed.items) && Array.isArray(parsed.moves)) return parsed;
+    if(parsed && Array.isArray(parsed.items) && Array.isArray(parsed.moves)){
+      const v2 = 'mtOilDemoV2_' + currentGov;
+      if(!localStorage.getItem(v2)){
+        localStorage.setItem(v2, '1');
+        if(parsed.items.some(i => i.demo)){
+          const gone = parsed.items.filter(i => i.demo).map(i => i.id);
+          const items = parsed.items.filter(i => !i.demo), moves = parsed.moves.filter(m => !m.demo && !gone.includes(m.itemId));
+          const demo = buildDemoOil(nextOilId(items), nextOilId(moves));
+          const fresh = {items: items.concat(demo.items), moves: moves.concat(demo.moves)};
+          localStorage.setItem(oilKeyFor(currentGov), JSON.stringify(fresh));
+          return fresh;
+        }
+      }
+      return parsed;
+    }
     // First visit to the oil store in this governorate: start with demo data.
     const flag = 'mtOilDemoSeeded_' + currentGov;
     if(raw === null && !localStorage.getItem(flag)){
       const demo = buildDemoOil(1, 1);
       localStorage.setItem(oilKeyFor(currentGov), JSON.stringify(demo));
       localStorage.setItem(flag, '1');
+      localStorage.setItem('mtOilDemoV2_' + currentGov, '1');
       return demo;
     }
   }catch(e){}
   return {items:[], moves:[]};
 }
+const nextOilId = list => list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
 let oil = loadOil();
 function saveOil(){ try{ localStorage.setItem(oilKeyFor(currentGov), JSON.stringify(oil)); }catch(e){} }
-const nextOilId = list => list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
 function fmtQty(n){ return (Math.round(n * 10) / 10).toLocaleString('en-US'); }
 function fmtShort(iso){ if(!iso) return ''; const [y, m, d] = iso.split('-'); return d + '/' + m + '/' + y.slice(2); }
 
