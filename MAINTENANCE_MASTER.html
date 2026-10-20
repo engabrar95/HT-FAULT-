@@ -1574,6 +1574,87 @@
   .cost-axis{display:flex;gap:2px;direction:rtl;margin-top:6px;}
   .cost-axis span{flex:1;text-align:center;font-size:11px;color:var(--mute);min-width:0;overflow:hidden;white-space:nowrap;}
   @media (max-width:1000px){ .cost-kpis{grid-template-columns:repeat(3,1fr);} .cost-two{grid-template-columns:1fr;} .cost-fields{grid-template-columns:1fr 1fr;} }
+
+  /* ===== HOME DASHBOARD ===== */
+  :root{--hd-em:#c0392b;--hd-pv:#1f5fa8;--hd-bt:#b8930f;--st-crit:#d03b3b;--st-warn:#fab219;--st-good:#0ca30c;}
+  body:not(.light){--hd-em:#e0574b;--hd-pv:#5a93d6;--hd-bt:#a8860d;}
+  .home-hero{display:flex;align-items:center;gap:20px;direction:rtl;background:linear-gradient(120deg,#08264a,#0d3868);color:#fff;
+    border-radius:16px;padding:22px 26px;margin-bottom:18px;border-bottom:4px solid #c9a227;box-shadow:0 10px 28px rgba(8,38,74,0.22);position:relative;overflow:hidden;}
+  .home-hero::after{content:"";position:absolute;left:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle, rgba(201,162,39,0.22), transparent 70%);}
+  .home-hero .home-emblem{height:84px;margin:0;background:#fff;border-radius:50%;padding:5px;flex-shrink:0;}
+  .home-hero-txt{flex:1;}
+  .home-hero .home-ministry{color:#fff;font-size:18px;}
+  .home-hero .home-ministry-en{color:#a9c3de;}
+  .home-hero .home-title{color:#fff;font-size:28px;margin:6px 0 0;}
+  .home-hero-side{text-align:left;z-index:1;}
+  .home-hero .home-gov{color:#ffd76a;font-size:15px;font-weight:800;margin:0;}
+  .home-date{font-size:12.5px;color:#c9d9ea;margin-top:4px;}
+
+  .hd-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:12px;margin-bottom:18px;direction:rtl;}
+  .hd-kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;position:relative;overflow:hidden;
+    transition:transform .12s ease, box-shadow .12s ease;text-align:right;font-family:'Cairo',sans-serif;color:var(--text);}
+  .hd-kpi:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(8,38,74,0.14);}
+  .hd-kpi::before{content:"";position:absolute;right:0;top:0;bottom:0;width:5px;background:var(--k);}
+  .hd-kpi .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--k);margin-bottom:10px;}
+  .hd-kpi .ic svg{width:20px;height:20px;fill:#fff;}
+  .hd-kpi .v{font-size:28px;font-weight:800;line-height:1;}
+  .hd-kpi .l{font-size:13px;font-weight:700;margin-top:6px;}
+  .hd-kpi .s{font-size:11.5px;color:var(--mute);margin-top:3px;}
+  .hd-panel{margin-bottom:18px;}
+  .hd-panel .panel-head{direction:rtl;flex-wrap:wrap;gap:8px;}
+  .hd-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mute);direction:rtl;}
+  .hd-legend span{display:flex;align-items:center;gap:5px;}
+  .hd-legend .sw{display:inline-block;width:11px;height:11px;border-radius:3px;}
+  .hd-legend .st{display:inline-flex;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;color:#fff;font-size:10px;font-style:normal;font-weight:800;}
+  .st.crit{background:var(--st-crit);} .st.warn{background:var(--st-warn);color:#3a2a00 !important;} .st.good{background:var(--st-good);}
+  .hd-hint{font-size:12px;color:var(--mute);margin-top:6px;direction:rtl;}
+
+  /* single line diagram */
+  .hd-sld{overflow-x:auto;}
+  .hd-sld svg{display:block;}
+  .sld-bus{stroke:#0d3868;stroke-width:6;stroke-linecap:round;}
+  body:not(.light) .sld-bus{stroke:#5a93d6;}
+  .sld-flow{stroke:#c9a227;stroke-width:2;stroke-dasharray:10 14;animation:sldFlow 1.6s linear infinite;}
+  @keyframes sldFlow{to{stroke-dashoffset:-48;}}
+  .sld-drop{stroke:var(--mute);stroke-width:2;}
+  .sld-brk{fill:var(--panel);stroke:var(--text);stroke-width:1.6;}
+  .sld-st{cursor:pointer;}
+  .sld-st:hover .sld-node{stroke-width:4;}
+  .sld-node{stroke:var(--panel);stroke-width:3;}
+  .sld-node.crit{fill:var(--st-crit);} .sld-node.warn{fill:var(--st-warn);} .sld-node.good{fill:var(--st-good);}
+  .sld-sym{fill:#fff;font-size:14px;font-weight:800;text-anchor:middle;dominant-baseline:central;pointer-events:none;}
+  .sld-node.warn + .sld-sym{fill:#3a2a00;}
+  .sld-pulse{fill:none;stroke:var(--st-crit);stroke-width:2;animation:sldPulse 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center;}
+  @keyframes sldPulse{from{opacity:.8;transform:scale(1);}to{opacity:0;transform:scale(2.1);}}
+  .sld-name{fill:var(--text);font-size:12px;font-weight:800;text-anchor:middle;font-family:'Inter',sans-serif;}
+  .sld-sub{fill:var(--mute);font-size:10.5px;text-anchor:middle;font-family:'Cairo',sans-serif;}
+  .sld-src{fill:#0d3868;} body:not(.light) .sld-src{fill:#5a93d6;}
+  .sld-src-txt{fill:var(--text);font-size:11px;font-weight:700;text-anchor:middle;font-family:'Cairo',sans-serif;}
+
+  /* stacked columns */
+  .hd-two{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;}
+  .hd-chart{display:flex;align-items:flex-end;gap:14px;height:220px;padding-top:24px;border-bottom:1px solid var(--line);direction:rtl;}
+  .hd-col{flex:1;height:100%;display:flex;flex-direction:column-reverse;align-items:center;position:relative;min-width:0;}
+  .hd-seg{width:56%;max-width:52px;}
+  .hd-seg + .hd-seg{margin-bottom:2px;}
+  .hd-col .tot{position:absolute;font-size:12px;font-weight:800;color:var(--text);transform:translateY(-20px);}
+  .hd-col .tip{display:none;position:absolute;bottom:calc(100% + 6px);background:#08264a;color:#fff;font-size:12px;padding:7px 11px;border-radius:7px;white-space:nowrap;z-index:5;line-height:1.7;direction:rtl;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
+  .hd-col:hover .tip{display:block;}
+  .hd-col:hover .hd-seg{filter:brightness(1.12);}
+  .hd-axis{display:flex;gap:14px;direction:rtl;margin-top:6px;}
+  .hd-axis span{flex:1;text-align:center;font-size:11.5px;color:var(--mute);}
+
+  /* alerts */
+  .hd-alerts{display:flex;flex-direction:column;gap:8px;direction:rtl;}
+  .hd-alert{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);cursor:pointer;font-size:13px;}
+  .hd-alert:hover{border-color:#0d3868;}
+  .hd-alert .st{flex-shrink:0;width:22px;height:22px;font-size:12px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800;}
+  .hd-alert .txt{flex:1;min-width:0;}
+  .hd-alert .txt b{display:block;font-size:13px;}
+  .hd-alert .txt span{font-size:11.5px;color:var(--mute);unicode-bidi:plaintext;}
+  .hd-alert .go{font-size:12px;color:var(--mute);}
+  .hd-empty{color:var(--mute);font-size:13px;text-align:center;padding:24px;}
+  @media (max-width:1000px){ .hd-two{grid-template-columns:1fr;} .home-hero{flex-wrap:wrap;} .home-hero-side{text-align:right;} }
 </style>
 </head>
 <body>
@@ -1620,30 +1701,45 @@
 
     <!-- ===== HOME PAGE ===== -->
     <section data-page="home" class="home-page">
-      <div class="home-card">
+      <div class="home-hero">
         <img class="home-emblem" id="homeEmblem" alt="">
-        <div class="home-ministry">وزارة الكهرباء والماء والطاقة المتجددة</div>
-        <div class="home-ministry-en">Ministry of Electricity, Water &amp; Renewable Energy — State of Kuwait</div>
-        <div class="home-divider"></div>
-        <h1 class="home-title">نظام إدارة الصيانة</h1>
-        <div class="home-gov" id="homeGov"></div>
-        <button class="home-main-btn" id="homeMainBtn" type="button"><svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg> الصيانة <span class="caret">▾</span></button>
-        <div class="home-choices" id="homeChoices">
-          <button class="home-choice emergency" data-home-cat="emergency" type="button">
-            <div class="ic"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></div><div class="t">صيانة طارئة</div><div class="d">أعمال مفاجئة تحتاج تدخل فوري</div><div class="n" id="homeEmergCount"></div>
-          </button>
-          <button class="home-choice preventive" data-home-cat="preventive" type="button">
-            <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></div><div class="t">دورية وقائية</div><div class="d">صيانة شاملة كل 4 إلى 5 سنوات</div><div class="n" id="homePrevCount"></div>
-          </button>
-          <button class="home-choice battery" data-home-cat="battery" type="button">
-            <div class="ic"><svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM11 20v-5.5H9L13 7v5.5h2L11 20z"/></svg></div><div class="t">صيانة البطاريات</div><div class="d">فحص البطاريات والشواحن بالمحطات</div><div class="n" id="homeBatCount"></div>
-          </button>
-          <button class="home-choice oil" data-home-cat="oil" type="button">
-            <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg></div><div class="t">صيانة الزيت</div><div class="d">فحص كميات الزيت بالمخزن</div><div class="n" id="homeOilCount"></div>
-          </button>
-          <button class="home-choice predictive" data-home-cat="predictive" type="button">
-            <div class="ic"><svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg></div><div class="t">صيانة تنبؤية</div><div class="d">توقع الأعطال قبل حدوثها</div><div class="n" id="homePredCount"></div>
-          </button>
+        <div class="home-hero-txt">
+          <div class="home-ministry">وزارة الكهرباء والماء والطاقة المتجددة</div>
+          <div class="home-ministry-en">Ministry of Electricity, Water &amp; Renewable Energy — State of Kuwait</div>
+          <h1 class="home-title">نظام إدارة الصيانة</h1>
+        </div>
+        <div class="home-hero-side">
+          <div class="home-gov" id="homeGov"></div>
+          <div class="home-date" id="homeDate"></div>
+        </div>
+      </div>
+
+      <div class="hd-kpis" id="hdKpis"></div>
+
+      <div class="panel hd-panel">
+        <div class="panel-head"><h2>مخطط الشبكة الأحادي (Single Line) — حالة المحطات</h2>
+          <div class="hd-legend">
+            <span><i class="st crit">!</i> عطل مفتوح / بطارية للتبديل</span>
+            <span><i class="st warn">⌛</i> متأخرة أو خطر متوقع</span>
+            <span><i class="st good">✓</i> سليمة</span>
+          </div></div>
+        <div class="panel-body-inner"><div class="hd-sld" id="hdSld"></div>
+          <div class="hd-hint">اضغط على أي محطة لعرض أوامرها.</div></div>
+      </div>
+
+      <div class="hd-two">
+        <div class="panel hd-panel">
+          <div class="panel-head"><h2>أوامر الصيانة — آخر 6 أشهر</h2>
+            <div class="hd-legend">
+              <span><i class="sw" style="background:var(--hd-em);"></i> طارئة</span>
+              <span><i class="sw" style="background:var(--hd-pv);"></i> دورية وقائية</span>
+              <span><i class="sw" style="background:var(--hd-bt);"></i> بطاريات</span>
+            </div></div>
+          <div class="panel-body-inner"><div class="hd-chart" id="hdChart"></div><div class="hd-axis" id="hdAxis"></div></div>
+        </div>
+        <div class="panel hd-panel">
+          <div class="panel-head"><h2>يحتاج انتباهك اليوم</h2></div>
+          <div class="panel-body-inner"><div class="hd-alerts" id="hdAlerts"></div></div>
         </div>
       </div>
     </section>
@@ -4752,28 +4848,158 @@ document.getElementById('sideNav').addEventListener('click', e => {
 function showHome(){
   setCategoryFilter('');
   render();
-  const p = computeStats(data.filter(r => r.mtType === 'preventive'));
-  const e = computeStats(data.filter(r => r.mtType === 'emergency'));
-  const b = computeStats(data.filter(r => r.mtType === 'battery'));
-  const o = oilSummary();
-  document.getElementById('homeGov').textContent = 'المحافظة: ' + govName(currentGov);
-  document.getElementById('homeEmergCount').innerHTML = `<span style="color:var(--red);">${e.planned + e.inprogress + e.postponed} مفتوحة الآن</span> · <span style="color:var(--green);">${e.completed} منجزة</span>`;
-  document.getElementById('homePrevCount').innerHTML = `<span style="color:var(--amber);">${p.planned + p.inprogress + p.postponed} مجدولة / جارية</span> · <span style="color:var(--red);">${p.overdue} متأخرة</span>`;
-  document.getElementById('homeBatCount').innerHTML = `<span style="color:var(--amber);">${b.planned + b.inprogress + b.postponed} مجدولة / جارية</span> · <span style="color:var(--red);">${b.overdue} متأخرة</span>`;
-  document.getElementById('homeOilCount').innerHTML = `<span style="color:var(--green);">${o.liters} لتر بالمخزن</span> · <span style="color:var(--red);">${o.low} تحت الحد</span>`;
-  const pd = computePredictions();
-  document.getElementById('homePredCount').innerHTML = `<span style="color:var(--red);">${pd.filter(x => x.level === 'high').length} خطورة عالية</span> · <span style="color:var(--amber);">${pd.filter(x => x.level === 'medium').length} متوسطة</span>`;
+  renderHomeDash();
   showPage('home');
 }
+
+/* ===== HOME DASHBOARD =====
+   KPI cards that open their section, a single line diagram of the
+   stations coloured by state, orders per month by section (last 6
+   months), and today's most urgent items. */
+const HD_ICON = {
+  emergency: NAV_ICON.emergency, preventive: NAV_ICON.preventive, battery: NAV_ICON.battery, oil: NAV_ICON.oil,
+  predictive: NAV_ICON.predictive, money: NAV_ICON.money,
+  check: '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>'
+};
+function stationStates(preds){
+  const st = {};
+  const get = k => st[k] = st[k] || {name: k, total: 0, openEm: 0, overdue: 0, batReplace: 0, risk: 0, cats: {}};
+  data.forEach(r => {
+    const k = (r.sstn || '').trim().toUpperCase();
+    if(!k) return;
+    const s = get(k);
+    s.total++; s.cats[r.mtType] = (s.cats[r.mtType] || 0) + 1;
+    if(r.mtType === 'emergency' && PENDING.includes(r.status)) s.openEm++;
+    if(isOverdue(r)) s.overdue++;
+    if(r.mtType === 'battery' && r.batResult === 'replace' && !r.nextScheduledId) s.batReplace++;
+  });
+  preds.filter(x => x.level !== 'low' && x.kind !== 'oil').forEach(x => {
+    const k = (x.title || '').split(' — ')[0].trim().toUpperCase();
+    if(st[k]) st[k].risk++;
+  });
+  return Object.values(st).map(s => {
+    s.state = (s.openEm || s.batReplace) ? 'crit' : (s.overdue || s.risk) ? 'warn' : 'good';
+    s.goCat = s.openEm ? 'emergency' : s.batReplace ? 'battery' : s.overdue ? (s.cats.battery && !s.cats.preventive ? 'battery' : 'preventive')
+      : Object.entries(s.cats).sort((a, b) => b[1] - a[1])[0][0];
+    return s;
+  }).sort((a, b) => ({crit: 0, warn: 1, good: 2})[a.state] - ({crit: 0, warn: 1, good: 2})[b.state] || b.total - a.total);
+}
+function renderHomeDash(){
+  const now = new Date();
+  document.getElementById('homeGov').textContent = 'محافظة ' + govName(currentGov);
+  document.getElementById('homeDate').textContent = now.toLocaleDateString('ar-KW-u-nu-latn', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  const preds = computePredictions();
+  const st = cat => computeStats(data.filter(r => r.mtType === cat));
+  const em = st('emergency'), pv = st('preventive'), bt = st('battery');
+  const batRep = data.filter(r => r.mtType === 'battery' && r.batResult === 'replace' && !r.nextScheduledId).length;
+  const o = oilSummary();
+  const cm = monthBounds(0), pmn = monthBounds(-1);
+  const all4 = ['emergency', 'preventive', 'battery', 'oil'];
+  const costNow = computeCosts(cm, all4).t.total, costPrev = computeCosts(pmn, all4).t.total;
+  const month = computeStats(data.filter(r => { const d = refDate(r); return d >= cm.from && d <= cm.to; }));
+  const kpi = (go, color, icon, v, l, sub) => `<button class="hd-kpi" data-hd-go="${go}" style="--k:${color}" type="button">
+    <div class="ic"><svg viewBox="0 0 24 24">${HD_ICON[icon]}</svg></div><div class="v">${v}</div><div class="l">${l}</div><div class="s">${sub}</div></button>`;
+  document.getElementById('hdKpis').innerHTML =
+    kpi('emergency', '#c0392b', 'emergency', em.planned + em.inprogress + em.postponed, 'أعطال طارئة مفتوحة', em.completed + ' منجزة إجمالًا') +
+    kpi('preventive', '#1f5fa8', 'preventive', pv.overdue, 'دوريات متأخرة', (pv.planned + pv.inprogress + pv.postponed) + ' مجدولة / جارية') +
+    kpi('battery', '#b8930f', 'battery', batRep + bt.overdue, 'بطاريات تحتاج إجراء', batRep + ' للتبديل · ' + bt.overdue + ' فحص متأخر') +
+    kpi('oil', '#a86b2d', 'oil', o.low, 'زيت تحت الحد', o.liters + ' لتر بالمخزن') +
+    kpi('predictive', '#6a4fb3', 'predictive', preds.filter(x => x.level === 'high').length, 'خطورة عالية متوقعة', preds.filter(x => x.level === 'medium').length + ' متوسطة') +
+    kpi('cost', '#1f8a52', 'money', fmtKD(costNow, true), 'تكلفة هذا الشهر (د.ك)', costPrev ? (costNow >= costPrev ? '▲ ' : '▼ ') + fmtKD(Math.abs(costNow - costPrev), true) + ' عن الشهر السابق' : 'لا توجد تكلفة الشهر السابق') +
+    kpi('monthly', '#0d3868', 'check', month.rate + '%', 'نسبة الإنجاز هذا الشهر', month.completed + ' من ' + month.total + ' أمر');
+
+  // ---- single line diagram ----
+  const stations = stationStates(preds).slice(0, 16);
+  const sld = document.getElementById('hdSld');
+  if(!stations.length){ sld.innerHTML = '<div class="hd-empty">ما في محطات مسجلة بعد — تظهر هنا أول ما تضيف أوامر صيانة.</div>'; }
+  else {
+    const step = 92, W = Math.max(sld.clientWidth || 900, stations.length * step + 150), H = 230, busY = 52;
+    const SYM = {crit: '!', warn: '⌛', good: '✓'};
+    const xs = stations.map((_, i) => W - 130 - i * step);
+    let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="مخطط الشبكة الأحادي">
+      <rect class="sld-src" x="${W - 62}" y="${busY - 26}" width="44" height="52" rx="8"/>
+      <circle cx="${W - 46}" cy="${busY}" r="9" fill="none" stroke="#fff" stroke-width="2"/><circle cx="${W - 34}" cy="${busY}" r="9" fill="none" stroke="#fff" stroke-width="2"/>
+      <text class="sld-src-txt" x="${W - 40}" y="${busY + 44}">المصدر 132/11 kV</text>
+      <line class="sld-bus" x1="${xs[xs.length - 1] - 30}" y1="${busY}" x2="${W - 62}" y2="${busY}"/>
+      <line class="sld-flow" x1="${W - 62}" y1="${busY}" x2="${xs[xs.length - 1] - 30}" y2="${busY}"/>`;
+    stations.forEach((s, i) => {
+      const x = xs[i], ny = 150;
+      svg += `<g class="sld-st" data-hd-st="${esc(s.name)}" data-hd-cat="${s.goCat}">
+        <title>${esc(s.name)} — ${s.total} أمر · ${s.openEm} طارئ مفتوح · ${s.overdue} متأخر${s.batReplace ? ' · ' + s.batReplace + ' بطارية للتبديل' : ''}${s.risk ? ' · ' + s.risk + ' توقع' : ''}</title>
+        <line class="sld-drop" x1="${x}" y1="${busY}" x2="${x}" y2="${ny - 18}"/>
+        <rect class="sld-brk" x="${x - 7}" y="${busY + 24}" width="14" height="14" rx="2"/>
+        ${s.state === 'crit' ? `<circle class="sld-pulse" cx="${x}" cy="${ny}" r="17"/>` : ''}
+        <circle class="sld-node ${s.state}" cx="${x}" cy="${ny}" r="17"/><text class="sld-sym" x="${x}" y="${ny + 1}">${SYM[s.state]}</text>
+        <text class="sld-name" x="${x}" y="${ny + 38}">${esc(s.name.length > 13 ? s.name.slice(0, 12) + '…' : s.name)}</text>
+        <text class="sld-sub" x="${x}" y="${ny + 55}">${s.total} أمر${s.openEm ? ' · ' + s.openEm + ' مفتوح' : s.overdue ? ' · ' + s.overdue + ' متأخر' : ''}</text></g>`;
+    });
+    sld.innerHTML = svg + '</svg>';
+    sld.scrollLeft = sld.scrollWidth;
+    document.querySelector('.hd-hint').textContent = 'اضغط على أي محطة لعرض أوامرها.' + (W > sld.clientWidth + 10 ? ' اسحب المخطط لليسار لرؤية باقي المحطات (' + stations.length + ' محطة).' : '');
+  }
+
+  // ---- orders per month, stacked by section ----
+  const months = [-5, -4, -3, -2, -1, 0].map(monthBounds);
+  const cols = months.map(m => {
+    const c = {m};
+    ['emergency', 'preventive', 'battery'].forEach(k => { c[k] = data.filter(r => r.mtType === k && refDate(r) >= m.from && refDate(r) <= m.to).length; });
+    c.total = c.emergency + c.preventive + c.battery;
+    return c;
+  });
+  const max = Math.max(1, ...cols.map(c => c.total));
+  const COLOR = {emergency: 'var(--hd-em)', preventive: 'var(--hd-pv)', battery: 'var(--hd-bt)'};
+  document.getElementById('hdChart').innerHTML = cols.map(c => {
+    const segs = ['emergency', 'preventive', 'battery'].filter(k => c[k]);
+    return `<div class="hd-col">${segs.map((k, i) => `<div class="hd-seg" style="height:calc(${(c[k] / max * 100).toFixed(2)}% - 2px);background:${COLOR[k]};border-radius:${i === segs.length - 1 ? '4px 4px 0 0' : '0'}"></div>`).join('')}
+      ${c.total ? `<span class="tot" style="bottom:${(c.total / max * 100).toFixed(1)}%">${c.total}</span>` : ''}
+      <div class="tip"><b>${esc(c.m.label)}</b><br>طارئة: ${c.emergency}<br>دورية وقائية: ${c.preventive}<br>بطاريات: ${c.battery}<br>المجموع: ${c.total}</div></div>`;
+  }).join('');
+  document.getElementById('hdAxis').innerHTML = cols.map(c => `<span>${esc(c.m.label.split(' ')[0])}</span>`).join('');
+
+  // ---- what needs attention today ----
+  const items = [];
+  data.filter(r => r.mtType === 'emergency' && PENDING.includes(r.status)).forEach(r =>
+    items.push({rank: 0, st: 'crit', sym: '!', t: 'عطل طارئ مفتوح — ' + fmtWid(r.id), d: (r.sstn || '') + ' · ' + (r.equipment || ''), go: 'order', id: r.id, cat: 'emergency'}));
+  data.filter(r => r.mtType === 'battery' && r.batResult === 'replace' && !r.nextScheduledId).forEach(r =>
+    items.push({rank: 1, st: 'crit', sym: '!', t: 'بطارية تحتاج تبديل', d: (r.sstn || '') + ' · ' + (r.equipment || ''), go: 'order', id: r.id, cat: 'battery'}));
+  oilLowItems().forEach(x => items.push({rank: 2, st: 'warn', sym: '⌛', t: 'زيت تحت الحد الأدنى', d: x.item.name + ' — ' + fmtQty(x.bal) + ' ' + x.item.unit, go: 'cat', cat: 'oil'}));
+  data.filter(isOverdue).sort((a, b) => a.plannedDate.localeCompare(b.plannedDate)).forEach(r =>
+    items.push({rank: 3, st: 'warn', sym: '⌛', t: (r.mtType === 'battery' ? 'فحص بطارية متأخر — ' : 'دورية متأخرة — ') + fmtWid(r.id), d: (r.sstn || '') + ' · منذ ' + fmtShort(r.plannedDate), go: 'order', id: r.id, cat: r.mtType}));
+  preds.filter(x => x.level === 'high' && x.kind === 'repeat').forEach(x =>
+    items.push({rank: 4, st: 'warn', sym: '⌛', t: 'عطل متوقع قريبًا', d: x.title + (x.next ? ' · حوالي ' + fmtShort(x.next) : ''), go: 'cat', cat: 'predictive'}));
+  const top = items.sort((a, b) => a.rank - b.rank).slice(0, 7);
+  document.getElementById('hdAlerts').innerHTML = top.length ? top.map((x, i) => `<div class="hd-alert" data-hd-alert="${i}">
+      <span class="st ${x.st}">${x.sym}</span><div class="txt"><b>${esc(x.t)}</b><span>${esc(x.d)}</span></div><span class="go">←</span></div>`).join('')
+    : '<div class="hd-empty">✓ ما في شي عاجل اليوم — كل شي تحت السيطرة.</div>';
+  document.getElementById('hdAlerts')._items = top;
+}
+document.getElementById('hdKpis').addEventListener('click', e => {
+  const b = e.target.closest('[data-hd-go]');
+  if(!b) return;
+  const go = b.dataset.hdGo;
+  if(go === 'cost') openCost(); else if(go === 'monthly') openMonthly(); else enterCategory(go);
+});
+document.getElementById('hdSld').addEventListener('click', e => {
+  const g = e.target.closest('[data-hd-st]');
+  if(!g) return;
+  enterCategory(g.dataset.hdCat);
+  document.getElementById('searchBox').value = g.dataset.hdSt;
+  render();
+});
+document.getElementById('hdAlerts').addEventListener('click', e => {
+  const el = e.target.closest('[data-hd-alert]');
+  if(!el) return;
+  const x = document.getElementById('hdAlerts')._items[parseInt(el.dataset.hdAlert)];
+  enterCategory(x.cat);
+  if(x.go === 'order') openModal(x.id);
+});
+window.addEventListener('resize', () => { if(currentPage === 'home') renderHomeDash(); });
 function enterCategory(cat){
+  document.getElementById('searchBox').value = '';
   setCategoryFilter(cat);
   render();
   showPage(cat === 'oil' ? 'oilBalances' : cat === 'predictive' ? 'predict' : 'records');
 }
-document.getElementById('homeMainBtn').addEventListener('click', e => {
-  e.currentTarget.classList.toggle('open');
-  document.getElementById('homeChoices').classList.toggle('open');
-});
 document.querySelectorAll('[data-home-cat]').forEach(b => b.addEventListener('click', () => enterCategory(b.dataset.homeCat)));
 
 showHome();
