@@ -1611,7 +1611,6 @@
   /* charts */
   .hd-two{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;}
   .hd-chart{display:flex;align-items:flex-end;gap:14px;height:220px;padding-top:24px;border-bottom:1px solid var(--line);direction:rtl;}
-  .hd-chart.short{height:180px;}
   .hd-col{flex:1;height:100%;display:flex;flex-direction:column-reverse;align-items:center;position:relative;min-width:0;}
   .hd-seg{width:56%;max-width:52px;}
   .hd-seg + .hd-seg{margin-bottom:2px;}
@@ -1737,8 +1736,8 @@
 
       <div class="hd-two">
         <div class="panel hd-panel">
-          <div class="panel-head"><h2>تكلفة الصيانة — آخر 6 أشهر (د.ك)</h2></div>
-          <div class="panel-body-inner"><div class="hd-chart short" id="hdCost"></div><div class="hd-axis" id="hdCostAxis"></div></div>
+          <div class="panel-head"><h2>أكثر المحطات أعمال صيانة</h2></div>
+          <div class="panel-body-inner"><div class="hd-bars" id="hdStations"></div></div>
         </div>
         <div class="panel hd-panel">
           <div class="panel-head"><h2>نسبة الإنجاز لكل قسم</h2></div>
@@ -1746,15 +1745,9 @@
         </div>
       </div>
 
-      <div class="hd-two">
-        <div class="panel hd-panel">
-          <div class="panel-head"><h2>أكثر المحطات أعمال صيانة</h2></div>
-          <div class="panel-body-inner"><div class="hd-bars" id="hdStations"></div></div>
-        </div>
-        <div class="panel hd-panel">
-          <div class="panel-head"><h2>الصيانة المجدولة — الـ 30 يوم القادمة</h2></div>
-          <div class="panel-body-inner"><div class="hd-up" id="hdUpcoming"></div></div>
-        </div>
+      <div class="panel hd-panel">
+        <div class="panel-head"><h2>الصيانة المجدولة — الـ 30 يوم القادمة</h2></div>
+        <div class="panel-body-inner"><div class="hd-up" id="hdUpcoming"></div></div>
       </div>
     </section>
 
@@ -4868,8 +4861,7 @@ function showHome(){
 
 /* ===== HOME DASHBOARD =====
    Maintenance KPIs that open their section, then charts: orders per
-   month by section, order status, cost per month, completion rate per
-   section, busiest stations and the maintenance scheduled for the next
+   month by section, order status, completion rate per section, busiest stations and the maintenance scheduled for the next
    30 days. */
 const HD_ICON = {
   emergency: NAV_ICON.emergency, preventive: NAV_ICON.preventive, battery: NAV_ICON.battery, oil: NAV_ICON.oil,
@@ -4923,8 +4915,7 @@ function renderHomeDash(){
       ${c.total ? `<span class="tot" style="bottom:${(c.total / max * 100).toFixed(1)}%">${c.total}</span>` : ''}
       <div class="tip"><b>${esc(c.m.label)}</b><br>صيانة طارئة: ${c.emergency}<br>دورية وقائية: ${c.preventive}<br>بطاريات: ${c.battery}<br>المجموع: ${c.total}</div></div>`;
   }).join('');
-  const axis = cols.map(c => `<span>${esc(c.m.label.split(' ')[0])}</span>`).join('');
-  document.getElementById('hdAxis').innerHTML = axis;
+  document.getElementById('hdAxis').innerHTML = cols.map(c => `<span>${esc(c.m.label.split(' ')[0])}</span>`).join('');
 
   // ---- order status donut ----
   const live = data.filter(r => r.status !== 'cancelled');
@@ -4948,15 +4939,6 @@ function renderHomeDash(){
       <text class="c-v" x="95" y="98">${tot}</text><text class="c-l" x="95" y="120">أمر صيانة</text></svg>
     <div class="hd-dl">${parts.map(x => `<div><i style="background:${x.c}"></i>${x.l}<b>${x.n}</b><small>${Math.round(x.n / tot * 100)}%</small></div>`).join('')}</div>`
     : '<div class="hd-empty">ما في أوامر صيانة مسجلة بعد.</div>';
-
-  // ---- cost per month ----
-  const costs = months.map(m => ({m, v: computeCosts(m, all4).t.total}));
-  const cmax = Math.max(1, ...costs.map(c => c.v));
-  document.getElementById('hdCost').innerHTML = costs.map(c => `<div class="hd-col">
-      ${c.v ? `<div class="hd-seg" style="height:calc(${(c.v / cmax * 100).toFixed(2)}% - 2px);background:var(--hd-pv);border-radius:4px 4px 0 0"></div>
-      <span class="tot" style="bottom:${(c.v / cmax * 100).toFixed(1)}%">${fmtKD(c.v, true)}</span>` : ''}
-      <div class="tip"><b>${esc(c.m.label)}</b><br>التكلفة: ${fmtKD(c.v)} د.ك</div></div>`).join('');
-  document.getElementById('hdCostAxis').innerHTML = axis;
 
   // ---- completion rate per section ----
   const bar = (attrs, name, pct, color, note) => `<div class="hd-bar" ${attrs}><div class="top"><b class="nm">${name}</b><span>${note}</span></div>
