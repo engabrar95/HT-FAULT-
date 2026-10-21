@@ -5000,6 +5000,8 @@ function renderNav(){
       ['emergency', 'preventive', 'battery', 'oil', 'predictive'].map(c => item('cat:' + c, c, SECTION_NAME[c])).join('') + '</div>';
   } else {
     h += `<div class="nav-head ${categoryFilter}"><div class="ic">${navSvg(categoryFilter)}</div><div><div class="t">${SECTION_NAME[categoryFilter]}</div><div class="s">${esc(govName(currentGov))}</div></div></div>`;
+    h += item('home', 'home', 'الرئيسية', '');
+    h += '<div class="nav-sep"></div>';
     if(categoryFilter === 'predictive'){
       h += item('page:predict', 'predictive', 'التحليل التنبؤي', 'predict');
     } else if(categoryFilter === 'oil'){
@@ -5022,8 +5024,6 @@ function renderNav(){
     h += item('print', 'print', 'طباعة التقارير', 'print');
     h += item('govstats', 'globe', 'إحصائية المحافظات', 'govstats');
     h += item('page:data', 'data', 'البيانات والنسخ الاحتياطي', 'data');
-    h += '<div class="nav-sep"></div>';
-    h += item('home', 'home', 'الرئيسية', '');
   }
   document.getElementById('sideNav').innerHTML = h;
 }
