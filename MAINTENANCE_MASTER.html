@@ -1336,6 +1336,11 @@
   .page-title{display:flex;align-items:baseline;gap:12px;direction:rtl;margin:0 0 18px;padding-bottom:12px;border-bottom:2px solid var(--line);}
   .page-title h2{margin:0;font-size:22px;font-weight:800;color:var(--text);}
   .page-title .page-sec{font-size:13.5px;color:var(--mute);font-weight:600;}
+  .pg-back{margin-right:auto;align-self:center;font-family:'Cairo',sans-serif;font-size:13.5px;font-weight:700;color:#0d3868;background:var(--panel);
+    border:1px solid #0d3868;border-radius:8px;padding:6px 16px;cursor:pointer;white-space:nowrap;}
+  .pg-back:hover{background:#0d3868;color:#fff;}
+  body:not(.light) .pg-back{color:#9cc3ef;border-color:#5a93d6;}
+  body:not(.light) .pg-back:hover{background:#5a93d6;color:#08264a;}
 
   /* ---- right-hand menu ---- */
   .side-nav{
@@ -1809,7 +1814,7 @@
   <div id="ordersView">
 
   <section data-page="records">
-    <div class="page-title"><h2>سجل أوامر الصيانة</h2><span class="page-sec"></span></div>
+    <div class="page-title"><h2>سجل أوامر الصيانة</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
   <div class="kpis">
     <div class="kpi"><div class="val" id="kTotal"><span class="num-part">0</span></div><div class="lbl">إجمالي أوامر الصيانة</div></div>
     <div class="kpi"><div class="val" id="kPlanned"><span class="num-part">0</span></div><div class="lbl">📅 مجدولة</div></div>
@@ -1884,7 +1889,7 @@
   </section>
 
   <section data-page="dashboard">
-    <div class="page-title"><h2>لوحة المتابعة</h2><span class="page-sec"></span></div>
+    <div class="page-title"><h2>لوحة المتابعة</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
   <div class="overview-grid" style="grid-template-columns:1.2fr 1fr 0.8fr;">
     <div class="panel">
       <div class="panel-head"><h2>⏰ المتأخرة والقادمة (7 أيام)</h2></div>
@@ -1919,7 +1924,7 @@
 
   <!-- ===== REPORTS ===== -->
   <section data-page="reports">
-    <div class="page-title"><h2>التقارير والتحليلات</h2><span class="page-sec"></span></div>
+    <div class="page-title"><h2>التقارير والتحليلات</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
   <div class="panel">
     <div class="panel-head"><h2>التقارير والتحليلات</h2></div>
     <div class="panel-body-inner">
@@ -1957,7 +1962,7 @@
 
   <!-- ===== PREDICTIVE MAINTENANCE ===== -->
   <section data-page="predict">
-    <div class="page-title"><h2>الصيانة التنبؤية</h2><span class="page-sec"></span></div>
+    <div class="page-title"><h2>الصيانة التنبؤية</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
     <div class="pd-kpis">
       <div class="kpi danger"><div class="val" id="pdHigh">0</div><div class="lbl">خطورة عالية</div></div>
       <div class="kpi warn"><div class="val" id="pdMed">0</div><div class="lbl">خطورة متوسطة</div></div>
@@ -1979,7 +1984,7 @@
 
   <!-- ===== MAINTENANCE COST ===== -->
   <section data-page="cost">
-    <div class="page-title"><h2>تكلفة الصيانة</h2><span class="page-sec"></span></div>
+    <div class="page-title"><h2>تكلفة الصيانة</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
     <div class="mr-bar">
       <label class="cost-ctl">الفترة
         <select id="costPeriod">
@@ -2014,7 +2019,7 @@
 
   <!-- ===== MONTHLY REPORT ===== -->
   <section data-page="monthly">
-    <div class="page-title"><h2>التقرير الشهري</h2><span class="page-sec">— كل أقسام الصيانة</span></div>
+    <div class="page-title"><h2>التقرير الشهري</h2><span class="page-sec">— كل أقسام الصيانة</span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
     <div class="mr-bar">
       <button class="btn ghost" id="mrPrev">→ الشهر السابق</button>
       <div class="mr-month" id="mrMonth">—</div>
@@ -2028,7 +2033,7 @@
 
   <!-- ===== PRINT REPORTS ===== -->
   <section data-page="print">
-    <div class="page-title"><h2>طباعة التقارير</h2><span class="page-sec"></span></div>
+    <div class="page-title"><h2>طباعة التقارير</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
     <div class="print-setup">
       <div class="ps-block">
         <h4>الفترة</h4>
@@ -2075,7 +2080,7 @@
 
   <!-- ===== DATA & BACKUP ===== -->
   <section data-page="data">
-    <div class="page-title"><h2>البيانات والنسخ الاحتياطي</h2><span class="page-sec"></span></div>
+    <div class="page-title"><h2>البيانات والنسخ الاحتياطي</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
     <div class="data-grid">
       <div class="data-card"><h3>💾 حفظ نسخة احتياطية</h3><p>ينزّل ملف فيه كل أوامر الصيانة ومخزن الزيت لهذه المحافظة، عشان تنقله لجهاز ثاني أو تحفظه.</p>
         <button class="btn add" id="exportBackupBtn">حفظ نسخة احتياطية</button></div>
@@ -2093,7 +2098,7 @@
   <!-- ===== OIL STORE (صيانة الزيت — فحص كميات الزيت بالمخزن) ===== -->
   <div id="oilView" style="display:none;">
     <section data-page="oilBalances">
-    <div class="page-title"><h2>أرصدة الزيت بالمخزن</h2><span class="page-sec"></span></div>
+    <div class="page-title"><h2>أرصدة الزيت بالمخزن</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
     <div class="kpis oil-kpis">
       <div class="kpi"><div class="val" id="okItems">0</div><div class="lbl">أنواع الزيت</div></div>
       <div class="kpi ok"><div class="val" id="okLiters">0</div><div class="lbl">الرصيد الحالي (لتر)</div></div>
@@ -2112,7 +2117,7 @@
     </div>
     </section>
     <section data-page="oilMoves">
-    <div class="page-title"><h2>سجل حركات الزيت</h2><span class="page-sec"></span></div>
+    <div class="page-title"><h2>سجل حركات الزيت</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
     <div class="panel">
       <div class="panel-head"><h2>سجل حركات الزيت</h2><span id="oilMovesCount" style="font-size:12px;color:var(--mute);"></span></div>
       <div class="table-scroll">
@@ -4913,18 +4918,45 @@ document.getElementById('prPrintBtn').addEventListener('click', () => {
    One page shows at a time inside the main area. The menu on the right
    lists what the current place offers: on the home page only "الصيانة"
    and its four sections; inside a section, that section's pages. Forms
-   (add/edit, oil entries) and the governorates page are full pages too,
-   and "→ رجوع" returns to the page they were opened from. */
+   (add/edit, oil entries) and the governorates page are full pages too.
+   Every page has "→ رجوع", which returns to the page visited before it. */
 const SUB_PAGES = ['form', 'oilItem', 'oilMove', 'govstats'];
-let currentPage = 'home', returnPage = 'home';
+// Forms are left, never returned to: "رجوع" skips over them.
+const FORM_PAGES = ['form', 'oilItem', 'oilMove'];
+let currentPage = 'home', shown = {page: 'home', cat: ''}, restoring = false;
+// Every page visited (with its section) so "رجوع" goes to the one before,
+// in step with the browser / iPad back gesture.
+const navStack = [];
 function showPage(name){
-  if(!SUB_PAGES.includes(name)) returnPage = name;
+  const next = {page: name, cat: categoryFilter};
+  if(name === 'home') navStack.length = 0;
+  else if(!restoring && !FORM_PAGES.includes(shown.page) && (shown.page !== name || shown.cat !== next.cat)){
+    navStack.push(shown);
+    try{ history.pushState({mt: navStack.length}, ''); }catch(e){}
+  }
+  shown = next;
   currentPage = name;
   document.querySelectorAll('#appMain [data-page]').forEach(el => el.classList.toggle('page-active', el.dataset.page === name));
   renderNav();
   window.scrollTo(0, 0);
 }
-function goBack(){ showPage(returnPage); }
+function goBack(){
+  if(navStack.length && history.state && history.state.mt){ history.back(); return; }
+  stepBack();
+}
+const REOPEN = {home: () => showHome(), cost: () => openCost(), monthly: () => openMonthly(), print: () => openPrintPage(), govstats: () => openGovStats()};
+function stepBack(){
+  const to = navStack.pop();
+  if(!to){ if(currentPage !== 'home') showHome(); return; }
+  restoring = true;
+  try{
+    if(FORM_PAGES.includes(currentPage)) editingId = null;
+    if(to.cat !== categoryFilter){ setCategoryFilter(to.cat); render(); }
+    if(REOPEN[to.page]) REOPEN[to.page](); else showPage(to.page);
+  } finally { restoring = false; }
+}
+window.addEventListener('popstate', stepBack);
+document.getElementById('appMain').addEventListener('click', e => { if(e.target.closest('[data-go-back]')) goBack(); });
 
 const NAV_ICON = {
   home:'<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>',
