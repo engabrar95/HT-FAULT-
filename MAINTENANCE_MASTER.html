@@ -1336,7 +1336,7 @@
   .page-title{display:flex;align-items:baseline;gap:12px;direction:rtl;margin:0 0 18px;padding-bottom:12px;border-bottom:2px solid var(--line);}
   .page-title h2{margin:0;font-size:22px;font-weight:800;color:var(--text);}
   .page-title .page-sec{font-size:13.5px;color:var(--mute);font-weight:600;}
-  .pg-back{margin-right:auto;align-self:center;font-family:'Cairo',sans-serif;font-size:13.5px;font-weight:700;color:#0d3868;background:var(--panel);
+  .pg-back{order:-1;align-self:center;font-family:'Cairo',sans-serif;font-size:13.5px;font-weight:700;color:#0d3868;background:var(--panel);
     border:1px solid #0d3868;border-radius:8px;padding:6px 16px;cursor:pointer;white-space:nowrap;}
   .pg-back:hover{background:#0d3868;color:#fff;}
   body:not(.light) .pg-back{color:#9cc3ef;border-color:#5a93d6;}
@@ -1383,6 +1383,11 @@
     background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.35);border-radius:8px;padding:7px 16px;
   }
   #appMain .sld-modal-head{direction:rtl;}
+  /* "رجوع" sits on the right, before the page title. */
+  #appMain .modal-head, #appMain .sld-modal-head{justify-content:flex-start;gap:14px;}
+  #appMain .modal-close.page-back, #appMain .sld-modal-close.page-back{order:-1;}
+  #appMain .sld-modal-close.page-back{color:#0d3868;background:var(--panel);border-color:#0d3868;}
+  body:not(.light) #appMain .sld-modal-close.page-back{color:#9cc3ef;border-color:#5a93d6;}
   #appMain .sld-modal-body{background:transparent !important;}
   #appMain .modal-body{padding:24px 26px;}
   #appMain .form-grid{grid-template-columns:repeat(3,1fr);}
