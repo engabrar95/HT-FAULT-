@@ -3508,15 +3508,18 @@ function renderAlarm(){
   });
   document.getElementById('alarmList').innerHTML = h || `<div class="ap-empty">✓ ما في صيانة مستحقة خلال الـ ${alarmLead()} أيام القادمة.</div>`;
 }
-document.getElementById('alarmBell').addEventListener('click', e => {
-  e.stopPropagation();
+function openAlarmPanel(open){
   renderAlarm();
   // Fixed under the bell, kept inside the screen on narrow devices.
-  const panel = document.getElementById('alarmPanel'), r = e.currentTarget.getBoundingClientRect();
+  const panel = document.getElementById('alarmPanel'), r = document.getElementById('alarmBell').getBoundingClientRect();
   const w = Math.min(380, innerWidth - 32);
   panel.style.top = (r.bottom + 10) + 'px';
   panel.style.left = Math.max(16, Math.min(r.left, innerWidth - 16 - w)) + 'px';
-  panel.classList.toggle('open');
+  panel.classList.toggle('open', open);
+}
+document.getElementById('alarmBell').addEventListener('click', e => {
+  e.stopPropagation();
+  openAlarmPanel(!document.getElementById('alarmPanel').classList.contains('open'));
 });
 document.getElementById('alarmPanel').addEventListener('click', e => {
   e.stopPropagation();
@@ -5344,7 +5347,11 @@ showHome();
 offerMonthlyReport();
 {
   const due = alarmItems().filter(x => x.days <= 0).length;
-  if(due) showToast('🔔 عندك ' + due + ' صيانة موعدها اليوم أو متأخرة — اضغط الجرس فوق', 'info');
+  // Something is due: open the alarm list straight away so it can't be missed.
+  if(due){
+    showToast('🔔 عندك ' + due + ' صيانة موعدها اليوم أو متأخرة', 'info');
+    setTimeout(() => openAlarmPanel(true), 400);
+  }
 }
 </script>
 
