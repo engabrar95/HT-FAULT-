@@ -246,6 +246,40 @@
   .priority-badge.medium{background:rgba(0,174,239,0.16);color:var(--e-blue);}
   .priority-badge.low{background:rgba(255,255,255,0.08);color:var(--mute);}
 
+  /* MAINTENANCE ALARM — bell in the header */
+  .alarm-wrap{position:relative;}
+  .alarm-bell{position:relative;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .alarm-bell:hover{background:rgba(255,255,255,0.16);}
+  .alarm-bell svg{width:24px;height:24px;fill:#fff;}
+  .alarm-bell.ring svg{fill:#ffd76a;animation:bellRing 1.6s ease-in-out infinite;transform-origin:50% 8%;}
+  @keyframes bellRing{0%,55%,100%{transform:rotate(0);}10%{transform:rotate(16deg);}20%{transform:rotate(-14deg);}30%{transform:rotate(10deg);}40%{transform:rotate(-6deg);}}
+  .ab-count{position:absolute;top:-4px;left:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#d03b3b;color:#fff;
+    font-size:11.5px;font-weight:800;font-family:'Inter',sans-serif;display:none;align-items:center;justify-content:center;border:2px solid #0d3868;}
+  .ab-count.on{display:flex;}
+  .ab-count.warn{background:#fab219;color:#3a2a00;}
+  .alarm-panel{display:none;position:fixed;top:80px;left:16px;width:380px;max-width:calc(100vw - 32px);background:var(--panel);color:var(--text);
+    border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(8,38,74,0.28);z-index:60;direction:rtl;font-family:'Cairo',sans-serif;overflow:hidden;}
+  .alarm-panel.open{display:block;}
+  .ap-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 16px;background:#0d3868;color:#fff;font-size:14px;}
+  .ap-head span{font-size:12px;color:#c9d9ea;}
+  .ap-list{max-height:420px;overflow-y:auto;}
+  .ap-grp{padding:8px 16px 4px;font-size:12px;font-weight:800;color:var(--mute);background:var(--panel2);border-top:1px solid var(--line);}
+  .ap-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--line);cursor:pointer;}
+  .ap-item:hover{background:var(--panel2);}
+  .ap-item .st{flex-shrink:0;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;}
+  .ap-item .tx{flex:1;min-width:0;}
+  .ap-item .tx b{display:block;font-size:13px;unicode-bidi:plaintext;text-align:right;}
+  .ap-item .tx span{display:block;font-size:11.5px;color:var(--mute);}
+  .ap-item .when{font-size:11.5px;font-weight:800;white-space:nowrap;}
+  .ap-item .when.crit{color:var(--st-crit);} .ap-item .when.warn{color:#b07a00;}
+  body:not(.light) .ap-item .when.warn{color:#fab219;}
+  .ap-done{flex-shrink:0;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:7px;padding:4px 9px;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif;}
+  .ap-done:hover{border-color:#0ca30c;color:#0ca30c;}
+  .ap-empty{padding:26px 16px;text-align:center;color:var(--mute);font-size:13px;}
+  .ap-foot{padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--mute);display:flex;align-items:center;gap:8px;}
+  .ap-foot select{font-family:'Cairo',sans-serif;font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);}
+
   /* HEADER CLOCK */
   .hdr-clock{
     font-family:'IBM Plex Mono',monospace;color:#dcecfb;font-size:13px;text-align:right;margin-right:6px;
@@ -1689,6 +1723,19 @@
       <div class="tagline">نظام إدارة الصيانة</div>
     </div>
     <div class="grow"></div>
+    <div class="alarm-wrap">
+      <button class="alarm-bell" id="alarmBell" type="button" title="تنبيهات الصيانة" aria-label="تنبيهات الصيانة">
+        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="ab-count" id="alarmCount"></span>
+      </button>
+      <div class="alarm-panel" id="alarmPanel">
+        <div class="ap-head"><b>🔔 تنبيهات الصيانة</b><span id="alarmSummary"></span></div>
+        <div class="ap-list" id="alarmList"></div>
+        <div class="ap-foot">نبهني قبل الموعد بـ
+          <select id="alarmLead"><option value="3">3 أيام</option><option value="7">7 أيام</option><option value="14">14 يوم</option><option value="30">30 يوم</option></select>
+        </div>
+      </div>
+    </div>
     <div class="hdr-clock" id="hdrClock">—</div>
     <div class="ministry-badge">
       <div class="ministry-text">
@@ -2392,8 +2439,8 @@ function loadData(){
     const raw = localStorage.getItem(storageKeyFor(currentGov));
     const parsed = JSON.parse(raw);
     if(Array.isArray(parsed)){
-      // The demo set grew (v2): swap an older one for it, once.
-      const v2 = 'mtDemoV2_' + currentGov;
+      // The demo set grew (v3): swap an older one for it, once.
+      const v2 = 'mtDemoV3_' + currentGov;
       if(!localStorage.getItem(v2)){
         localStorage.setItem(v2, '1');
         if(parsed.some(r => r && r.demo)){
@@ -2413,7 +2460,7 @@ function loadData(){
       const demo = buildDemoRecords(1);
       localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(demo));
       localStorage.setItem(flag, '1');
-      localStorage.setItem('mtDemoV2_' + currentGov, '1');
+      localStorage.setItem('mtDemoV3_' + currentGov, '1');
       return demo;
     }
   }catch(e){}
@@ -2505,8 +2552,39 @@ function buildDemoRecords(firstId){
      description:'Semi-annual battery check.', workDone:'All cells within limits.'}
   ];
   list.push(...buildDemoHistory(day));
+  // Recurring jobs (every 3 months, one monthly) with their past cycles,
+  // timed so the header alarm has something due now and soon.
+  const REC = [
+    [0,  'quarterly', 'preventive', 'ARDY G', 'Diesel generator — ARDY G', 'Other', 'Quarterly generator run — load test, fuel and oil level, batteries.'],
+    [0,  'quarterly', 'preventive', 'SULB B', 'Transformer oil level & silica gel — TR-1/TR-2', 'Power Transformer', 'Quarterly check — oil level, silica gel colour, leaks, temperature gauges.'],
+    [-3, 'quarterly', 'preventive', 'KHIT B', 'SF6 gas pressure — 11 kV panels', 'Switchgear / Circuit Breaker', 'Quarterly SF6 pressure reading on every panel.'],
+    [1,  'monthly',   'preventive', 'YARK A', 'Substation monthly inspection — YARK A', 'Building / Civil', 'Monthly walk-through — doors, lighting, cleanliness, alarms.'],
+    [2,  'quarterly', 'preventive', 'FARW M', 'A/C units — switchgear room', 'Building / Civil', 'Quarterly A/C service — filters, gas pressure, drain.'],
+    [5,  'quarterly', 'battery',    'AIRP M', '110 V DC battery bank — AIRP M', 'Battery & Charger', 'Quarterly battery check — cell voltages, electrolyte, charger.'],
+    [12, 'quarterly', 'preventive', 'JALB B', 'Fire alarm & FM200 system', 'Building / Civil', 'Quarterly fire alarm test and FM200 cylinder pressure check.']
+  ];
+  REC.forEach(([due, rcKey, mtType, sstn, equipment, equipType, description], q) => {
+    const months = RECURRENCES[rcKey].months, cycles = rcKey === 'monthly' ? 3 : 2;
+    for(let k = cycles; k >= 0; k--){
+      const pd = addMonthsISO(day(due), -months * k);
+      const r = {sstn, equipment, equipType, mtType, description, recurrence: rcKey, priority: 'medium', status: k ? 'completed' : 'planned', plannedDate: pd,
+        engineer: mtType === 'battery' ? 'فريق البطاريات' : 'فريق الصيانة A', _chain: q, _step: k};
+      if(mtType === 'battery') Object.assign(r, {batType: 'Ni-Cd', batAh: '120', batCells: '92', batInstall: '2021-04-01'});
+      if(k){
+        Object.assign(r, {startDate: pd, startTime: '08:30', endDate: pd, endTime: '10:30', duration: 2, techs: '2', laborRate: '6', workDone: 'Done — all readings normal.'});
+        if(mtType === 'battery') Object.assign(r, {batResult: 'ok', batVoltage: (121 + k * 0.4).toFixed(1), chargerVolt: '123.0'});
+      }
+      list.push(r);
+    }
+  });
   const now = new Date().toISOString();
   const out = list.map((r, i) => Object.assign({}, base, r, {id: firstId + i, createdAt: now}));
+  // Each finished cycle points at the order it scheduled.
+  out.filter(r => r._chain !== undefined && r._step).forEach(r => {
+    const next = out.find(x => x._chain === r._chain && x._step === r._step - 1);
+    if(next) r.nextScheduledId = next.id;
+  });
+  out.forEach(r => { delete r._chain; delete r._step; });
   // TR-1's completed cycle points at the order it scheduled.
   out[6].nextScheduledId = out[7].id;
   // Sample costs (KWD) on the finished and running orders.
@@ -2592,7 +2670,7 @@ function buildDemoHistory(day){
       Object.assign(r, {equipment: eq(n), equipType, description,
         priority: mtType === 'emergency' ? pick(['critical', 'high', 'high', 'medium']) : pick(['low', 'medium', 'medium', 'high']),
         engineer: mtType === 'emergency' ? pick(['فريق الطوارئ 1', 'فريق الطوارئ 2']) : pick(['فريق الصيانة A', 'فريق الصيانة B', 'فريق الوقاية']),
-        recurrence: mtType === 'preventive' ? pick(['annual', 'annual', 'y4', 'y5', 'semiannual']) : 'none'});
+        recurrence: mtType === 'preventive' ? pick(['quarterly', 'annual', 'annual', 'y4', 'y5', 'semiannual']) : 'none'});
       if(mtType === 'emergency') r.affected = 'جزء من ' + (AREA[sstn.split(' ')[0]] || sstn);
       if(rnd() < 0.4){ r.shutdown = 'yes'; r.ptw = 'PTW-2026-' + String(num(200, 899)).padStart(4, '0'); }
       r._done = () => Object.assign(r, {workDone, spares: parts.map(p => p[1] + ' × ' + p[0]).join(', '),
@@ -2728,6 +2806,7 @@ function sortRows(rows){
 }
 
 function render(){
+  renderAlarm();
   const term = document.getElementById('searchBox').value.trim().toLowerCase();
   const dateVal = document.getElementById('dateFilter').value;
   const statusVal = document.getElementById('statusFilter').value;
@@ -3386,6 +3465,75 @@ document.getElementById('refreshBtn').addEventListener('click', () => {
 });
 
 /* ===== TOASTS & ACTIVITY ===== */
+/* ===== MAINTENANCE ALARM =====
+   The bell in the header lists scheduled maintenance (preventive and
+   battery) that is overdue, due today, or due within the lead time the
+   user picks. Completing a recurring order schedules its next cycle, so
+   an every-3-months job rings again three months later. */
+const ALARM_LEAD_KEY = 'mtAlarmLead';
+function alarmLead(){ try{ return parseInt(localStorage.getItem(ALARM_LEAD_KEY)) || 7; }catch(e){ return 7; } }
+function alarmItems(){
+  // Plain date maths here: render() can run before the helpers further down exist.
+  const t0 = new Date(todayISO() + 'T00:00'), lead = alarmLead();
+  return data.filter(r => r.mtType !== 'emergency' && PENDING.includes(r.status) && r.plannedDate)
+    .map(r => ({r, days: Math.round((new Date(r.plannedDate + 'T00:00') - t0) / 86400000)}))
+    .filter(x => x.days <= lead)
+    .sort((a, b) => a.days - b.days);
+}
+function renderAlarm(){
+  const items = alarmItems();
+  const due = items.filter(x => x.days <= 0).length;
+  const bell = document.getElementById('alarmBell'), cnt = document.getElementById('alarmCount');
+  bell.classList.toggle('ring', due > 0);
+  cnt.textContent = items.length;
+  cnt.className = 'ab-count' + (items.length ? ' on' : '') + (items.length && !due ? ' warn' : '');
+  document.getElementById('alarmSummary').textContent = items.length ? (due ? due + ' مستحقة الآن · ' : '') + (items.length - due) + ' قريبًا' : '';
+  document.getElementById('alarmLead').value = String(alarmLead());
+  const groups = [['⛔ متأخرة عن موعدها', x => x.days < 0], ['🔔 موعدها اليوم', x => x.days === 0], ['⏳ قريبًا', x => x.days > 0]];
+  let h = '';
+  groups.forEach(([title, f]) => {
+    const g = items.filter(f);
+    if(!g.length) return;
+    h += `<div class="ap-grp">${title} (${g.length})</div>`;
+    h += g.map(({r, days}) => {
+      const crit = days <= 0, rc = RECURRENCES[r.recurrence];
+      const when = days < 0 ? 'متأخرة ' + (-days) + ' يوم' : days === 0 ? 'اليوم' : days === 1 ? 'بكرة' : 'بعد ' + days + ' يوم';
+      return `<div class="ap-item" data-alarm-id="${r.id}">
+        <span class="st ${crit ? 'crit' : 'warn'}">${crit ? '!' : '⌛'}</span>
+        <div class="tx"><b>${esc(r.equipment || MT_TYPES[r.mtType].ar)}</b>
+          <span>${esc(r.sstn || '')} · ${MT_TYPES[r.mtType].ar}${rc && rc.months ? ' · ' + rc.ar : ''} · ${fmtShort(r.plannedDate)}</span></div>
+        <span class="when ${crit ? 'crit' : 'warn'}">${when}</span>
+        <button class="ap-done" data-alarm-done="${r.id}" type="button" title="تسجيل الإنجاز">✔️</button></div>`;
+    }).join('');
+  });
+  document.getElementById('alarmList').innerHTML = h || `<div class="ap-empty">✓ ما في صيانة مستحقة خلال الـ ${alarmLead()} أيام القادمة.</div>`;
+}
+document.getElementById('alarmBell').addEventListener('click', e => {
+  e.stopPropagation();
+  renderAlarm();
+  // Fixed under the bell, kept inside the screen on narrow devices.
+  const panel = document.getElementById('alarmPanel'), r = e.currentTarget.getBoundingClientRect();
+  const w = Math.min(380, innerWidth - 32);
+  panel.style.top = (r.bottom + 10) + 'px';
+  panel.style.left = Math.max(16, Math.min(r.left, innerWidth - 16 - w)) + 'px';
+  panel.classList.toggle('open');
+});
+document.getElementById('alarmPanel').addEventListener('click', e => {
+  e.stopPropagation();
+  const done = e.target.closest('[data-alarm-done]'), it = e.target.closest('[data-alarm-id]');
+  if(!done && !it) return;
+  const r = data.find(x => String(x.id) === (done ? done.dataset.alarmDone : it.dataset.alarmId));
+  document.getElementById('alarmPanel').classList.remove('open');
+  if(!r) return;
+  enterCategory(r.mtType);
+  done ? completeWork(r.id) : openModal(r.id);
+});
+document.getElementById('alarmLead').addEventListener('change', e => {
+  try{ localStorage.setItem(ALARM_LEAD_KEY, e.target.value); }catch(err){}
+  renderAlarm();
+});
+document.addEventListener('click', () => document.getElementById('alarmPanel').classList.remove('open'));
+
 function showToast(message, type){
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
@@ -5194,6 +5342,10 @@ document.querySelectorAll('[data-home-cat]').forEach(b => b.addEventListener('cl
 
 showHome();
 offerMonthlyReport();
+{
+  const due = alarmItems().filter(x => x.days <= 0).length;
+  if(due) showToast('🔔 عندك ' + due + ' صيانة موعدها اليوم أو متأخرة — اضغط الجرس فوق', 'info');
+}
 </script>
 
 </body>
