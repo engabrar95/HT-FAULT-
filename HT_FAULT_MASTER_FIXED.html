@@ -1711,7 +1711,11 @@
     </div>
   </div>
 
-  <div class="overview-grid" style="margin-top:22px;grid-template-columns:1fr 0.8fr;">
+  <div class="overview-grid" style="margin-top:22px;grid-template-columns:1.1fr 1fr 0.8fr;">
+    <div class="panel">
+      <div class="panel-head"><h2>إجمالي الفاقد حسب المنطقة</h2></div>
+      <div class="panel-body-inner"><div class="rank-list" id="areaLoadList"></div></div>
+    </div>
     <div class="panel">
       <div class="panel-head"><h2>ترتيب المهندسين</h2></div>
       <div class="panel-body-inner"><div class="rank-list" id="rankList"></div></div>
@@ -2215,6 +2219,7 @@ function updateStats(){
   updateAlarmBanner(open);
   renderDonut(open, restored);
   renderRanking();
+  renderAreaLoad();
   renderHotspots();
   renderAIInsights();
   renderRiskForecast();
@@ -4142,6 +4147,45 @@ function renderRanking(){
       <div class="rank-name">${esc(name)}</div>
       <div class="rank-bar-track"><div class="rank-bar-fill" style="width:${(count/max*100).toFixed(0)}%"></div></div>
       <div class="rank-count">${count}</div>
+    </div>`).join('');
+}
+
+// Arabic display names for the area codes found in station codes
+// (e.g. "FARW A" → area "FARW"). Falls back to the raw code for any
+// area not in this list rather than hiding it.
+const AREA_DISPLAY_NAMES = {
+  FARW: 'الفروانية', JALB: 'جليب الشيوخ', KHIT: 'خيطان', YARK: 'اليرموك',
+  RABA: 'الرحاب', ARDY: 'العارضية', FRRD: 'الفردوس', PLES: 'الصليبية',
+  SLBC: 'الصليبية', WABM: 'عبدالله المبارك', AIRP: 'منطقة المطار',
+  ISCC: 'الإسكان', SBNR: 'صباح الناصر', UWRC: 'أمية'
+};
+function faultAreaCode(r){
+  return (r.sstn || '').trim().split(' ')[0].toUpperCase();
+}
+
+/* ---- Total load (MW) by area ---- */
+function renderAreaLoad(){
+  const totals = {};
+  data.forEach(r => {
+    const code = faultAreaCode(r);
+    if(!code) return;
+    totals[code] = (totals[code] || 0) + (parseFloat(r.mw) || 0);
+  });
+  const entries = Object.entries(totals).filter(([,mw]) => mw > 0).sort((a,b) => b[1]-a[1]).slice(0, 8);
+  const list = document.getElementById('areaLoadList');
+  if(!list) return;
+  if(!entries.length){
+    list.innerHTML = '<div class="activity-empty">لا يوجد فاقد مسجل حسب المنطقة بعد.</div>';
+    return;
+  }
+  const max = entries[0][1] || 1;
+  const medals = ['🥇','🥈','🥉'];
+  list.innerHTML = entries.map(([code, mw], i) => `
+    <div class="rank-row">
+      <div class="rank-medal">${medals[i] || (i+1)}</div>
+      <div class="rank-name">${esc(AREA_DISPLAY_NAMES[code] || code)}</div>
+      <div class="rank-bar-track"><div class="rank-bar-fill" style="width:${(mw/max*100).toFixed(0)}%"></div></div>
+      <div class="rank-count">${mw.toFixed(1)} MW</div>
     </div>`).join('');
 }
 
