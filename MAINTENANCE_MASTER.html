@@ -2198,25 +2198,18 @@
             <option value="low">منخفضة</option>
           </select>
         </div>
-        <div class="field"><label>الحالة</label><select id="m_status"></select></div>
+        <!-- Set by the system, not typed: status (new orders start مجدولة; ▶️ / ✔️ move it on), recurrence and shutdown. -->
+        <input type="hidden" id="m_status"><input type="hidden" id="m_recurrence"><input type="hidden" id="m_shutdown">
         <div class="field"><label id="plannedDateLabel">التاريخ المخطط</label><input id="m_plannedDate" type="date"></div>
-        <div class="field" id="recurrenceField"><label>التكرار (للصيانة الدورية)</label><select id="m_recurrence"></select></div>
         <div class="field"><label>تاريخ البدء</label><input id="m_startDate" type="date"></div>
         <div class="field"><label>وقت البدء</label><input id="m_startTime" type="time"></div>
         <div class="field"><label>تاريخ الانتهاء</label><input id="m_endDate" type="date"></div>
         <div class="field"><label>وقت الانتهاء</label><input id="m_endTime" type="time"></div>
         <div class="field"><label>المهندس / فريق العمل</label><input id="m_engineer" placeholder="مثال: م. أحمد الفضلي، فريق الصيانة B"></div>
-        <div class="field"><label>يتطلب فصل (Shutdown)؟</label>
-          <select id="m_shutdown">
-            <option value="no">لا</option>
-            <option value="yes">نعم</option>
-          </select>
-        </div>
         <div class="field"><label>المدة (ساعة)</label><input id="m_duration" type="number" step="0.1" placeholder="تلقائي من البدء والانتهاء"></div>
         <div class="field span2"><label>المغذيات / المستهلكون المتأثرون بالفصل</label><input id="m_affected" placeholder="مثال: KHIT 69، جزء من بلوك 7 خيطان"></div>
         <div class="field span2"><label>وصف العمل المطلوب</label><textarea id="m_description" placeholder="مثال: Annual preventive maintenance for TR-2 — oil test, tap changer inspection, terminal tightening."></textarea></div>
         <div class="field span2"><label>العمل المنجز</label><textarea id="m_workDone" placeholder="مثال: Oil sample taken, BDV OK. Cleaned bushings. Tightened LV terminals."></textarea></div>
-        <div class="field span2"><label>قطع الغيار / المواد المستخدمة</label><input id="m_spares" placeholder="مثال: 2 × HT fuse 40A، زيت محولات 20 لتر"></div>
         <div class="field span2"><label>ملاحظات</label><textarea id="m_notes" placeholder="ملاحظات اختيارية"></textarea></div>
         <div class="field span2" id="replaceBlock">
           <div class="rep-box">
@@ -2705,9 +2698,7 @@ function fillSelect(id, entries, allLabel){
 const statusEntries = Object.entries(STATUSES).map(([k, v]) => [k, v.ar]);
 const typeEntries = Object.entries(MT_TYPES).map(([k, v]) => [k, v.ar]);
 const equipEntries = EQUIP_TYPES.map(e => [e, e]);
-fillSelect('m_status', statusEntries);
 fillSelect('m_equipType', equipEntries);
-fillSelect('m_recurrence', Object.entries(RECURRENCES).map(([k, v]) => [k, v.ar]));
 fillSelect('cf_type', typeEntries, 'الكل');
 fillSelect('cf_equip', equipEntries, 'الكل');
 fillSelect('cf_status', statusEntries.concat([['overdue', '⏰ متأخرة']]), 'الكل');
@@ -3008,15 +2999,15 @@ function scheduleNextRecurrence(rec){
 }
 
 /* ===== MODAL ===== */
-const FIELDS = ['sstn','equipType','mtType','priority','status','plannedDate','recurrence','startDate','startTime','endDate','endTime','engineer','shutdown','duration','affected','description','workDone','spares','notes', 'replaceReq', 'replaceTo', 'replaceNote', ...BATTERY_FIELDS];
+const FIELDS = ['sstn','equipType','mtType','priority','status','plannedDate','recurrence','startDate','startTime','endDate','endTime','engineer','shutdown','duration','affected','description','workDone','notes', 'replaceReq', 'replaceTo', 'replaceNote', ...BATTERY_FIELDS];
 
 function openModal(id, category){
   editingId = id || null;
   const rec = id ? data.find(d => d.id === id) : null;
   const cat = rec ? rec.mtType : (category || 'preventive');
-  // Emergency work is usually already happening: start it now.
+  // Every new order starts مجدولة; ▶️ and ✔️ in the orders table move it on.
   const defaults = {
-    emergency:  {equipType: EQUIP_TYPES[0], mtType:'emergency', priority:'medium', status:'inprogress', recurrence:'none', shutdown:'no', plannedDate: todayISO(), startDate: todayISO(), startTime: nowHHMM()},
+    emergency:  {equipType: EQUIP_TYPES[0], mtType:'emergency', priority:'medium', status:'planned', recurrence:'none', shutdown:'no', plannedDate: todayISO()},
     preventive: {equipType: EQUIP_TYPES[0], mtType:'preventive', priority:'medium', status:'planned', recurrence:'y4', shutdown:'no', plannedDate: todayISO()},
     battery:    {equipType: 'Battery & Charger', mtType:'battery', priority:'medium', status:'planned', recurrence:'semiannual', shutdown:'no', plannedDate: todayISO()}
   }[cat] || {};
@@ -3051,7 +3042,6 @@ function applyModalCategory(cat){
   document.getElementById('modalHead').className = 'modal-head ' + cat;
   document.getElementById('modalTitle').textContent = (editingId ? 'تعديل ' + fmtWid(editingId) + ' — ' : 'إضافة ') + MT_TYPES[cat].icon + ' ' + MT_TYPES[cat].ar;
   document.getElementById('plannedDateLabel').textContent = c.date;
-  document.getElementById('recurrenceField').style.display = cat === 'emergency' ? 'none' : '';
   document.getElementById('batteryFields').style.display = cat === 'battery' ? 'block' : 'none';
   document.getElementById('replaceBlock').style.display = cat === 'preventive' ? '' : 'none';
   document.getElementById('m_description').placeholder = c.desc;
@@ -3064,13 +3054,8 @@ document.querySelectorAll('.cat-switch button').forEach(b => b.addEventListener(
   applyModalCategory(cat);
   if(editingId) return;
   const el = id => document.getElementById(id);
-  if(cat === 'emergency'){
-    if(el('m_status').value === 'planned') el('m_status').value = 'inprogress';
-    if(!el('m_startDate').value){ el('m_startDate').value = todayISO(); el('m_startTime').value = nowHHMM(); }
-  } else {
-    if(el('m_recurrence').value === 'none') el('m_recurrence').value = cat === 'battery' ? 'semiannual' : 'y4';
-    if(cat === 'battery') el('m_equipType').value = 'Battery & Charger';
-  }
+  if(cat !== 'emergency' && el('m_recurrence').value === 'none') el('m_recurrence').value = cat === 'battery' ? 'semiannual' : 'y4';
+  if(cat === 'battery') el('m_equipType').value = 'Battery & Charger';
 }));
 
 function closeModal(){
@@ -3349,7 +3334,6 @@ function printWorkOrder(id){
       </table>
       <div class="wo-label">Work Description / وصف العمل</div><div class="wo-box">${esc(r.description)}</div>
       <div class="wo-label">Work Done / العمل المنجز</div><div class="wo-box">${esc(r.workDone)}</div>
-      <div class="wo-label">Spares & Materials / قطع الغيار والمواد</div><div class="wo-box" style="min-height:40px;">${esc(r.spares)}</div>
       <div class="wo-label">Notes / ملاحظات</div><div class="wo-box" style="min-height:40px;">${esc(r.notes)}</div>
       <div class="wo-signs"><div>Issued by / المُصدر</div><div>Executed by / المنفذ</div><div>Approved by / المعتمد</div></div>
     </div>`;
