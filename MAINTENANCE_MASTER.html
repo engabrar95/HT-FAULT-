@@ -1308,6 +1308,31 @@
     .cat-stats{grid-template-columns:repeat(2,1fr);}
   }
   .shutdown-badge{display:inline-block;font-size:10px;font-weight:700;background:var(--red-dim);color:var(--red);border-radius:10px;padding:1px 7px;margin-left:4px;}
+  .rep-badge{display:inline-block;font-size:10px;font-weight:700;background:rgba(201,162,39,0.16);color:#a07c10;border-radius:10px;padding:1px 7px;margin-left:4px;}
+  body:not(.light) .rep-badge{color:#e3c25a;}
+  .rep-box{border:1px solid var(--line);border-right:4px solid #c9a227;border-radius:10px;padding:14px 16px;background:var(--panel2);direction:rtl;}
+  .rep-q{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:14px;}
+  .yn{display:flex;gap:8px;flex-wrap:wrap;}
+  .yn button{font-family:'Cairo',sans-serif;font-size:13.5px;font-weight:700;padding:7px 20px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);cursor:pointer;}
+  .yn button.active{background:#0d3868;border-color:#0d3868;color:#fff;}
+  .yn button[data-rep="yes"].active{background:#c9a227;border-color:#c9a227;color:#2a2000;}
+  #repYes{display:none;margin-top:14px;}
+  #repYes.open{display:block;}
+  .rep-lbl{font-size:13px;font-weight:700;margin-bottom:8px;}
+  #repYes .field{margin-top:12px;}
+  .rep-hint{font-size:12px;color:var(--mute);margin-top:8px;}
+  /* official replacement letter (print) */
+  .letter{direction:rtl;text-align:right;font-family:'Cairo',Arial,sans-serif;font-size:15px;line-height:2;color:#111;}
+  .letter .lt-meta{display:flex;justify-content:space-between;border-bottom:1px solid #999;padding-bottom:6px;margin-bottom:18px;font-size:14px;}
+  .letter .lt-to{font-weight:700;font-size:16px;}
+  .letter .lt-subj{font-weight:800;text-decoration:underline;margin:14px 0;text-align:center;font-size:16px;}
+  .letter table{width:100% !important;min-width:0 !important;table-layout:fixed;border-collapse:collapse;margin:10px 0 14px;font-size:13.5px;}
+  .letter th, .letter td{border:1px solid #888;padding:6px 10px;text-align:right !important;white-space:normal !important;overflow-wrap:anywhere;unicode-bidi:plaintext;}
+  .letter th{background:#eee;width:28%;white-space:nowrap !important;}
+  .letter .lt-close{margin-top:18px;text-align:center;font-weight:700;}
+  .letter .lt-sign{margin-top:46px;display:flex;justify-content:flex-start;}
+  .letter .lt-sign div{text-align:center;min-width:240px;line-height:2.2;}
+  .letter .lt-cc{margin-top:40px;font-size:12.5px;color:#444;}
   .recur-badge{display:inline-block;font-size:10px;font-weight:700;background:rgba(0,174,239,0.12);color:var(--e-blue);border-radius:10px;padding:1px 7px;margin-left:4px;}
   .icon-btn.start:hover{border-color:var(--amber);color:var(--amber);}
   .desc-cell{max-width:260px;overflow:hidden;text-overflow:ellipsis;}
@@ -1578,46 +1603,6 @@
   .mr-good-up{color:#1f8a52;font-weight:700;} .mr-good-down{color:#c0392b;font-weight:700;}
   .mr-recs{margin:6px 0 0;padding-right:20px;font-size:13px;line-height:2;}
   .toast.clickable{cursor:pointer;border-left-color:#c9a227;font-weight:700;}
-
-  /* ---- maintenance cost ---- */
-  .cost-box{border:1px dashed var(--line);border-radius:10px;padding:14px;background:var(--panel2);}
-  .cost-box .ttl{font-size:14px;font-weight:800;margin-bottom:10px;color:var(--text);}
-  .cost-lines{width:100%;border-collapse:collapse;min-width:0 !important;margin-bottom:8px;}
-  .cost-lines th{background:transparent !important;color:var(--mute) !important;font-size:11.5px;padding:4px 6px;position:static;}
-  .cost-lines td{padding:3px 4px;border-bottom:none !important;white-space:normal;}
-  .cost-lines tbody tr:nth-child(even), .cost-lines tbody tr:hover{background:transparent !important;}
-  .cost-lines input{width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:13px;}
-  .cost-lines .sum{font-weight:700;white-space:nowrap;}
-  .cost-del{background:rgba(255,60,60,0.12);color:#ff5c5c;border:1px solid rgba(255,60,60,0.3);border-radius:6px;width:32px;height:32px;cursor:pointer;}
-  .cost-fields{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px;}
-  .cost-total{margin-top:12px;font-size:14px;font-weight:700;color:var(--text);display:flex;gap:18px;flex-wrap:wrap;}
-  .cost-total b{color:#1f8a52;font-size:17px;}
-  .cost-ctl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);}
-  .cost-ctl select, .cost-ctl input[type=number]{padding:7px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-family:'Cairo',sans-serif;}
-  .cost-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px;}
-  .cost-kpis .val{font-size:22px;}
-  .cost-insight{font-size:13.5px;line-height:1.9;background:var(--panel);border:1px solid var(--line);border-right:4px solid #c9a227;border-radius:10px;padding:10px 14px;margin-bottom:16px;color:var(--text);}
-  .cost-insight:empty{display:none;}
-  #costTop table{min-width:0;}
-  #costTop td{white-space:nowrap;}
-  .cost-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .cost-row{display:grid;grid-template-columns:130px 1fr 110px;gap:10px;align-items:center;font-size:13px;margin-bottom:9px;}
-  .cost-row .bar{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden;}
-  .cost-row .bar i{display:block;height:100%;background:var(--cost-bar);border-radius:4px;}
-  .cost-row .v{text-align:left;font-weight:700;white-space:nowrap;}
-  /* single-series column chart: one hue, rounded tops on a shared baseline, hover tooltip per bar */
-  :root{--cost-bar:#1f5fa8;}
-  body:not(.light){--cost-bar:#5a93d6;}
-  .cost-chart{display:flex;align-items:flex-end;gap:2px;height:210px;padding-top:22px;border-bottom:1px solid var(--line);direction:rtl;}
-  .cost-col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;cursor:default;min-width:0;}
-  .cost-col .b{width:62%;max-width:46px;background:var(--cost-bar);border-radius:4px 4px 0 0;min-height:2px;transition:filter .12s ease;}
-  .cost-col:hover .b{filter:brightness(1.15);}
-  .cost-col .top{position:absolute;font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;transform:translateY(-18px);}
-  .cost-col .tip{display:none;position:absolute;bottom:calc(100% + 4px);background:#08264a;color:#fff;font-size:12px;padding:6px 10px;border-radius:6px;white-space:nowrap;z-index:5;line-height:1.6;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
-  .cost-col:hover .tip{display:block;}
-  .cost-axis{display:flex;gap:2px;direction:rtl;margin-top:6px;}
-  .cost-axis span{flex:1;text-align:center;font-size:11px;color:var(--mute);min-width:0;overflow:hidden;white-space:nowrap;}
-  @media (max-width:1000px){ .cost-kpis{grid-template-columns:repeat(3,1fr);} .cost-two{grid-template-columns:1fr;} .cost-fields{grid-template-columns:1fr 1fr;} }
 
   /* ===== HOME DASHBOARD ===== */
   :root{--hd-em:#c0392b;--hd-pv:#1f5fa8;--hd-bt:#b8930f;--st-crit:#d03b3b;--st-warn:#fab219;--st-good:#0ca30c;}
@@ -1913,7 +1898,6 @@
           <tr>
             <th>رقم الأمر</th>
             <th>المحطة</th>
-            <th>المعدة</th>
             <th>نوع المعدة</th>
             <th>نوع الصيانة</th>
             <th>وصف العمل</th>
@@ -1922,8 +1906,6 @@
             <th>البدء</th>
             <th>الانتهاء</th>
             <th>المدة (ساعة)</th>
-            <th>التكلفة (د.ك)</th>
-            <th>رقم التصريح</th>
             <th>الأولوية</th>
             <th>الحالة</th>
             <th>الإجراءات</th>
@@ -2032,41 +2014,6 @@
       <label class="pd-low"><input type="checkbox" id="pdShowLow"> إظهار الخطورة المنخفضة</label>
     </div>
     <div id="pdList" class="pd-list"></div>
-  </section>
-
-  <!-- ===== MAINTENANCE COST ===== -->
-  <section data-page="cost">
-    <div class="page-title"><h2>تكلفة الصيانة</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
-    <div class="mr-bar">
-      <label class="cost-ctl">الفترة
-        <select id="costPeriod">
-          <option value="month">هذا الشهر</option><option value="prev">الشهر السابق</option>
-          <option value="year">هذه السنة</option><option value="12m" selected>آخر 12 شهر</option><option value="all">كل الفترات</option>
-        </select></label>
-      <label class="cost-ctl"><input type="checkbox" id="costAll"> كل الأقسام</label>
-      <div class="grow"></div>
-      <label class="cost-ctl">سعر ساعة الفني الافتراضي <input id="costRate" type="number" min="0" step="0.001" style="width:90px;"> د.ك</label>
-      <button class="btn excel" id="costExcel">📤 Excel</button>
-      <button class="btn add" id="costPrint">🖨️ طباعة</button>
-    </div>
-    <div class="cost-kpis">
-      <div class="kpi"><div class="val" id="ckTotal">0</div><div class="lbl">إجمالي التكلفة (د.ك)</div></div>
-      <div class="kpi"><div class="val" id="ckParts">0</div><div class="lbl">قطع الغيار</div></div>
-      <div class="kpi"><div class="val" id="ckLabor">0</div><div class="lbl">العمالة</div></div>
-      <div class="kpi"><div class="val" id="ckOther">0</div><div class="lbl">تكاليف أخرى</div></div>
-      <div class="kpi"><div class="val" id="ckOil">0</div><div class="lbl">الزيت المصروف</div></div>
-      <div class="kpi"><div class="val" id="ckAvg">0</div><div class="lbl">متوسط تكلفة الأمر</div></div>
-    </div>
-    <div class="cost-insight" id="costInsight"></div>
-    <div class="panel" style="margin-bottom:16px;">
-      <div class="panel-head"><h2>التكلفة الشهرية — آخر 12 شهر (د.ك)</h2></div>
-      <div class="panel-body-inner"><div class="cost-chart" id="costChart"></div></div>
-    </div>
-    <div class="cost-two">
-      <div class="panel"><div class="panel-head"><h2>حسب القسم</h2></div><div class="panel-body-inner" id="costBySec"></div></div>
-      <div class="panel"><div class="panel-head"><h2>أعلى المحطات تكلفة</h2></div><div class="panel-body-inner" id="costBySt"></div></div>
-    </div>
-    <div class="panel" style="margin-top:16px;"><div class="panel-head"><h2>أغلى أوامر الصيانة</h2></div><div class="table-scroll" id="costTop"></div></div>
   </section>
 
   <!-- ===== MONTHLY REPORT ===== -->
@@ -2211,7 +2158,7 @@
 
       <div class="scan-panel" id="scanPanel" style="display:none;">
         <label style="display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;">الصق نص طلب / تقرير الصيانة هنا (من واتساب، إيميل، إلخ)</label>
-        <textarea id="scanPasteBox" rows="8" placeholder="S.Stn : KHIT F&#10;Equipment : TR-2 (11/0.415 kV)&#10;Type : Preventive maintenance&#10;Date : 05/10/2026  08:00 hrs&#10;PTW : PTW-2026-0142&#10;Team : Eng. Ahmad, Eng. Salem&#10;Shutdown : KHIT 69&#10;Work : Oil test, tap changer inspection." style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:12px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);resize:vertical;"></textarea>
+        <textarea id="scanPasteBox" rows="8" placeholder="S.Stn : KHIT F&#10;Equipment : TR-2 (11/0.415 kV)&#10;Type : Preventive maintenance&#10;Date : 05/10/2026  08:00 hrs&#10;Team : Eng. Ahmad, Eng. Salem&#10;Shutdown : KHIT 69&#10;Work : Oil test, tap changer inspection." style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:12px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);resize:vertical;"></textarea>
         <div class="scan-actions">
           <button class="btn add" id="scanRunBtn">✨ تحليل وتعبئة النموذج</button>
         </div>
@@ -2244,12 +2191,9 @@
 
       <div class="form-grid">
         <div class="field"><label>المحطة</label><input id="m_sstn" list="stationList" placeholder="مثال: KHIT F"></div>
-        <div class="field"><label>المعدة / الرقم</label><input id="m_equipment" placeholder="مثال: TR-2 / KHIT 69 / RMU FARW 43"></div>
         <div class="field"><label>نوع المعدة</label><select id="m_equipType"></select></div>
         <div class="field"><label>الأولوية</label>
           <select id="m_priority">
-            <option value="critical">حرجة</option>
-            <option value="high">عالية</option>
             <option value="medium" selected>متوسطة</option>
             <option value="low">منخفضة</option>
           </select>
@@ -2262,7 +2206,6 @@
         <div class="field"><label>تاريخ الانتهاء</label><input id="m_endDate" type="date"></div>
         <div class="field"><label>وقت الانتهاء</label><input id="m_endTime" type="time"></div>
         <div class="field"><label>المهندس / فريق العمل</label><input id="m_engineer" placeholder="مثال: م. أحمد الفضلي، فريق الصيانة B"></div>
-        <div class="field"><label>رقم تصريح العمل (PTW)</label><input id="m_ptw" placeholder="مثال: PTW-2026-0142"></div>
         <div class="field"><label>يتطلب فصل (Shutdown)؟</label>
           <select id="m_shutdown">
             <option value="no">لا</option>
@@ -2275,19 +2218,21 @@
         <div class="field span2"><label>العمل المنجز</label><textarea id="m_workDone" placeholder="مثال: Oil sample taken, BDV OK. Cleaned bushings. Tightened LV terminals."></textarea></div>
         <div class="field span2"><label>قطع الغيار / المواد المستخدمة</label><input id="m_spares" placeholder="مثال: 2 × HT fuse 40A، زيت محولات 20 لتر"></div>
         <div class="field span2"><label>ملاحظات</label><textarea id="m_notes" placeholder="ملاحظات اختيارية"></textarea></div>
-        <div class="field span2">
-          <div class="cost-box">
-            <div class="ttl">💰 تكلفة الصيانة (دينار كويتي)</div>
-            <table class="cost-lines"><thead><tr><th>قطعة الغيار / المادة</th><th style="width:90px;">الكمية</th><th style="width:120px;">سعر الوحدة</th><th style="width:120px;">المجموع</th><th style="width:40px;"></th></tr></thead>
-              <tbody id="m_costLines"></tbody></table>
-            <button type="button" class="btn ghost sm" id="m_costAdd">➕ إضافة بند</button>
-            <div class="cost-fields">
-              <div class="field"><label>عدد الفنيين</label><input id="m_techs" type="number" min="0" step="1" placeholder="مثال: 3"></div>
-              <div class="field"><label>سعر ساعة الفني (د.ك)</label><input id="m_laborRate" type="number" min="0" step="0.001"></div>
-              <div class="field"><label>تكاليف أخرى (د.ك)</label><input id="m_otherCost" type="number" min="0" step="0.001" placeholder="0.000"></div>
-              <div class="field"><label>بيان التكاليف الأخرى</label><input id="m_otherNote" placeholder="مقاول / نقل / معدات"></div>
+        <div class="field span2" id="replaceBlock">
+          <div class="rep-box">
+            <div class="rep-q"><b>🔁 طلب استبدال؟</b>
+              <div class="yn"><button type="button" data-rep="yes">نعم</button><button type="button" data-rep="no">لا</button></div>
             </div>
-            <div class="cost-total" id="m_costTotal"></div>
+            <div id="repYes">
+              <div class="rep-lbl">الجهة المرسل لها الطلب:</div>
+              <div class="yn party">
+                <button type="button" data-party="construction">🏗️ الإنشاءات</button>
+                <button type="button" data-party="jabriya">🚨 طوارئ الجابرية</button>
+              </div>
+              <div class="field"><label>المطلوب استبداله وسببه</label><textarea id="m_replaceNote" placeholder="مثال: TR-2 — تسريب زيت من الخزان وانخفاض العزل، يحتاج استبدال المحول."></textarea></div>
+              <div class="rep-hint">📄 بعد الحفظ يتجهز الكتاب الرسمي للجهة وتقدر تطبعه.</div>
+            </div>
+            <input type="hidden" id="m_replaceReq"><input type="hidden" id="m_replaceTo">
           </div>
         </div>
       </div>
@@ -2310,7 +2255,6 @@
         <div class="field"><label>الحد الأدنى للتنبيه</label><input id="oi_minQty" type="number" step="0.1" placeholder="مثال: 400"></div>
         <div class="field span2"><label>الموقع بالمخزن</label><input id="oi_location" placeholder="مثال: مخزن طوارئ عبدالله المبارك — رف 3"></div>
         <div class="field span2" id="oi_openingWrap"><label>الرصيد الافتتاحي (اختياري)</label><input id="oi_opening" type="number" step="0.1" placeholder="الكمية الموجودة الحين"></div>
-        <div class="field"><label>سعر الوحدة (د.ك)</label><input id="oi_price" type="number" min="0" step="0.001" placeholder="مثال: 0.900"></div>
         <div class="field span2"><label>ملاحظات</label><input id="oi_notes"></div>
       </div>
     </div>
@@ -2411,7 +2355,8 @@ function normalizeMtType(t){
   return (t === 'emergency' || t === 'corrective') ? 'emergency' : 'preventive';
 }
 function normalizeRecords(list){
-  list.forEach(r => { if(r && typeof r === 'object') r.mtType = normalizeMtType(r.mtType); });
+  // Only two priorities are used: anything else becomes متوسطة.
+  list.forEach(r => { if(r && typeof r === 'object'){ r.mtType = normalizeMtType(r.mtType); if(r.priority !== 'low') r.priority = 'medium'; } });
   return list;
 }
 const EQUIP_TYPES = [
@@ -2439,8 +2384,8 @@ function loadData(){
     const raw = localStorage.getItem(storageKeyFor(currentGov));
     const parsed = JSON.parse(raw);
     if(Array.isArray(parsed)){
-      // The demo set grew (v3): swap an older one for it, once.
-      const v2 = 'mtDemoV3_' + currentGov;
+      // The demo set changed (v4): swap an older one for it, once.
+      const v2 = 'mtDemoV4_' + currentGov;
       if(!localStorage.getItem(v2)){
         localStorage.setItem(v2, '1');
         if(parsed.some(r => r && r.demo)){
@@ -2460,7 +2405,7 @@ function loadData(){
       const demo = buildDemoRecords(1);
       localStorage.setItem(storageKeyFor(currentGov), JSON.stringify(demo));
       localStorage.setItem(flag, '1');
-      localStorage.setItem('mtDemoV3_' + currentGov, '1');
+      localStorage.setItem('mtDemoV4_' + currentGov, '1');
       return demo;
     }
   }catch(e){}
@@ -2473,14 +2418,14 @@ function loadData(){
 function buildDemoRecords(firstId){
   const day = off => { const x = new Date(); x.setDate(x.getDate() + off); return toISO(x); };
   const base = {recurrence:'none', startDate:'', startTime:'', endDate:'', endTime:'', duration:null,
-    ptw:'', shutdown:'no', affected:'', workDone:'', spares:'', notes:'', demo:true};
+    shutdown:'no', affected:'', workDone:'', spares:'', notes:'', demo:true};
   const list = [
     // ---- Preventive ----
     {sstn:'KHIT C', equipment:'TR-2 inside S/S KHIT 63', equipType:'Distribution Transformer (11/0.415 kV)', mtType:'preventive', priority:'medium', status:'planned',
-     plannedDate:day(-6), recurrence:'y4', engineer:'فريق الصيانة A', ptw:'PTW-2026-0131', shutdown:'yes', affected:'KHIT 63 — جزء من بلوك 4 خيطان',
+     plannedDate:day(-6), recurrence:'y4', engineer:'فريق الصيانة A', shutdown:'yes', affected:'KHIT 63 — جزء من بلوك 4 خيطان',
      description:'Periodic preventive maintenance (every 4 years) — oil test, bushing cleaning, LV terminal tightening.'},
     {sstn:'FARW Q', equipment:'Switchgear FARW 147 (IEPC)', equipType:'Switchgear / Circuit Breaker', mtType:'preventive', priority:'medium', status:'inprogress',
-     plannedDate:day(0), startDate:day(0), startTime:'08:00', engineer:'فريق الصيانة B', ptw:'PTW-2026-0142', shutdown:'yes', affected:'FARW 147',
+     plannedDate:day(0), startDate:day(0), startTime:'08:00', engineer:'فريق الصيانة B', shutdown:'yes', affected:'FARW 147',
      description:'Annual maintenance of 11 kV panel — breaker timing test, mechanism lubrication.'},
     {sstn:'JALB B', equipment:'Battery bank & charger — JALB 137', equipType:'Battery & Charger', mtType:'battery', priority:'low', status:'planned',
      plannedDate:day(2), recurrence:'semiannual', engineer:'فريق البطاريات', batType:'Ni-Cd', batAh:'100', batCells:'92', batInstall:'2019-03-10',
@@ -2494,7 +2439,7 @@ function buildDemoRecords(firstId){
      plannedDate:day(-20), startDate:day(-20), startTime:'08:00', endDate:day(-20), endTime:'12:30', duration:4.5, engineer:'فريق الصيانة A',
      description:'Earth resistance measurement.', workDone:'Earth resistance measured 0.8 Ω — within limits. Two clamps replaced.', spares:'2 × earthing clamps'},
     {sstn:'KHIT B', equipment:'Power transformer TR-1', equipType:'Power Transformer', mtType:'preventive', priority:'high', status:'completed',
-     plannedDate:day(-12), recurrence:'y5', startDate:day(-12), startTime:'09:00', endDate:day(-12), endTime:'15:00', duration:6, engineer:'فريق الصيانة B', ptw:'PTW-2026-0118', shutdown:'yes', affected:'KHIT B 11 kV bus section 1',
+     plannedDate:day(-12), recurrence:'y5', startDate:day(-12), startTime:'09:00', endDate:day(-12), endTime:'15:00', duration:6, engineer:'فريق الصيانة B', shutdown:'yes', affected:'KHIT B 11 kV bus section 1',
      description:'5-yearly transformer overhaul — oil sampling and tap-changer inspection.', workDone:'Oil sample taken (BDV OK). Tap-changer contacts cleaned. Silica gel replaced.', spares:'Silica gel 2 kg'},
     {sstn:'KHIT B', equipment:'Power transformer TR-1', equipType:'Power Transformer', mtType:'preventive', priority:'high', status:'planned',
      plannedDate:addMonthsISO(day(-12), 60), recurrence:'y5', engineer:'فريق الصيانة B', shutdown:'yes', affected:'KHIT B 11 kV bus section 1',
@@ -2571,7 +2516,7 @@ function buildDemoRecords(firstId){
         engineer: mtType === 'battery' ? 'فريق البطاريات' : 'فريق الصيانة A', _chain: q, _step: k};
       if(mtType === 'battery') Object.assign(r, {batType: 'Ni-Cd', batAh: '120', batCells: '92', batInstall: '2021-04-01'});
       if(k){
-        Object.assign(r, {startDate: pd, startTime: '08:30', endDate: pd, endTime: '10:30', duration: 2, techs: '2', laborRate: '6', workDone: 'Done — all readings normal.'});
+        Object.assign(r, {startDate: pd, startTime: '08:30', endDate: pd, endTime: '10:30', duration: 2, workDone: 'Done — all readings normal.'});
         if(mtType === 'battery') Object.assign(r, {batResult: 'ok', batVoltage: (121 + k * 0.4).toFixed(1), chargerVolt: '123.0'});
       }
       list.push(r);
@@ -2587,27 +2532,14 @@ function buildDemoRecords(firstId){
   out.forEach(r => { delete r._chain; delete r._step; });
   // TR-1's completed cycle points at the order it scheduled.
   out[6].nextScheduledId = out[7].id;
-  // Sample costs (KWD) on the finished and running orders.
-  const COSTS = {
-    'Earthing grid — FARW M':       {lines:[['Earthing clamp', 2, 4.5]], techs:2},
-    'Power transformer TR-1':       {lines:[['Silica gel 2 kg', 1, 8], ['Oil sample test (lab)', 1, 25]], techs:3, other:[40, 'Crane hire']},
-    '11 kV cable YARK 28':          {lines:[['11 kV straight joint kit', 1, 85]], techs:4, other:[60, 'Excavation contractor']},
-    'LTR3 inside R/M FARW 43':      {lines:[['LV fuse 400 A', 3, 6.5]], techs:2},
-    'CB — CARPRK F2':               {lines:[['Breaker closing coil', 1, 120]], techs:2},
-    '110 V DC battery bank — FARW Q': {lines:[['Distilled water 5 L', 1, 1.5]], techs:2},
-    '48 V battery — RTU panel':     {lines:[], techs:2},
-    'Switchgear FARW 147 (IEPC)':   {lines:[['Mechanism grease', 2, 3.75]], techs:3},
-    'Battery charger — SULB-H feed (IEPC)': {lines:[['Charger rectifier card', 1, 210]], techs:2}
-  };
-  out.forEach(r => {
-    const c = COSTS[r.equipment];
-    if(!c || !['completed', 'inprogress'].includes(r.status)) return;
-    r.costLines = c.lines.map(([name, qty, price]) => ({name, qty, price}));
-    r.techs = String(c.techs); r.laborRate = '6';
-    if(c.other){ r.otherCost = String(c.other[0]); r.otherNote = c.other[1]; }
-    if(!r.duration && r.status === 'inprogress') r.duration = 2;
-  });
-  return out;
+  // Periodic orders that raised a replacement request, with their letters.
+  [['KHIT C', 'construction', 'Distribution transformer TR-2 — oil leak from the tank and low insulation (BDV 22 kV). Replacement of the transformer.'],
+   ['JAL A', 'jabriya', '11 kV cable section JAL 93 – JAL 92 — insulation test failed (IR below limits). Replacement of the cable section.']]
+    .forEach(([sstn, to, note], i) => {
+      const r = out.find(x => x.mtType === 'preventive' && x.sstn === sstn);
+      if(r) Object.assign(r, {replaceReq: 'yes', replaceTo: to, replaceNote: note, replaceLetterNo: new Date().getFullYear() + '/' + String(i + 1).padStart(3, '0'), replaceLetterDate: day(-2 - i)});
+    });
+  return normalizeRecords(out);
 }
 
 // Six months of generated history (plus the next six weeks), so every
@@ -2662,27 +2594,24 @@ function buildDemoHistory(day){
         const q = rnd(), res = q < 0.78 ? 'ok' : q < 0.95 ? 'weak' : 'replace';
         const v = nom * (res === 'ok' ? 0.99 + rnd() * 0.03 : res === 'weak' ? 0.965 + rnd() * 0.01 : 0.91);
         Object.assign(r, {batResult: res, batVoltage: v.toFixed(1), chargerVolt: (nom * 1.01).toFixed(1),
-          workDone: res === 'ok' ? 'All cells within limits, terminals cleaned.' : res === 'weak' ? 'Some cells low — equalizing charge applied, recheck in 3 months.' : 'Low capacity on discharge test — replacement requested.',
-          costLines: [{name: 'Distilled water 5 L', qty: 1, price: 1.5}]});
+          workDone: res === 'ok' ? 'All cells within limits, terminals cleaned.' : res === 'weak' ? 'Some cells low — equalizing charge applied, recheck in 3 months.' : 'Low capacity on discharge test — replacement requested.'});
       };
     } else {
       const [equipType, eq, description, workDone, parts, other] = tpl;
       Object.assign(r, {equipment: eq(n), equipType, description,
-        priority: mtType === 'emergency' ? pick(['critical', 'high', 'high', 'medium']) : pick(['low', 'medium', 'medium', 'high']),
+        priority: pick(['medium', 'medium', 'low', 'medium']),
         engineer: mtType === 'emergency' ? pick(['فريق الطوارئ 1', 'فريق الطوارئ 2']) : pick(['فريق الصيانة A', 'فريق الصيانة B', 'فريق الوقاية']),
         recurrence: mtType === 'preventive' ? pick(['quarterly', 'annual', 'annual', 'y4', 'y5', 'semiannual']) : 'none'});
       if(mtType === 'emergency') r.affected = 'جزء من ' + (AREA[sstn.split(' ')[0]] || sstn);
-      if(rnd() < 0.4){ r.shutdown = 'yes'; r.ptw = 'PTW-2026-' + String(num(200, 899)).padStart(4, '0'); }
+      if(rnd() < 0.4){ r.shutdown = 'yes'; num(200, 899); }
       r._done = () => Object.assign(r, {workDone, spares: parts.map(p => p[1] + ' × ' + p[0]).join(', '),
-        costLines: parts.map(([name, qty, price]) => ({name, qty, price})),
-        otherCost: other ? String(other[0]) : '', otherNote: other ? other[1] : ''});
+        });
     }
     const finish = () => {
       const h = num(7, 15), dur = Math.round((1 + rnd() * 5) * 2) / 2;
       const end = h + Math.floor(dur), mins = Math.round((dur % 1) * 60);
       Object.assign(r, {status: 'completed', startDate: day(off), startTime: time(h), endDate: day(off),
-        endTime: String(Math.min(end, 23)).padStart(2, '0') + ':' + String(mins).padStart(2, '0'), duration: dur,
-        techs: String(num(2, 4)), laborRate: '6'});
+        endTime: String(Math.min(end, 23)).padStart(2, '0') + ':' + String(mins).padStart(2, '0'), duration: dur});
       r._done();
     };
     if(off > 0) r.status = 'planned';
@@ -2724,6 +2653,8 @@ function nowHHMM(){ const n = new Date(); return pad2(n.getHours()) + ':' + pad2
 function fmtDateLong(d){ return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}); }
 
 // The date a work order "belongs to" for filtering and reports.
+// What an order is about: its equipment type (older orders may still carry a name).
+function eqName(r){ return r.equipType || r.equipment || ''; }
 function refDate(r){ return r.plannedDate || r.startDate || ''; }
 
 // Only scheduled (preventive) work can fall behind its planned date;
@@ -2761,8 +2692,8 @@ function typeBadge(t){
   return m ? `<span class="type-badge ${t}">${m.icon} ${m.ar}</span>` : '—';
 }
 function priorityBadge(p){
-  const val = p || 'medium';
-  return `<span class="priority-badge ${val}">${val.charAt(0).toUpperCase() + val.slice(1)}</span>`;
+  const val = p === 'low' ? 'low' : 'medium';
+  return `<span class="priority-badge ${val}">${val === 'low' ? 'منخفضة' : 'متوسطة'}</span>`;
 }
 
 /* ===== SELECT OPTIONS ===== */
@@ -2814,7 +2745,7 @@ function render(){
 
   let rows = sortRows(data);
   if(term){
-    rows = rows.filter(r => [fmtWid(r.id), r.sstn, r.equipment, r.equipType, r.engineer, r.ptw, r.description, r.workDone, r.affected, r.spares, r.notes]
+    rows = rows.filter(r => [fmtWid(r.id), r.sstn, r.equipType, r.engineer, r.description, r.replaceNote, r.replaceLetterNo, r.replaceReq === 'yes' ? 'استبدال ' + ((REPLACE_TO[r.replaceTo] || {}).short || '') : '', r.workDone, r.affected, r.spares, r.notes]
       .join(' ').toLowerCase().includes(term));
   }
   if(dateVal) rows = rows.filter(r => refDate(r) === dateVal);
@@ -2823,7 +2754,7 @@ function render(){
 
   tbody.innerHTML = '';
   if(rows.length === 0){
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="16">${data.length ? 'لا توجد أوامر صيانة مطابقة للفلاتر.' : 'لا توجد أوامر صيانة بعد — اضغط "➕ إضافة أمر صيانة" للبدء.'}</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="13">${data.length ? 'لا توجد أوامر صيانة مطابقة للفلاتر.' : 'لا توجد أوامر صيانة بعد — اضغط "➕ إضافة أمر صيانة" للبدء.'}</td></tr>`;
   }
   rows.forEach(r => {
     const tr = document.createElement('tr');
@@ -2831,25 +2762,23 @@ function render(){
     tr.innerHTML = `
       <td class="fid">${fmtWid(r.id)}${r.demo ? '<span class="demo-badge" title="بيانات تجريبية">🧪</span>' : ''}${r.source ? `<span class="src-badge" title="من نظام التقارير">${esc(r.source.label)}</span>` : ''}</td>
       <td class="sstn-cell">${esc(r.sstn) || '—'}</td>
-      <td>${esc(r.equipment) || '—'}</td>
       <td>${esc(r.equipType) || '—'}</td>
-      <td>${typeBadge(r.mtType)}${(r.recurrence && r.recurrence !== 'none') ? `<span class="recur-badge" title="تكرار">🔁 ${esc(RECURRENCES[r.recurrence] ? RECURRENCES[r.recurrence].ar : r.recurrence)}</span>` : ''}</td>
+      <td>${typeBadge(r.mtType)}${(r.recurrence && r.recurrence !== 'none') ? `<span class="recur-badge" title="تكرار">🔁 ${esc(RECURRENCES[r.recurrence] ? RECURRENCES[r.recurrence].ar : r.recurrence)}</span>` : ''}${r.replaceReq === 'yes' && REPLACE_TO[r.replaceTo] ? `<span class="rep-badge" title="طلب استبدال — كتاب ${esc(r.replaceLetterNo || '')}">📄 استبدال — ${REPLACE_TO[r.replaceTo].short}</span>` : ''}</td>
       <td class="desc-cell" title="${esc(r.description)}">${esc(r.description) || '—'}</td>
       <td>${esc(r.engineer) || '—'}</td>
       <td>${esc(r.plannedDate) || '—'}</td>
       <td>${r.startDate ? esc(r.startDate + ' ' + (r.startTime || '')) : '—'}</td>
       <td>${r.endDate ? esc(r.endDate + ' ' + (r.endTime || '')) : '—'}</td>
       <td>${(r.duration || r.duration === 0) ? r.duration : '—'}</td>
-      <td class="mw-val">${recordCost(r).total ? fmtKD(recordCost(r).total) : '—'}</td>
-      <td>${esc(r.ptw) || '—'}${r.shutdown === 'yes' ? '<span class="shutdown-badge" title="يتطلب فصل">🔌 فصل</span>' : ''}</td>
       <td>${priorityBadge(r.priority)}</td>
-      <td>${statusPill(r)}${(r.mtType === 'battery' && BAT_RESULTS[r.batResult]) ? `<span class="bat-result ${r.batResult}">${BAT_RESULTS[r.batResult]}</span>` : ''}</td>
+      <td>${statusPill(r)}${r.shutdown === 'yes' ? '<span class="shutdown-badge" title="يتطلب فصل">🔌 فصل</span>' : ''}${(r.mtType === 'battery' && BAT_RESULTS[r.batResult]) ? `<span class="bat-result ${r.batResult}">${BAT_RESULTS[r.batResult]}</span>` : ''}</td>
       <td>
         <div class="row-actions">
           ${(r.status === 'planned' || r.status === 'postponed') ? `<button class="icon-btn start" data-id="${r.id}" title="بدء التنفيذ">▶️</button>` : ''}
           ${PENDING.includes(r.status) ? `<button class="icon-btn close-fault" data-id="${r.id}" title="تحديد كمنجزة">✔️</button>` : ''}
           <button class="icon-btn edit" data-id="${r.id}" title="تعديل">✏️</button>
           <button class="icon-btn wo-print" data-id="${r.id}" title="طباعة أمر العمل">🖨️</button>
+          ${r.replaceReq === 'yes' ? `<button class="icon-btn rep-letter" data-id="${r.id}" title="طباعة كتاب طلب الاستبدال">📄</button>` : ''}
           <button class="icon-btn del" data-id="${r.id}" title="حذف">🗑️</button>
         </div>
       </td>`;
@@ -2858,6 +2787,7 @@ function render(){
 
   tbody.querySelectorAll('.edit').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.id))));
   tbody.querySelectorAll('.wo-print').forEach(b => b.addEventListener('click', () => printWorkOrder(parseInt(b.dataset.id))));
+  tbody.querySelectorAll('.rep-letter').forEach(b => b.addEventListener('click', () => printReplaceLetter(parseInt(b.dataset.id))));
   tbody.querySelectorAll('.del').forEach(b => b.addEventListener('click', () => deleteRecord(parseInt(b.dataset.id))));
   tbody.querySelectorAll('.start').forEach(b => b.addEventListener('click', () => startWork(parseInt(b.dataset.id))));
   tbody.querySelectorAll('.close-fault').forEach(b => b.addEventListener('click', () => completeWork(parseInt(b.dataset.id))));
@@ -2946,7 +2876,7 @@ function renderUpcoming(){
     <div class="up-item ${r.plannedDate < today ? 'late' : ''}" data-id="${r.id}">
       <span class="when">${r.plannedDate === today ? 'اليوم' : esc(r.plannedDate)}</span>
       <span class="fid">${fmtWid(r.id)}</span>
-      <span class="what">${esc(r.sstn || '—')} — ${esc(r.equipment || r.equipType || '')}</span>
+      <span class="what">${esc(r.sstn || '—')} — ${esc(eqName(r))}</span>
       ${typeBadge(r.mtType)}
     </div>`).join('');
   el.querySelectorAll('.up-item').forEach(i => i.addEventListener('click', () => openModal(parseInt(i.dataset.id))));
@@ -3066,7 +2996,7 @@ function scheduleNextRecurrence(rec){
     id: nextId(), sstn: rec.sstn, equipment: rec.equipment, equipType: rec.equipType, mtType: rec.mtType,
     priority: rec.priority, status: 'planned', plannedDate: addMonthsISO(base, rc.months),
     startDate: '', startTime: '', endDate: '', endTime: '', duration: null,
-    engineer: rec.engineer, ptw: '', shutdown: rec.shutdown, affected: rec.affected,
+    engineer: rec.engineer, shutdown: rec.shutdown, affected: rec.affected,
     description: rec.description, workDone: '', spares: '', recurrence: rec.recurrence,
     notes: 'دورة تلقائية بعد ' + fmtWid(rec.id), createdAt: new Date().toISOString()
   };
@@ -3078,16 +3008,15 @@ function scheduleNextRecurrence(rec){
 }
 
 /* ===== MODAL ===== */
-const COST_FIELDS = ['techs','laborRate','otherCost','otherNote'];
-const FIELDS = ['sstn','equipment','equipType','mtType','priority','status','plannedDate','recurrence','startDate','startTime','endDate','endTime','engineer','ptw','shutdown','duration','affected','description','workDone','spares','notes', ...BATTERY_FIELDS, ...COST_FIELDS];
+const FIELDS = ['sstn','equipType','mtType','priority','status','plannedDate','recurrence','startDate','startTime','endDate','endTime','engineer','shutdown','duration','affected','description','workDone','spares','notes', 'replaceReq', 'replaceTo', 'replaceNote', ...BATTERY_FIELDS];
 
 function openModal(id, category){
   editingId = id || null;
   const rec = id ? data.find(d => d.id === id) : null;
   const cat = rec ? rec.mtType : (category || 'preventive');
-  // Emergency work is usually already happening: start it now, high priority.
+  // Emergency work is usually already happening: start it now.
   const defaults = {
-    emergency:  {equipType: EQUIP_TYPES[0], mtType:'emergency', priority:'high', status:'inprogress', recurrence:'none', shutdown:'no', plannedDate: todayISO(), startDate: todayISO(), startTime: nowHHMM()},
+    emergency:  {equipType: EQUIP_TYPES[0], mtType:'emergency', priority:'medium', status:'inprogress', recurrence:'none', shutdown:'no', plannedDate: todayISO(), startDate: todayISO(), startTime: nowHHMM()},
     preventive: {equipType: EQUIP_TYPES[0], mtType:'preventive', priority:'medium', status:'planned', recurrence:'y4', shutdown:'no', plannedDate: todayISO()},
     battery:    {equipType: 'Battery & Charger', mtType:'battery', priority:'medium', status:'planned', recurrence:'semiannual', shutdown:'no', plannedDate: todayISO()}
   }[cat] || {};
@@ -3097,11 +3026,9 @@ function openModal(id, category){
     el.value = (v === null || v === undefined) ? '' : v;
     if(el.tagName === 'SELECT' && !el.value && el.options.length) el.selectedIndex = 0;
   });
-  if(!rec || rec.laborRate === undefined || rec.laborRate === '') document.getElementById('m_laborRate').value = costSettings.rate;
-  document.getElementById('m_costLines').innerHTML = '';
-  ((rec && rec.costLines) || []).forEach(addCostLine);
-  updateCostTotal();
   applyModalCategory(cat);
+  if(!rec || !rec.replaceReq) document.getElementById('m_replaceReq').value = 'no';
+  syncReplaceUI();
   setEntryMode('manual');
   document.getElementById('scanPasteBox').value = '';
   setScanStatus('', '');
@@ -3126,6 +3053,7 @@ function applyModalCategory(cat){
   document.getElementById('plannedDateLabel').textContent = c.date;
   document.getElementById('recurrenceField').style.display = cat === 'emergency' ? 'none' : '';
   document.getElementById('batteryFields').style.display = cat === 'battery' ? 'block' : 'none';
+  document.getElementById('replaceBlock').style.display = cat === 'preventive' ? '' : 'none';
   document.getElementById('m_description').placeholder = c.desc;
   if(cat === 'emergency') document.getElementById('m_recurrence').value = 'none';
   document.getElementById('modalSaveBtn').className = 'btn ' + c.btn;
@@ -3139,7 +3067,6 @@ document.querySelectorAll('.cat-switch button').forEach(b => b.addEventListener(
   if(cat === 'emergency'){
     if(el('m_status').value === 'planned') el('m_status').value = 'inprogress';
     if(!el('m_startDate').value){ el('m_startDate').value = todayISO(); el('m_startTime').value = nowHHMM(); }
-    if(el('m_priority').value === 'medium') el('m_priority').value = 'high';
   } else {
     if(el('m_recurrence').value === 'none') el('m_recurrence').value = cat === 'battery' ? 'semiannual' : 'y4';
     if(cat === 'battery') el('m_equipType').value = 'Battery & Charger';
@@ -3164,8 +3091,10 @@ function saveModal(){
   rec.sstn = rec.sstn.toUpperCase();
   rec.duration = rec.duration === '' ? null : parseFloat(rec.duration);
   if(rec.mtType !== 'battery') BATTERY_FIELDS.forEach(f => { rec[f] = ''; });
-  rec.costLines = readCostLines();
-  if(!rec.sstn && !rec.equipment){ showToast('أدخل المحطة أو المعدة على الأقل', 'error'); return; }
+  // A replacement request belongs to periodic orders only, and needs a recipient.
+  if(rec.mtType !== 'preventive' || rec.replaceReq !== 'yes'){ rec.replaceReq = 'no'; rec.replaceTo = ''; rec.replaceNote = ''; }
+  else if(!REPLACE_TO[rec.replaceTo]){ showToast('اختر الجهة المرسل لها طلب الاستبدال: الإنشاءات أو طوارئ الجابرية', 'error'); return; }
+  if(!rec.sstn){ showToast('أدخل المحطة', 'error'); return; }
   if(!rec.plannedDate && !rec.startDate){ showToast('أدخل التاريخ المخطط أو تاريخ البدء', 'error'); return; }
   if(rec.status === 'completed' && !rec.endDate){ rec.endDate = todayISO(); rec.endTime = rec.endTime || nowHHMM(); }
   if(rec.status === 'inprogress' && !rec.startDate){ rec.startDate = todayISO(); rec.startTime = rec.startTime || nowHHMM(); }
@@ -3183,13 +3112,17 @@ function saveModal(){
   } else {
     saved = Object.assign({id: nextId(), createdAt: new Date().toISOString()}, rec);
     data.push(saved);
-    logActivity('add', 'إضافة ' + fmtWid(saved.id) + ' — ' + (rec.sstn || '') + ' ' + (rec.equipment || ''));
+    logActivity('add', 'إضافة ' + fmtWid(saved.id) + ' — ' + (rec.sstn || '') + ' ' + (rec.equipType || ''));
   }
   const next = saved.status === 'completed' ? scheduleNextRecurrence(saved) : null;
+  const newLetter = saved.replaceReq === 'yes' && !saved.replaceLetterNo;
+  if(newLetter){ saved.replaceLetterNo = nextLetterNo(); saved.replaceLetterDate = todayISO(); }
+  if(saved.replaceReq !== 'yes'){ delete saved.replaceLetterNo; delete saved.replaceLetterDate; }
   saveData();
   showToast('تم حفظ ' + fmtWid(saved.id) + (next ? ' — وتمت جدولة الدورة القادمة ' + fmtWid(next.id) : ''), 'success');
   closeModal();
   render();
+  if(saved.replaceReq === 'yes') offerLetter(saved, newLetter);
 }
 
 /* ===== PASTE & AUTO-FILL =====
@@ -3260,7 +3193,6 @@ const PASTE_LABELS = [
   ['mtType', /^(type|maint(enance)?\s*type|نوع الصيانة|النوع)$/i],
   ['plannedDate', /^(date|planned\s*date|schedule[d]?|التاريخ|تاريخ|الموعد)$/i],
   ['startTime', /^(time|start\s*time|الوقت|وقت|وقت البدء)$/i],
-  ['ptw', /^(ptw|ptw\s*no\.?|permit|permit\s*no\.?|تصريح|رقم التصريح)$/i],
   ['engineer', /^(team|engineer|eng\.?|by|crew|الفريق|المهندس|فريق العمل)$/i],
   ['shutdown', /^(shutdown|outage|isolation|فصل|الفصل)$/i],
   ['description', /^(work|job|scope|description|details|task|الوصف|العمل|وصف العمل|المطلوب)$/i],
@@ -3289,7 +3221,6 @@ function parseMaintenanceText(raw){
 
   const out = {};
   if(found.sstn) out.sstn = found.sstn.replace(/\.$/, '').toUpperCase();
-  if(found.equipment) out.equipment = found.equipment.replace(/\.$/, '');
   if(found.engineer) out.engineer = found.engineer.replace(/\.$/, '');
   if(found.description) out.description = found.description;
   if(found.workDone) out.workDone = found.workDone;
@@ -3303,8 +3234,6 @@ function parseMaintenanceText(raw){
   const t = parseTimeIn(found.startTime || found.plannedDate || '');
   if(t) out.startTime = t;
 
-  const ptw = found.ptw || ((text.match(/\bPTW[\s#:no.-]*([A-Z0-9][A-Z0-9\/-]{2,})/i) || [])[1] || '');
-  if(ptw) out.ptw = ptw.replace(/\.$/, '');
 
   if(found.shutdown !== undefined){
     const v = found.shutdown.trim();
@@ -3318,21 +3247,80 @@ function parseMaintenanceText(raw){
   if(eq) out.equipType = eq;
 
   const pr = (found.priority || '').toLowerCase();
-  if(/critical|urgent|حرج|عاجل/.test(pr)) out.priority = 'critical';
-  else if(/high|عالي/.test(pr)) out.priority = 'high';
-  else if(/low|منخفض/.test(pr)) out.priority = 'low';
-  else if(/medium|normal|متوسط/.test(pr)) out.priority = 'medium';
+  if(/low|منخفض/.test(pr)) out.priority = 'low';
+  else if(pr) out.priority = 'medium';
   return out;
 }
-const FIELD_LABELS_AR = {sstn:'المحطة', equipment:'المعدة', equipType:'نوع المعدة', mtType:'نوع الصيانة', plannedDate:'التاريخ', startTime:'الوقت', ptw:'التصريح', engineer:'الفريق', shutdown:'الفصل', affected:'المتأثرون', description:'الوصف', workDone:'العمل المنجز', spares:'قطع الغيار', notes:'ملاحظات', priority:'الأولوية'};
+const FIELD_LABELS_AR = {sstn:'المحطة', equipment:'المعدة', equipType:'نوع المعدة', mtType:'نوع الصيانة', plannedDate:'التاريخ', startTime:'الوقت', engineer:'الفريق', shutdown:'الفصل', affected:'المتأثرون', description:'الوصف', workDone:'العمل المنجز', spares:'قطع الغيار', notes:'ملاحظات', priority:'الأولوية'};
 document.getElementById('scanRunBtn').addEventListener('click', () => {
   const parsed = parseMaintenanceText(document.getElementById('scanPasteBox').value);
   const keys = Object.keys(parsed);
   if(!keys.length){ setScanStatus('ما قدرت أتعرف على أي بيانات — الصق النص أولاً.', 'error'); return; }
-  keys.forEach(k => { if(k !== 'mtType') document.getElementById('m_' + k).value = parsed[k]; });
+  keys.forEach(k => { const f = document.getElementById('m_' + k); if(f && k !== 'mtType') f.value = parsed[k]; });
   if(parsed.mtType) applyModalCategory(parsed.mtType);
   setScanStatus('✅ تمت تعبئة: ' + keys.map(k => FIELD_LABELS_AR[k] || k).join('، ') + ' — راجع الحقول قبل الحفظ.', 'success');
 });
+
+/* ===== REPLACEMENT REQUEST — طلب استبدال =====
+   A periodic order can raise a replacement request (yes / no). With yes,
+   the user picks who it goes to — الإنشاءات or طوارئ الجابرية — and the
+   system numbers an official letter to that party, ready to print. */
+const REPLACE_TO = {
+  construction: {short: 'الإنشاءات', to: 'السيد / مدير إدارة الإنشاءات'},
+  jabriya:      {short: 'طوارئ الجابرية', to: 'السيد / رئيس مركز طوارئ الجابرية'}
+};
+function syncReplaceUI(){
+  const req = document.getElementById('m_replaceReq').value === 'yes', to = document.getElementById('m_replaceTo').value;
+  document.querySelectorAll('#replaceBlock [data-rep]').forEach(b => b.classList.toggle('active', b.dataset.rep === (req ? 'yes' : 'no')));
+  document.querySelectorAll('#replaceBlock [data-party]').forEach(b => b.classList.toggle('active', b.dataset.party === to));
+  document.getElementById('repYes').classList.toggle('open', req);
+}
+document.getElementById('replaceBlock').addEventListener('click', e => {
+  const yn = e.target.closest('[data-rep]'), party = e.target.closest('[data-party]');
+  if(yn) document.getElementById('m_replaceReq').value = yn.dataset.rep;
+  if(party) document.getElementById('m_replaceTo').value = party.dataset.party;
+  if(yn || party) syncReplaceUI();
+});
+// Letters are numbered per year: 2026/001, 2026/002, ...
+function nextLetterNo(){
+  const y = String(new Date().getFullYear());
+  const used = data.map(r => r.replaceLetterNo || '').filter(n => n.startsWith(y + '/')).map(n => parseInt(n.split('/')[1]) || 0);
+  return y + '/' + String((used.length ? Math.max(...used) : 0) + 1).padStart(3, '0');
+}
+function offerLetter(r, isNew){
+  const toast = document.createElement('div');
+  toast.className = 'toast info clickable';
+  toast.textContent = '📄 ' + (isNew ? 'تم تجهيز' : 'جاهز') + ' الكتاب الرسمي رقم ' + r.replaceLetterNo + ' إلى ' + REPLACE_TO[r.replaceTo].short + ' — اضغط هنا للطباعة';
+  toast.addEventListener('click', () => { toast.remove(); printReplaceLetter(r.id); });
+  document.getElementById('toastContainer').appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .3s ease'; setTimeout(() => toast.remove(), 300); }, 9000);
+}
+function printReplaceLetter(id){
+  const r = data.find(d => d.id === id);
+  if(!r || r.replaceReq !== 'yes' || !REPLACE_TO[r.replaceTo]) return;
+  const party = REPLACE_TO[r.replaceTo];
+  const date = fmtShort(r.replaceLetterDate || todayISO()).replace(/\/(\d\d)$/, '/20$1');
+  const row = (k, v) => `<tr><th>${k}</th><td>${esc(v) || '—'}</td></tr>`;
+  const html = `<div class="letter">
+    <div class="lt-meta"><span>الرقم: <b>${esc(r.replaceLetterNo || '')}</b></span><span>التاريخ: <b>${esc(date)}</b></span></div>
+    <div class="lt-to">${esc(party.to)}</div><div>المحترم</div>
+    <div>تحية طيبة وبعد،،،</div>
+    <div class="lt-subj">الموضوع: طلب استبدال — محطة <bdi>${esc(r.sstn || '')}</bdi></div>
+    <p>بالإشارة إلى أمر الصيانة الدورية الوقائية رقم <b>${fmtWid(r.id)}</b> في محافظة ${esc(govName(currentGov))}، وأثناء أعمال الصيانة تبيّن الحاجة إلى استبدال ما يلي:</p>
+    <table>
+      ${row('المحطة', r.sstn)}
+      ${row('نوع المعدة', r.equipType)}
+      ${row('رقم أمر الصيانة', fmtWid(r.id))}
+      ${row('تاريخ الصيانة', r.endDate || r.startDate || r.plannedDate)}
+      ${row('المطلوب استبداله وسببه', r.replaceNote)}
+    </table>
+    <p>لذا يرجى التكرم بالإيعاز لمن يلزم لاتخاذ الإجراءات اللازمة نحو الاستبدال في أقرب وقت ممكن، وإفادتنا بالموعد المحدد للتنفيذ.</p>
+    <div class="lt-close">وتفضلوا بقبول فائق الاحترام والتقدير،،،</div>
+    <div class="lt-sign"><div>رئيس قسم الصيانة<br>الاسم: ..............................<br>التوقيع: ..............................</div></div>
+    <div class="lt-cc">نسخة إلى: الملف — ${fmtWid(r.id)}</div>
+  </div>`;
+  printReport('', '', html, true);
+}
 
 /* ===== PRINTABLE WORK ORDER (one sheet for the field team) ===== */
 function printWorkOrder(id){
@@ -3345,9 +3333,9 @@ function printWorkOrder(id){
       <table class="wo-grid">
         ${row('Governorate / المحافظة', govName(currentGov))}
         ${row('Substation / المحطة', r.sstn)}
-        ${row('Equipment / المعدة', [r.equipment, r.equipType].filter(Boolean).join(' — '))}
+        ${row('Equipment / المعدة', eqName(r))}
         ${row('Maintenance Type / نوع الصيانة', MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].en + ' / ' + MT_TYPES[r.mtType].ar : '')}
-        ${row('Priority / الأولوية', r.priority)}
+        ${row('Priority / الأولوية', r.priority === 'low' ? 'Low / منخفضة' : 'Medium / متوسطة')}
         ${row('Status / الحالة', STATUSES[r.status] ? STATUSES[r.status].en + ' / ' + STATUSES[r.status].ar : '')}
         ${r.mtType === 'battery' ? row('Battery / البطارية', [r.batType, r.batAh ? r.batAh + ' Ah' : '', r.batCells ? r.batCells + ' cells' : '', r.batInstall ? 'installed ' + r.batInstall : ''].filter(Boolean).join(' · '))
           + row('Measured / القراءات', [r.batVoltage ? 'Battery ' + r.batVoltage + ' V' : '', r.chargerVolt ? 'Charger ' + r.chargerVolt + ' V' : ''].filter(Boolean).join(' · '))
@@ -3355,10 +3343,9 @@ function printWorkOrder(id){
         ${row('Planned Date / التاريخ المخطط', r.plannedDate)}
         ${row('Start / البدء', ((r.startDate || '') + ' ' + (r.startTime || '')).trim())}
         ${row('End / الانتهاء', ((r.endDate || '') + ' ' + (r.endTime || '')).trim())}
-        ${row('PTW No. / رقم التصريح', r.ptw)}
         ${row('Shutdown / الفصل', r.shutdown === 'yes' ? 'Yes / نعم' + (r.affected ? ' — ' + r.affected : '') : 'No / لا')}
         ${row('Team / الفريق', r.engineer)}
-        ${recordCost(r).total ? row('Cost / التكلفة', 'قطع غيار ' + fmtKD(recordCost(r).parts) + ' · عمالة ' + fmtKD(recordCost(r).labor) + ' · أخرى ' + fmtKD(recordCost(r).other) + ' — الإجمالي ' + fmtKD(recordCost(r).total) + ' د.ك') : ''}
+        ${r.replaceReq === 'yes' && REPLACE_TO[r.replaceTo] ? row('Replacement / طلب استبدال', 'نعم — ' + REPLACE_TO[r.replaceTo].short + ' · كتاب ' + (r.replaceLetterNo || '') + (r.replaceNote ? ' — ' + r.replaceNote : '')) : ''}
       </table>
       <div class="wo-label">Work Description / وصف العمل</div><div class="wo-box">${esc(r.description)}</div>
       <div class="wo-label">Work Done / العمل المنجز</div><div class="wo-box">${esc(r.workDone)}</div>
@@ -3500,7 +3487,7 @@ function renderAlarm(){
       const when = days < 0 ? 'متأخرة ' + (-days) + ' يوم' : days === 0 ? 'اليوم' : days === 1 ? 'بكرة' : 'بعد ' + days + ' يوم';
       return `<div class="ap-item" data-alarm-id="${r.id}">
         <span class="st ${crit ? 'crit' : 'warn'}">${crit ? '!' : '⌛'}</span>
-        <div class="tx"><b>${esc(r.equipment || MT_TYPES[r.mtType].ar)}</b>
+        <div class="tx"><b>${esc(eqName(r) || MT_TYPES[r.mtType].ar)}</b>
           <span>${esc(r.sstn || '')} · ${MT_TYPES[r.mtType].ar}${rc && rc.months ? ' · ' + rc.ar : ''} · ${fmtShort(r.plannedDate)}</span></div>
         <span class="when ${crit ? 'crit' : 'warn'}">${when}</span>
         <button class="ap-done" data-alarm-done="${r.id}" type="button" title="تسجيل الإنجاز">✔️</button></div>`;
@@ -3628,16 +3615,15 @@ document.getElementById('fileInput').addEventListener('change', e => {
 /* ===== EXCEL / PDF / PRINT ===== */
 function recordToExcelRow(r){
   return {
-    'WO ID': fmtWid(r.id), 'Substation': r.sstn, 'Equipment': r.equipment, 'Equipment Type': r.equipType,
+    'WO ID': fmtWid(r.id), 'Substation': r.sstn, 'Equipment Type': r.equipType,
     'Maintenance Type': MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].en : r.mtType, 'Recurrence': r.recurrence || 'none',
     'Description': r.description, 'Engineer / Team': r.engineer, 'Planned Date': r.plannedDate,
     'Start': ((r.startDate || '') + ' ' + (r.startTime || '')).trim(), 'End': ((r.endDate || '') + ' ' + (r.endTime || '')).trim(),
-    'Duration (hr)': r.duration, 'PTW No.': r.ptw, 'Shutdown': r.shutdown === 'yes' ? 'Yes' : 'No', 'Affected': r.affected,
+    'Duration (hr)': r.duration, 'Shutdown': r.shutdown === 'yes' ? 'Yes' : 'No', 'Affected': r.affected,
     'Priority': r.priority, 'Status': (STATUSES[r.status] || {}).en + (isOverdue(r) ? ' (Overdue)' : ''),
     'Work Done': r.workDone, 'Spares / Materials': r.spares, 'Notes': r.notes,
     'Battery Type': r.batType || '', 'Battery Ah': r.batAh || '', 'Cells': r.batCells || '', 'Battery V': r.batVoltage || '',
-    'Charger V': r.chargerVolt || '', 'Battery Installed': r.batInstall || '', 'Battery Result': BAT_RESULTS[r.batResult] || '',
-    'Parts Cost (KWD)': recordCost(r).parts, 'Labor Cost (KWD)': recordCost(r).labor, 'Other Cost (KWD)': recordCost(r).other, 'Total Cost (KWD)': recordCost(r).total
+    'Charger V': r.chargerVolt || '', 'Battery Installed': r.batInstall || '', 'Battery Result': BAT_RESULTS[r.batResult] || ''
   };
 }
 
@@ -3720,11 +3706,11 @@ function buildMaintenancePdf(title, subtitle, rows){
   doc.text(`Total: ${s.total}    |    Planned: ${s.planned}    |    In Progress: ${s.inprogress}    |    Completed: ${s.completed}    |    Overdue: ${s.overdue}    |    Completion: ${s.rate}%    |    Avg Duration: ${s.avgDur} hr`, 40, afterHeaderY + 20);
   doc.autoTable({
     startY: afterHeaderY + 36,
-    head: [['WO ID','Station','Equipment','Equip. Type','Type','Description','Team','Planned','End','Hr','PTW','Status']],
+    head: [['WO ID','Station','Equip. Type','Type','Description','Team','Planned','End','Hr','Status']],
     body: sortRows(rows).map(r => [
-      fmtWid(r.id), r.sstn || '', r.equipment || '', r.equipType || '', MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].en : '',
+      fmtWid(r.id), r.sstn || '', r.equipType || '', MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].en : '',
       r.description || '', r.engineer || '', r.plannedDate || '', r.endDate || '', (r.duration || r.duration === 0) ? r.duration : '',
-      r.ptw || '', ((STATUSES[r.status] || {}).en || '') + (isOverdue(r) ? ' (Overdue)' : '')
+      ((STATUSES[r.status] || {}).en || '') + (isOverdue(r) ? ' (Overdue)' : '')
     ]),
     styles: {fontSize:8, cellPadding:4, overflow:'linebreak'},
     headStyles: {fillColor:[10,61,124], textColor:255, fontStyle:'bold'},
@@ -3759,7 +3745,7 @@ document.getElementById('exportPdfBtn').addEventListener('click', () => {
 
 document.getElementById('printBtn').addEventListener('click', () => openPrintPage());
 
-function printReport(title, subtitle, contentHtml){
+function printReport(title, subtitle, contentHtml, bare){
   const root = document.getElementById('printReportRoot');
   root.innerHTML = `
     <div class="print-report-page">
@@ -3771,14 +3757,17 @@ function printReport(title, subtitle, contentHtml){
         </div>
         <img class="mew-logo" src="${MEW_LOGO_B64}" alt="">
       </div>
-      <h1 style="direction:rtl;">${esc(title)}</h1>
-      <div class="print-report-sub" style="direction:rtl;">${esc(subtitle)} · ${new Date().toLocaleString('en-GB')}</div>
+      ${bare ? '' : `<h1 style="direction:rtl;">${esc(title)}</h1>
+      <div class="print-report-sub" style="direction:rtl;">${esc(subtitle)} · ${new Date().toLocaleString('en-GB')}</div>`}
       ${contentHtml}
     </div>
     <div class="print-report-footer">م.ابرار المويزري</div>`;
   document.body.classList.add('printing-report');
+  // Letters print on a portrait page; reports stay landscape.
+  const portrait = bare ? document.head.appendChild(Object.assign(document.createElement('style'), {textContent: '@page{size: A4 portrait; margin: 16mm;}'})) : null;
   const cleanup = () => {
     document.body.classList.remove('printing-report');
+    if(portrait) portrait.remove();
     root.innerHTML = '';
     window.removeEventListener('afterprint', cleanup);
   };
@@ -3848,9 +3837,9 @@ function buildReport(rows, title, subtitle){
   const s = computeStats(rows);
   const table = rows.length ? `
     <div class="report-table-wrap"><table>
-      <thead><tr><th>رقم الأمر</th><th>المحطة</th><th>المعدة</th><th>نوع الصيانة</th><th>الوصف</th><th>الفريق</th><th>المخطط</th><th>الانتهاء</th><th>المدة (ساعة)</th><th>الحالة</th></tr></thead>
+      <thead><tr><th>رقم الأمر</th><th>المحطة</th><th>نوع المعدة</th><th>نوع الصيانة</th><th>الوصف</th><th>الفريق</th><th>المخطط</th><th>الانتهاء</th><th>المدة (ساعة)</th><th>الحالة</th></tr></thead>
       <tbody>${sortRows(rows).map(r => `<tr>
-        <td class="fid">${fmtWid(r.id)}</td><td class="sstn-cell">${esc(r.sstn) || '—'}</td><td>${esc(r.equipment) || '—'}</td>
+        <td class="fid">${fmtWid(r.id)}</td><td class="sstn-cell">${esc(r.sstn) || '—'}</td><td>${esc(eqName(r)) || '—'}</td>
         <td>${typeBadge(r.mtType)}</td><td class="desc-cell">${esc(r.description) || '—'}</td><td>${esc(r.engineer) || '—'}</td>
         <td>${esc(r.plannedDate) || '—'}</td><td>${esc(r.endDate) || '—'}</td><td>${(r.duration || r.duration === 0) ? r.duration : '—'}</td><td>${statusPill(r)}</td>
       </tr>`).join('')}</tbody>
@@ -3917,7 +3906,7 @@ function wireReportActions(){
     const late = lastReport.rows.filter(isOverdue).slice(0, 10);
     if(late.length){
       lines.push('', 'الأعمال المتأخرة:');
-      late.forEach(r => lines.push('• ' + fmtWid(r.id) + ' ' + (r.sstn || '') + ' ' + (r.equipment || '') + ' (' + r.plannedDate + ')'));
+      late.forEach(r => lines.push('• ' + fmtWid(r.id) + ' ' + (r.sstn || '') + ' ' + eqName(r) + ' (' + r.plannedDate + ')'));
     }
     shareToWhatsApp(lines.join('\n'));
   });
@@ -4257,7 +4246,7 @@ function openOilItem(id){
   editingOilItemId = id || null;
   const it = id ? oil.items.find(x => x.id === id) : null;
   document.getElementById('oilItemTitle').textContent = it ? '✏️ تعديل نوع الزيت' : '🛢️ نوع زيت جديد';
-  ['name','unit','minQty','location','notes','price'].forEach(f => { document.getElementById('oi_' + f).value = it ? (it[f] ?? '') : (f === 'unit' ? 'لتر' : ''); });
+  ['name','unit','minQty','location','notes'].forEach(f => { document.getElementById('oi_' + f).value = it ? (it[f] ?? '') : (f === 'unit' ? 'لتر' : ''); });
   document.getElementById('oi_opening').value = '';
   document.getElementById('oi_openingWrap').style.display = it ? 'none' : '';
   showPage('oilItem');
@@ -4265,7 +4254,7 @@ function openOilItem(id){
 document.getElementById('oilItemSaveBtn').addEventListener('click', () => {
   const v = f => document.getElementById('oi_' + f).value.trim();
   if(!v('name')){ showToast('اكتب اسم نوع الزيت', 'error'); return; }
-  const rec = {name: v('name'), unit: v('unit'), minQty: parseFloat(v('minQty')) || 0, location: v('location'), notes: v('notes'), price: parseFloat(v('price')) || 0};
+  const rec = {name: v('name'), unit: v('unit'), minQty: parseFloat(v('minQty')) || 0, location: v('location'), notes: v('notes')};
   if(editingOilItemId){
     Object.assign(oil.items.find(x => x.id === editingOilItemId), rec);
   } else {
@@ -4400,7 +4389,7 @@ const BAT_SPEC = {
 const DAY_MS = 86400000;
 const daysBetween = (a, b) => Math.round((new Date(b + 'T00:00') - new Date(a + 'T00:00')) / DAY_MS);
 const addDaysISO = (iso, n) => { const d = new Date(iso + 'T00:00'); d.setDate(d.getDate() + n); return toISO(d); };
-const assetKey = r => (r.sstn || '').trim().toUpperCase() + '|' + (r.equipment || '').trim().toLowerCase();
+const assetKey = r => (r.sstn || '').trim().toUpperCase() + '|' + eqName(r).trim().toLowerCase();
 const eventDate = r => r.endDate || r.startDate || r.plannedDate || '';
 const pdLevel = score => score >= 60 ? 'high' : score >= 30 ? 'medium' : 'low';
 
@@ -4425,7 +4414,7 @@ function computePredictions(){
     const reasons = [`${list.length} أعطال طارئة خلال آخر 12 شهر (آخرها ${fmtShort(last)})`,
       `متوسط المدة بين الأعطال (MTBF): ${mtbf} يوم — العطل المتوقع القادم حوالي ${fmtShort(next)}${daysToNext < 0 ? ' (تجاوز الموعد)' : ''}`];
     const eqCount = {};
-    list.forEach(r => { const e = (r.equipment || '').trim(); if(e) eqCount[e] = (eqCount[e] || 0) + 1; });
+    list.forEach(r => { const e = eqName(r).trim(); if(e) eqCount[e] = (eqCount[e] || 0) + 1; });
     const topEq = Object.entries(eqCount).sort((a, b) => b[1] - a[1])[0];
     if(topEq && topEq[1] >= 2){ score += 15; reasons.push(`نفس المعدة تعطلت ${topEq[1]} مرات: ${topEq[0]}`); }
     const lastPrev = data.filter(r => r.mtType === 'preventive' && r.status === 'completed' && (r.sstn || '').trim().toUpperCase() === sstn).map(eventDate).sort().pop();
@@ -4435,7 +4424,7 @@ function computePredictions(){
     const open = openFor(sstn, ['preventive']);
     out.push({kind:'repeat', score, level: pdLevel(score), title: sstn + (topEq ? ' — ' + topEq[0] : ''), next, reasons,
       suggestion: 'فحص وقائي شامل للمحطة قبل ' + fmtShort(daysToNext > 7 ? next : addDaysISO(today, 7)),
-      open, template: {mtType:'preventive', sstn, equipment: topEq ? topEq[0] : '', priority: score >= 60 ? 'high' : 'medium',
+      open, template: {mtType:'preventive', sstn, equipment: topEq ? topEq[0] : '', priority: 'medium',
         plannedDate: daysToNext > 7 ? addDaysISO(next, -7) : addDaysISO(today, 7),
         description: 'فحص وقائي بسبب تكرار الأعطال الطارئة (' + list.length + ' أعطال خلال 12 شهر)'}});
   });
@@ -4475,9 +4464,9 @@ function computePredictions(){
     score = Math.min(100, score);
     const replace = (lastResult && lastResult.batResult === 'replace') || reasons.some(x => x.includes('تجاوز العمر'));
     const open = list.find(r => PENDING.includes(r.status));
-    out.push({kind:'battery', score, level: pdLevel(score), title: (info.sstn || '') + ' — ' + (info.equipment || 'بطارية'), reasons,
+    out.push({kind:'battery', score, level: pdLevel(score), title: (info.sstn || '') + ' — ' + (eqName(info) || 'بطارية'), reasons,
       suggestion: replace ? 'تبديل البطارية' : 'فحص البطارية والشاحن خلال أسبوعين ومتابعة الجهد',
-      open, template: {mtType:'battery', sstn: info.sstn, equipment: info.equipment, priority: score >= 60 ? 'high' : 'medium',
+      open, template: {mtType:'battery', sstn: info.sstn, equipment: info.equipment, priority: 'medium',
         plannedDate: addDaysISO(today, score >= 60 ? 7 : 14), recurrence:'semiannual', batType: info.batType || '', batAh: info.batAh || '', batCells: info.batCells || '', batInstall: replace ? '' : (info.batInstall || ''),
         description: replace ? 'تبديل البطارية — من الصيانة التنبؤية' : 'فحص البطارية والشاحن — من الصيانة التنبؤية'}});
   });
@@ -4492,7 +4481,7 @@ function computePredictions(){
     const emerg = (byStation[sstn] || []).length;
     if(emerg){ score += emerg * 10; reasons.push(`${emerg} عطل طارئ بالمحطة خلال آخر 12 شهر`); }
     score = Math.min(100, score);
-    out.push({kind:'preventive', score, level: pdLevel(score), title: (r.sstn || '') + ' — ' + (r.equipment || ''), reasons,
+    out.push({kind:'preventive', score, level: pdLevel(score), title: (r.sstn || '') + ' — ' + eqName(r), reasons,
       suggestion: d < 0 ? 'تنفيذ الدورية في أقرب وقت (' + fmtWid(r.id) + ')' : 'تجهيز الفريق والتصريح لـ ' + fmtWid(r.id), order: r});
   });
 
@@ -4584,180 +4573,6 @@ document.getElementById('pdList').addEventListener('click', e => {
 
 
 
-/* ===== MAINTENANCE COST — تكلفة الصيانة =====
-   Each order carries its own costs: spare-part lines (qty × unit price),
-   labour (technicians × duration × hourly rate) and other costs; oil
-   issued to stations is costed at each oil type's unit price. The cost
-   page totals them for a period and section(s): split by type of cost,
-   by section, by station, by month, the most expensive orders, and the
-   average emergency vs. periodic order. */
-const COST_KEY = 'mtCostSettings';
-let costSettings = {rate: 6};
-try{ Object.assign(costSettings, JSON.parse(localStorage.getItem(COST_KEY)) || {}); }catch(e){}
-function fmtKD(n, short){
-  const v = Math.round((n || 0) * 1000) / 1000;
-  return short ? Math.round(v).toLocaleString('en-US') : v.toLocaleString('en-US', {minimumFractionDigits:3, maximumFractionDigits:3});
-}
-function recordCost(r){
-  const parts = (r.costLines || []).reduce((a, l) => a + (parseFloat(l.qty) || 0) * (parseFloat(l.price) || 0), 0);
-  const labor = (parseFloat(r.techs) || 0) * (parseFloat(r.duration) || 0) * (parseFloat(r.laborRate) || 0);
-  const other = parseFloat(r.otherCost) || 0;
-  return {parts, labor, other, total: parts + labor + other};
-}
-// ---- cost lines in the order form ----
-function addCostLine(l){
-  l = l || {};
-  const tb = document.getElementById('m_costLines');
-  tb.insertAdjacentHTML('beforeend', `<tr><td><input data-c="name" value="${esc(l.name)}" placeholder="مثال: 11 kV straight joint"></td>
-    <td><input data-c="qty" type="number" min="0" step="any" value="${esc(l.qty ?? 1)}"></td>
-    <td><input data-c="price" type="number" min="0" step="0.001" value="${esc(l.price)}"></td>
-    <td class="sum">—</td><td><button type="button" class="cost-del" title="حذف">✕</button></td></tr>`);
-  const tr = tb.lastElementChild;
-  tr.querySelector('.cost-del').addEventListener('click', () => { tr.remove(); updateCostTotal(); });
-  tr.querySelectorAll('input').forEach(i => i.addEventListener('input', updateCostTotal));
-}
-function readCostLines(){
-  return [...document.querySelectorAll('#m_costLines tr')].map(tr => {
-    const g = k => tr.querySelector(`[data-c="${k}"]`).value.trim();
-    return {name: g('name'), qty: parseFloat(g('qty')) || 0, price: parseFloat(g('price')) || 0};
-  }).filter(l => l.name || l.price);
-}
-function updateCostTotal(){
-  document.querySelectorAll('#m_costLines tr').forEach(tr => {
-    const q = parseFloat(tr.querySelector('[data-c="qty"]').value) || 0, pr = parseFloat(tr.querySelector('[data-c="price"]').value) || 0;
-    tr.querySelector('.sum').textContent = q && pr ? fmtKD(q * pr) : '—';
-  });
-  const g = id => document.getElementById(id).value;
-  const c = recordCost({costLines: readCostLines(), techs: g('m_techs'), duration: g('m_duration'), laborRate: g('m_laborRate'), otherCost: g('m_otherCost')});
-  document.getElementById('m_costTotal').innerHTML = `<span>قطع الغيار: ${fmtKD(c.parts)}</span><span>العمالة: ${fmtKD(c.labor)}${!parseFloat(g('m_duration')) && parseFloat(g('m_techs')) ? ' (أدخل المدة)' : ''}</span>
-    <span>أخرى: ${fmtKD(c.other)}</span><span>الإجمالي: <b>${fmtKD(c.total)} د.ك</b></span>`;
-}
-document.getElementById('m_costAdd').addEventListener('click', () => { addCostLine(); updateCostTotal(); });
-['m_techs','m_laborRate','m_otherCost','m_duration','m_startDate','m_startTime','m_endDate','m_endTime']
-  .forEach(id => document.getElementById(id).addEventListener('input', () => setTimeout(updateCostTotal, 0)));
-
-// ---- totals for a period ----
-function costRange(){
-  const v = document.getElementById('costPeriod').value, t = todayISO();
-  if(v === 'month'){ const m = monthBounds(0); return {from: m.from, to: m.to, label: m.label}; }
-  if(v === 'prev'){ const m = monthBounds(-1); return {from: m.from, to: m.to, label: m.label}; }
-  if(v === 'year') return {from: t.slice(0, 4) + '-01-01', to: t.slice(0, 4) + '-12-31', label: 'سنة ' + t.slice(0, 4)};
-  if(v === '12m'){ const m = monthBounds(-11); return {from: m.from, to: t, label: 'آخر 12 شهر'}; }
-  return {from: '', to: '', label: 'كل الفترات'};
-}
-function costCats(){
-  if(document.getElementById('costAll').checked || !categoryFilter || categoryFilter === 'predictive') return ['emergency', 'preventive', 'battery', 'oil'];
-  return [categoryFilter];
-}
-function computeCosts(r, cats){
-  const within = d => d && (!r.from || d >= r.from) && (!r.to || d <= r.to);
-  const orders = data.filter(x => cats.includes(x.mtType) && x.status !== 'cancelled' && within(eventDate(x)))
-    .map(x => ({rec: x, c: recordCost(x)})).filter(o => o.c.total > 0);
-  const priceOf = id => (oil.items.find(i => i.id === id) || {}).price || 0;
-  const oilMoves = cats.includes('oil') ? oil.moves.filter(m => m.type === 'out' && within(m.date)).map(m => ({m, cost: (parseFloat(m.qty) || 0) * priceOf(m.itemId)})) : [];
-  const sum = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
-  const t = {parts: sum(orders, o => o.c.parts), labor: sum(orders, o => o.c.labor), other: sum(orders, o => o.c.other), oil: sum(oilMoves, o => o.cost)};
-  t.total = t.parts + t.labor + t.other + t.oil;
-  const bySec = {};
-  orders.forEach(o => { bySec[o.rec.mtType] = (bySec[o.rec.mtType] || 0) + o.c.total; });
-  if(t.oil) bySec.oil = t.oil;
-  const bySt = {};
-  orders.forEach(o => { const k = (o.rec.sstn || '—').trim(); bySt[k] = (bySt[k] || 0) + o.c.total; });
-  oilMoves.forEach(o => { if(o.m.station){ const k = o.m.station.trim(); bySt[k] = (bySt[k] || 0) + o.cost; } });
-  const avg = cat => { const l = orders.filter(o => o.rec.mtType === cat); return l.length ? sum(l, o => o.c.total) / l.length : 0; };
-  return {t, orders, oilMoves, bySec, bySt, avgAll: orders.length ? (t.parts + t.labor + t.other) / orders.length : 0,
-    avgEm: avg('emergency'), avgPv: avg('preventive'), count: orders.length};
-}
-function monthlyCostSeries(cats){
-  const out = [];
-  for(let k = -11; k <= 0; k++){
-    const m = monthBounds(k);
-    out.push({label: AR_MONTHS[parseInt(m.key.slice(5, 7)) - 1] + ' ' + m.key.slice(2, 4), full: m.label, total: computeCosts(m, cats).t.total});
-  }
-  return out;
-}
-function costBarsHtml(obj, names){
-  const e = Object.entries(obj).sort((a, b) => b[1] - a[1]);
-  if(!e.length) return '<div class="no-data">لا توجد تكاليف مسجلة في هذه الفترة.</div>';
-  const max = e[0][1], tot = e.reduce((a, x) => a + x[1], 0);
-  return e.slice(0, 8).map(([k, v]) => `<div class="cost-row"><span title="${esc(k)}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><bdi>${esc(names ? names[k] || k : k)}</bdi></span>
-    <div class="bar"><i style="width:${(v / max * 100).toFixed(0)}%"></i></div><span class="v">${fmtKD(v)} <small style="color:var(--mute);font-weight:600;">(${Math.round(v / tot * 100)}%)</small></span></div>`).join('');
-}
-function costInsightHtml(c){
-  const lines = [];
-  if(c.avgEm && c.avgPv) lines.push(`متوسط تكلفة أمر الصيانة الطارئة <b>${fmtKD(c.avgEm)} د.ك</b> مقابل <b>${fmtKD(c.avgPv)} د.ك</b> للدورية الوقائية` +
-    (c.avgEm > c.avgPv ? ` — الطارئ أغلى بـ <b>${(c.avgEm / c.avgPv).toFixed(1)}</b> مرة، فالصيانة الوقائية توفّر.` : '.'));
-  const st = Object.entries(c.bySt).sort((a, b) => b[1] - a[1])[0];
-  if(st && c.t.total) lines.push(`أعلى محطة تكلفة: <bdi>${esc(st[0])}</bdi> بـ <b>${fmtKD(st[1])} د.ك</b> (${Math.round(st[1] / c.t.total * 100)}% من الإجمالي).`);
-  return lines.join('<br>');
-}
-const COST_SEC_NAMES = {emergency:'صيانة طارئة', preventive:'دورية وقائية', battery:'صيانة البطاريات', oil:'الزيت المصروف'};
-function renderCost(){
-  document.getElementById('costRate').value = costSettings.rate;
-  const r = costRange(), cats = costCats(), c = computeCosts(r, cats);
-  const set = (id, v) => { document.getElementById(id).textContent = v; };
-  set('ckTotal', fmtKD(c.t.total, true)); set('ckParts', fmtKD(c.t.parts, true)); set('ckLabor', fmtKD(c.t.labor, true));
-  set('ckOther', fmtKD(c.t.other, true)); set('ckOil', fmtKD(c.t.oil, true)); set('ckAvg', fmtKD(c.avgAll, true));
-  document.getElementById('costInsight').innerHTML = costInsightHtml(c);
-  const series = monthlyCostSeries(cats), max = Math.max(...series.map(x => x.total), 0);
-  const maxIdx = series.findIndex(x => x.total === max && max > 0);
-  document.getElementById('costChart').innerHTML = series.map((x, i) => `<div class="cost-col">
-      ${i === maxIdx ? `<span class="top" style="bottom:${(x.total / max * 100).toFixed(1)}%">${fmtKD(x.total, true)}</span>` : ''}
-      <div class="b" style="height:${max ? (x.total / max * 100).toFixed(1) : 0}%"></div>
-      <div class="tip">${esc(x.full)}<br><b>${fmtKD(x.total)} د.ك</b></div></div>`).join('') ;
-  const axis = document.getElementById('costAxis') || (() => { const d = document.createElement('div'); d.id = 'costAxis'; d.className = 'cost-axis'; document.getElementById('costChart').after(d); return d; })();
-  axis.innerHTML = series.map(x => `<span>${esc(x.label)}</span>`).join('');
-  document.getElementById('costBySec').innerHTML = costBarsHtml(c.bySec, COST_SEC_NAMES);
-  document.getElementById('costBySt').innerHTML = costBarsHtml(c.bySt);
-  const top = c.orders.slice().sort((a, b) => b.c.total - a.c.total).slice(0, 10);
-  document.getElementById('costTop').innerHTML = top.length ? `<table><thead><tr><th>رقم الأمر</th><th>القسم</th><th>المحطة</th><th>المعدة</th><th>التاريخ</th><th>قطع الغيار</th><th>العمالة</th><th>أخرى</th><th>الإجمالي (د.ك)</th></tr></thead><tbody>` +
-    top.map(o => `<tr class="cat-${o.rec.mtType}" style="cursor:pointer;" data-cost-open="${o.rec.id}"><td class="fid">${fmtWid(o.rec.id)}</td><td>${esc(COST_SEC_NAMES[o.rec.mtType])}</td><td class="sstn-cell">${esc(o.rec.sstn)}</td><td>${esc(o.rec.equipment)}</td>
-      <td>${esc(eventDate(o.rec))}</td><td>${fmtKD(o.c.parts)}</td><td>${fmtKD(o.c.labor)}</td><td>${fmtKD(o.c.other)}</td><td class="mw-val">${fmtKD(o.c.total)}</td></tr>`).join('') + '</tbody></table>'
-    : '<div class="no-data" style="padding:16px;">لا توجد أوامر بتكلفة مسجلة في هذه الفترة.</div>';
-}
-function openCost(){ renderCost(); showPage('cost'); }
-document.getElementById('costPeriod').addEventListener('change', renderCost);
-document.getElementById('costAll').addEventListener('change', renderCost);
-document.getElementById('costRate').addEventListener('change', e => {
-  costSettings.rate = parseFloat(e.target.value) || 0;
-  try{ localStorage.setItem(COST_KEY, JSON.stringify(costSettings)); }catch(err){}
-  showToast('السعر الافتراضي لساعة الفني صار ' + fmtKD(costSettings.rate) + ' د.ك (للأوامر الجديدة)', 'success');
-});
-document.getElementById('costTop').addEventListener('click', e => { const tr = e.target.closest('[data-cost-open]'); if(tr) openModal(parseInt(tr.dataset.costOpen)); });
-function costReportHtml(){
-  const r = costRange(), cats = costCats(), c = computeCosts(r, cats);
-  const kpi = (v, l) => `<div class="pr-kpi"><b>${v}</b><span>${l}</span></div>`;
-  const rows = (obj, names) => Object.entries(obj).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(names ? names[k] || k : k)}</td><td>${fmtKD(v)}</td><td>${c.t.total ? Math.round(v / c.t.total * 100) : 0}%</td></tr>`).join('');
-  const series = monthlyCostSeries(cats);
-  let h = `<div class="pr-meta"><span>المحافظة: <b>${esc(govName(currentGov))}</b></span><span>الفترة: <b>${esc(r.label)}</b></span><span>الأقسام: <b>${cats.map(x => esc(COST_SEC_NAMES[x])).join('، ')}</b></span></div>`;
-  h += '<div class="pr-kpis">' + kpi(fmtKD(c.t.total) + ' د.ك', 'إجمالي التكلفة') + kpi(fmtKD(c.t.parts), 'قطع الغيار') + kpi(fmtKD(c.t.labor), 'العمالة') + kpi(fmtKD(c.t.other), 'أخرى') + kpi(fmtKD(c.t.oil), 'الزيت المصروف') + kpi(fmtKD(c.avgAll), 'متوسط تكلفة الأمر') + '</div>';
-  const ins = costInsightHtml(c);
-  if(ins) h += `<div class="mr-summary">${ins}</div>`;
-  h += `<div class="pr-sec"><h2>حسب القسم</h2><table><thead><tr><th>القسم</th><th>التكلفة (د.ك)</th><th>النسبة</th></tr></thead><tbody>${rows(c.bySec, COST_SEC_NAMES)}</tbody></table></div>`;
-  h += `<div class="pr-sec"><h2>حسب المحطة</h2><table><thead><tr><th>المحطة</th><th>التكلفة (د.ك)</th><th>النسبة</th></tr></thead><tbody>${rows(c.bySt)}</tbody></table></div>`;
-  h += `<div class="pr-sec"><h2>التكلفة الشهرية — آخر 12 شهر</h2><table><thead><tr><th>الشهر</th><th>التكلفة (د.ك)</th></tr></thead><tbody>${series.map(x => `<tr><td>${esc(x.full)}</td><td>${fmtKD(x.total)}</td></tr>`).join('')}</tbody></table></div>`;
-  h += `<div class="pr-sec"><h2>تفاصيل الأوامر</h2><table><thead><tr><th>رقم الأمر</th><th>القسم</th><th>المحطة</th><th>المعدة</th><th>التاريخ</th><th>قطع الغيار</th><th>العمالة</th><th>أخرى</th><th>الإجمالي</th></tr></thead><tbody>` +
-    c.orders.sort((a, b) => eventDate(a.rec).localeCompare(eventDate(b.rec))).map(o => `<tr><td class="nw">${fmtWid(o.rec.id)}</td><td>${esc(COST_SEC_NAMES[o.rec.mtType])}</td><td>${esc(o.rec.sstn)}</td><td>${esc(o.rec.equipment)}</td><td class="nw">${esc(eventDate(o.rec))}</td>
-      <td>${fmtKD(o.c.parts)}</td><td>${fmtKD(o.c.labor)}</td><td>${fmtKD(o.c.other)}</td><td>${fmtKD(o.c.total)}</td></tr>`).join('') + '</tbody></table></div>';
-  h += `<div class="pr-signs"><div>إعداد<small>الاسم / التوقيع / التاريخ</small></div><div>مراجعة<small>الاسم / التوقيع / التاريخ</small></div><div>اعتماد<small>الاسم / التوقيع / التاريخ</small></div></div>`;
-  return {title: 'تقرير تكلفة الصيانة — ' + r.label, subtitle: govName(currentGov), html: `<div class="pr-rtl">${h}</div>`, c, r, cats};
-}
-document.getElementById('costPrint').addEventListener('click', () => { const rep = costReportHtml(); printReport(rep.title, rep.subtitle, rep.html); });
-document.getElementById('costExcel').addEventListener('click', () => {
-  try{
-    const rep = costReportHtml(), c = rep.c;
-    const orders = c.orders.map(o => ({'WO ID': fmtWid(o.rec.id), 'Section': COST_SEC_NAMES[o.rec.mtType], 'Substation': o.rec.sstn, 'Equipment': o.rec.equipment, 'Date': eventDate(o.rec),
-      'Parts (KWD)': o.c.parts, 'Labor (KWD)': o.c.labor, 'Other (KWD)': o.c.other, 'Total (KWD)': o.c.total,
-      'Parts detail': (o.rec.costLines || []).map(l => `${l.name} × ${l.qty} @ ${l.price}`).join('; ')}));
-    const oilRows = c.oilMoves.map(o => ({'Date': o.m.date, 'Oil type': (oil.items.find(i => i.id === o.m.itemId) || {}).name, 'Quantity': o.m.qty, 'Station': o.m.station, 'Cost (KWD)': o.cost}));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(orders.length ? orders : [{}]), 'Order costs');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(oilRows.length ? oilRows : [{}]), 'Oil costs');
-    const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
-    downloadBlob(new Blob([wbout], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), 'Maintenance_Cost_' + currentGov + '_' + todayISO() + '.xlsx');
-  }catch(err){ showToast('تعذر تصدير ملف Excel. حاولي مرة ثانية.', 'error'); }
-});
-
 /* ===== MONTHLY REPORT — التقرير الشهري =====
    Built automatically from every section for one month: a written
    summary, this month against the previous one, emergencies and the
@@ -4835,8 +4650,6 @@ function buildMonthlyReport(offset){
   lines.push(`الدورية الوقائية: <b>${pv.st.completed}</b> منجزة من ${pv.st.total}، والمتأخرة حاليًا <b>${overduePv.length}</b>، والمجدولة لشهر ${nextM.label} <b>${upcoming.length}</b>.`);
   lines.push(`البطاريات: <b>${batDone.length}</b> فحص منجز — ${batRes('ok')} سليمة، ${batRes('weak')} ضعيفة، ${batRes('replace')} تحتاج تبديل.`);
   lines.push(`الزيت: صُرف <b>${fmtQty(issued)}</b> لتر ${changeTag(Math.round(issued), Math.round(prevIssued), true)} مقارنة بالشهر السابق (${fmtQty(prevIssued)} لتر)` + (lowOil.length ? `، و<b>${lowOil.length}</b> نوع تحت الحد الأدنى.` : '.'));
-  const mcs = computeCosts(m, ['emergency', 'preventive', 'battery', 'oil']).t.total, pcs = computeCosts(pm, ['emergency', 'preventive', 'battery', 'oil']).t.total;
-  if(mcs || pcs) lines.push(`تكلفة الصيانة: <b>${fmtKD(mcs)} د.ك</b> مقابل ${fmtKD(pcs)} د.ك في الشهر السابق.`);
   if(preds.length) lines.push(`الصيانة التنبؤية: <b>${preds.length}</b> معدات بخطورة عالية حاليًا، أعلاها <bdi>${esc(preds[0].title)}</bdi>.`);
 
   // ---- recommendations ----
@@ -4844,7 +4657,7 @@ function buildMonthlyReport(offset){
   if(overduePv.length) recs.push(`جدولة تنفيذ ${overduePv.length} دورية وقائية متأخرة: ` + overduePv.slice(0, 4).map(r => fmtWid(r.id) + ' <bdi>' + esc(r.sstn || '') + '</bdi>').join('، '));
   topSt.filter(x => x[1] >= 2).forEach(x => recs.push(`فحص شامل لمحطة <bdi>${esc(x[0])}</bdi> بسبب ${x[1]} أعطال طارئة خلال الشهر`));
   const replace = data.filter(r => r.mtType === 'battery' && r.batResult === 'replace' && !r.nextScheduledId);
-  if(replace.length) recs.push(`تبديل ${replace.length} بطارية: ` + replace.slice(0, 4).map(r => '<bdi>' + esc((r.sstn || '') + ' — ' + (r.equipment || '')) + '</bdi>').join('، '));
+  if(replace.length) recs.push(`تبديل ${replace.length} بطارية: ` + replace.slice(0, 4).map(r => '<bdi>' + esc((r.sstn || '') + ' — ' + (eqName(r) || '')) + '</bdi>').join('، '));
   lowOil.forEach(x => recs.push(`طلب توريد <bdi>${esc(x.item.name)}</bdi> — الرصيد ${fmtQty(x.bal)} ${esc(x.item.unit)} تحت الحد (${fmtQty(x.item.minQty)})`));
   preds.filter(x => x.kind === 'repeat').forEach(x => x.next && recs.push(`متابعة <bdi>${esc(x.title)}</bdi> — العطل المتوقع القادم حوالي ${fmtShort(x.next)}`));
   if(em.st.planned + em.st.inprogress + em.st.postponed) recs.push(`إغلاق ${em.st.planned + em.st.inprogress + em.st.postponed} عطل طارئ ما زال مفتوحًا`);
@@ -4865,30 +4678,25 @@ function buildMonthlyReport(offset){
   html += `<div class="pr-sec"><h2>الصيانة الطارئة</h2><h3>أكثر المحطات أعطالًا</h3>` +
     tbl(['المحطة','عدد الأعطال'], topSt.map(x => `<tr><td>${esc(x[0])}</td><td>${x[1]}</td></tr>`)) +
     '<h3>الأعطال خلال الشهر</h3>' +
-    tbl(['رقم الأمر','التاريخ','المحطة','المعدة','الوصف','المدة (ساعة)','الحالة'], sortRows(em.rows).map(r =>
-      `<tr><td class="nw">${fmtWid(r.id)}</td><td class="nw">${esc(r.plannedDate)}</td><td>${esc(r.sstn)}</td><td>${esc(r.equipment)}</td><td>${esc(r.description)}</td><td>${r.duration ?? '—'}</td><td>${esc((STATUSES[r.status] || {}).ar || '')}</td></tr>`)) + '</div>';
+    tbl(['رقم الأمر','التاريخ','المحطة','نوع المعدة','الوصف','المدة (ساعة)','الحالة'], sortRows(em.rows).map(r =>
+      `<tr><td class="nw">${fmtWid(r.id)}</td><td class="nw">${esc(r.plannedDate)}</td><td>${esc(r.sstn)}</td><td>${esc(eqName(r))}</td><td>${esc(r.description)}</td><td>${r.duration ?? '—'}</td><td>${esc((STATUSES[r.status] || {}).ar || '')}</td></tr>`)) + '</div>';
   html += `<div class="pr-sec"><h2>الدورية الوقائية</h2><h3>المنجزة خلال الشهر</h3>` +
-    tbl(['رقم الأمر','المحطة','المعدة','تاريخ الإنجاز','العمل المنجز'], pv.rows.filter(r => r.status === 'completed').map(r =>
-      `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(r.equipment)}</td><td class="nw">${esc(r.endDate)}</td><td>${esc(r.workDone)}</td></tr>`)) +
+    tbl(['رقم الأمر','المحطة','نوع المعدة','تاريخ الإنجاز','العمل المنجز'], pv.rows.filter(r => r.status === 'completed').map(r =>
+      `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(eqName(r))}</td><td class="nw">${esc(r.endDate)}</td><td>${esc(r.workDone)}</td></tr>`)) +
     '<h3>المتأخرة حاليًا</h3>' +
-    tbl(['رقم الأمر','المحطة','المعدة','الموعد','الفريق'], overduePv.map(r =>
-      `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(r.equipment)}</td><td class="nw">${esc(r.plannedDate)}</td><td>${esc(r.engineer)}</td></tr>`)) +
+    tbl(['رقم الأمر','المحطة','نوع المعدة','الموعد','الفريق'], overduePv.map(r =>
+      `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(eqName(r))}</td><td class="nw">${esc(r.plannedDate)}</td><td>${esc(r.engineer)}</td></tr>`)) +
     `<h3>المجدولة لشهر ${nextM.label}</h3>` +
-    tbl(['رقم الأمر','المحطة','المعدة','الموعد','الفريق'], upcoming.map(r =>
-      `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(r.equipment)}</td><td class="nw">${esc(r.plannedDate)}</td><td>${esc(r.engineer)}</td></tr>`)) + '</div>';
+    tbl(['رقم الأمر','المحطة','نوع المعدة','الموعد','الفريق'], upcoming.map(r =>
+      `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(eqName(r))}</td><td class="nw">${esc(r.plannedDate)}</td><td>${esc(r.engineer)}</td></tr>`)) + '</div>';
   html += `<div class="pr-sec"><h2>صيانة البطاريات</h2>` +
     tbl(['رقم الأمر','المحطة','البطارية','التاريخ','جهد البطارية','جهد الشاحن','النتيجة'], batDone.map(r =>
-      `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(r.equipment)}</td><td class="nw">${esc(r.endDate)}</td><td>${r.batVoltage ? esc(r.batVoltage) + ' V' : '—'}</td><td>${r.chargerVolt ? esc(r.chargerVolt) + ' V' : '—'}</td><td>${esc(BAT_RESULTS[r.batResult] || '—')}</td></tr>`)) + '</div>';
+      `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(eqName(r))}</td><td class="nw">${esc(r.endDate)}</td><td>${r.batVoltage ? esc(r.batVoltage) + ' V' : '—'}</td><td>${r.chargerVolt ? esc(r.chargerVolt) + ' V' : '—'}</td><td>${esc(BAT_RESULTS[r.batResult] || '—')}</td></tr>`)) + '</div>';
   html += `<div class="pr-sec"><h2>مخزن الزيت</h2>` +
     tbl(['نوع الزيت','رصيد أول الشهر','الوارد','المصروف','فحوصات الكمية','فروقات الجرد','رصيد آخر الشهر'], oilRows.map(x => {
       const u = esc(x.item.unit);
       return `<tr><td>${esc(x.item.name)}</td><td>${fmtQty(x.open)} ${u}</td><td>${fmtQty(x.received)} ${u}</td><td>${fmtQty(x.issued)} ${u}</td><td>${x.checks}</td>
         <td>${x.diff ? `<span class="${x.diff < 0 ? 'pr-diff-neg' : 'pr-diff-pos'}">${x.diff > 0 ? '+' : ''}${fmtQty(x.diff)} ${u}</span>` : '—'}</td><td>${fmtQty(x.close)} ${u}</td></tr>`; })) + '</div>';
-  const mc = computeCosts(m, ['emergency', 'preventive', 'battery', 'oil']), pc = computeCosts(pm, ['emergency', 'preventive', 'battery', 'oil']);
-  html += `<div class="pr-sec"><h2>تكلفة الصيانة</h2><div class="pr-kpis">` +
-    [[fmtKD(mc.t.total) + ' د.ك', 'إجمالي الشهر'], [fmtKD(pc.t.total) + ' د.ك', 'الشهر السابق'], [fmtKD(mc.t.parts), 'قطع الغيار'], [fmtKD(mc.t.labor), 'العمالة'], [fmtKD(mc.t.oil), 'الزيت']]
-      .map(([v, l]) => `<div class="pr-kpi"><b>${v}</b><span>${l}</span></div>`).join('') + '</div>' +
-    tbl(['القسم','تكلفة الشهر (د.ك)','الشهر السابق (د.ك)'], ['emergency','preventive','battery','oil'].map(k => `<tr><td>${COST_SEC_NAMES[k]}</td><td>${fmtKD(mc.bySec[k] || 0)}</td><td>${fmtKD(pc.bySec[k] || 0)}</td></tr>`)) + '</div>';
   html += `<div class="pr-sec"><h2>أهم التوقعات (خطورة عالية)</h2>` +
     tbl(['الدرجة','النوع','المحطة / المعدة','الإجراء المقترح'], preds.map(x =>
       `<tr><td class="nw">${x.score}</td><td class="nw">${esc(PD_KIND[x.kind])}</td><td>${esc(x.title)}</td><td>${pdText(x.suggestion)}</td></tr>`)) + '</div>';
@@ -4986,9 +4794,9 @@ function buildPrintReport(){
     }
     if(parts.has('table')){
       html += '<h3>جدول الأوامر</h3>';
-      html += rows.length ? `<table><thead><tr><th>رقم الأمر</th><th>المحطة</th><th>المعدة</th><th>الوصف</th><th>الفريق</th><th>${cat === 'emergency' ? 'تاريخ البلاغ' : 'التاريخ المخطط'}</th><th>الانتهاء</th>
+      html += rows.length ? `<table><thead><tr><th>رقم الأمر</th><th>المحطة</th><th>نوع المعدة</th><th>الوصف</th><th>الفريق</th><th>${cat === 'emergency' ? 'تاريخ البلاغ' : 'التاريخ المخطط'}</th><th>الانتهاء</th>
           ${bat ? '<th>جهد البطارية / الشاحن</th><th>النتيجة</th>' : ''}<th>الحالة</th></tr></thead><tbody>` +
-        rows.map(x => `<tr><td class="nw">${fmtWid(x.id)}</td><td>${esc(x.sstn)}</td><td>${esc(x.equipment)}</td><td>${esc(x.description)}</td><td>${esc(x.engineer)}</td>
+        rows.map(x => `<tr><td class="nw">${fmtWid(x.id)}</td><td>${esc(x.sstn)}</td><td>${esc(eqName(x))}</td><td>${esc(x.description)}</td><td>${esc(x.engineer)}</td>
           <td class="nw">${esc(x.plannedDate)}</td><td class="nw">${esc(x.endDate)}</td>
           ${bat ? `<td>${esc([x.batVoltage ? x.batVoltage + ' V' : '', x.chargerVolt ? x.chargerVolt + ' V' : ''].filter(Boolean).join(' / '))}</td><td>${esc(BAT_RESULTS[x.batResult] || '')}</td>` : ''}
           <td>${esc((STATUSES[x.status] || {}).ar || '')}${isOverdue(x) ? ' — متأخرة' : ''}</td></tr>`).join('') + '</tbody></table>'
@@ -4997,8 +4805,8 @@ function buildPrintReport(){
     if(parts.has('overdue')){
       const open = rows.filter(x => cat === 'emergency' ? PENDING.includes(x.status) : isOverdue(x));
       html += `<h3>${cat === 'emergency' ? 'الأعمال الطارئة المفتوحة' : 'الأعمال المتأخرة عن موعدها'}</h3>`;
-      html += open.length ? '<table><thead><tr><th>رقم الأمر</th><th>المحطة</th><th>المعدة</th><th>التاريخ</th><th>الفريق</th><th>الحالة</th></tr></thead><tbody>' +
-        open.map(x => `<tr><td class="nw">${fmtWid(x.id)}</td><td>${esc(x.sstn)}</td><td>${esc(x.equipment)}</td><td class="nw">${esc(x.plannedDate)}</td><td>${esc(x.engineer)}</td><td>${esc((STATUSES[x.status] || {}).ar || '')}</td></tr>`).join('') + '</tbody></table>'
+      html += open.length ? '<table><thead><tr><th>رقم الأمر</th><th>المحطة</th><th>نوع المعدة</th><th>التاريخ</th><th>الفريق</th><th>الحالة</th></tr></thead><tbody>' +
+        open.map(x => `<tr><td class="nw">${fmtWid(x.id)}</td><td>${esc(x.sstn)}</td><td>${esc(eqName(x))}</td><td class="nw">${esc(x.plannedDate)}</td><td>${esc(x.engineer)}</td><td>${esc((STATUSES[x.status] || {}).ar || '')}</td></tr>`).join('') + '</tbody></table>'
         : '<div class="pr-empty">لا يوجد.</div>';
     }
     html += '</div>';
@@ -5100,7 +4908,7 @@ function goBack(){
   if(navStack.length && history.state && history.state.mt){ history.back(); return; }
   stepBack();
 }
-const REOPEN = {home: () => showHome(), cost: () => openCost(), monthly: () => openMonthly(), print: () => openPrintPage(), govstats: () => openGovStats()};
+const REOPEN = {home: () => showHome(), monthly: () => openMonthly(), print: () => openPrintPage(), govstats: () => openGovStats()};
 function stepBack(){
   const to = navStack.pop();
   if(!to){ if(currentPage !== 'home') showHome(); return; }
@@ -5130,7 +4938,6 @@ const NAV_ICON = {
   inbox:'<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>',
   outbox:'<path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>',
   search:'<path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>',
-  money:'<path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>',
   calendar:'<path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h5v5H7z"/>',
   print:'<path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>',
   predictive:'<path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>',
@@ -5170,7 +4977,6 @@ function renderNav(){
       h += item('page:reports', 'report', 'التقارير', 'reports');
     }
     h += '<div class="nav-sep"></div>';
-    h += item('cost', 'money', 'تكلفة الصيانة', 'cost');
     h += item('monthly', 'calendar', 'التقرير الشهري', 'monthly');
     h += item('print', 'print', 'طباعة التقارير', 'print');
     h += item('govstats', 'globe', 'إحصائية المحافظات', 'govstats');
@@ -5190,7 +4996,6 @@ document.getElementById('sideNav').addEventListener('click', e => {
   else if(act === 'govstats') openGovStats();
   else if(act === 'print') openPrintPage();
   else if(act === 'monthly') openMonthly();
-  else if(act === 'cost') openCost();
   else if(act === 'home') showHome();
 });
 
@@ -5208,7 +5013,7 @@ function showHome(){
    30 days. */
 const HD_ICON = {
   emergency: NAV_ICON.emergency, preventive: NAV_ICON.preventive, battery: NAV_ICON.battery, oil: NAV_ICON.oil,
-  predictive: NAV_ICON.predictive, money: NAV_ICON.money,
+  predictive: NAV_ICON.predictive,
   check: '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>',
   list: '<path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>',
   clock: '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>'
@@ -5225,9 +5030,9 @@ function renderHomeDash(){
   const batOk = bats.filter(r => r.batResult === 'ok').length;
   const batPct = bats.length ? Math.round(batOk / bats.length * 100) : 0;
   const o = oilSummary();
-  const cm = monthBounds(0), pmn = monthBounds(-1);
-  const all4 = ['emergency', 'preventive', 'battery', 'oil'];
-  const costNow = computeCosts(cm, all4).t.total, costPrev = computeCosts(pmn, all4).t.total;
+  const cm = monthBounds(0);
+  const reps = data.filter(r => r.replaceReq === 'yes' && REPLACE_TO[r.replaceTo]);
+  const repBy = k => reps.filter(r => r.replaceTo === k).length;
   const month = computeStats(data.filter(r => { const d = refDate(r); return d >= cm.from && d <= cm.to; }));
   const overdue = data.filter(isOverdue).length;
 
@@ -5241,7 +5046,7 @@ function renderHomeDash(){
     kpi('preventive', '#c77700', 'clock', overdue, 'أعمال متأخرة عن موعدها', overdue ? 'تحتاج جدولة' : 'كل الأعمال بموعدها') +
     kpi('battery', '#b8930f', 'battery', batPct + '%', 'بطاريات سليمة', batOk + ' من ' + bats.length + ' فحص') +
     kpi('oil', '#a86b2d', 'oil', o.liters, 'لتر زيت بالمخزن', o.low ? o.low + ' صنف تحت الحد الأدنى' : 'كل الأصناف فوق الحد') +
-    kpi('cost', '#6a4fb3', 'money', fmtKD(costNow, true), 'تكلفة الصيانة هذا الشهر (د.ك)', costPrev ? (costNow >= costPrev ? '▲ ' : '▼ ') + fmtKD(Math.abs(costNow - costPrev), true) + ' عن الشهر السابق' : 'لا توجد تكلفة الشهر السابق');
+    kpi('replace', '#a07c10', 'list', reps.length, 'طلبات الاستبدال', reps.length ? repBy('construction') + ' الإنشاءات · ' + repBy('jabriya') + ' طوارئ الجابرية' : 'لا توجد طلبات');
 
   // ---- orders per month, stacked by section ----
   const months = [-5, -4, -3, -2, -1, 0].map(monthBounds);
@@ -5318,7 +5123,7 @@ function renderHomeDash(){
     const dd = dayDiff(r.plannedDate);
     return `<div class="hd-up-row" data-hd-id="${r.id}" data-hd-cat="${r.mtType}">
       <div class="day" style="background:${HD_SEC[r.mtType]}"><b>${d}</b><small>${AR_MONTHS[parseInt(m) - 1]}</small></div>
-      <div class="txt"><b>${esc(MT_TYPES[r.mtType].ar)} — ${fmtWid(r.id)}</b><span>${esc((r.sstn || '') + (r.equipment ? ' · ' + r.equipment : ''))}</span></div>
+      <div class="txt"><b>${esc(MT_TYPES[r.mtType].ar)} — ${fmtWid(r.id)}</b><span>${esc((r.sstn || '') + (eqName(r) ? ' · ' + eqName(r) : ''))}</span></div>
       <span class="in">${dd === 0 ? 'اليوم' : dd === 1 ? 'بكرة' : 'بعد ' + dd + ' يوم'}</span></div>`;
   }).join('') : '<div class="hd-empty">✓ ما في صيانة مجدولة خلال الـ 30 يوم القادمة.</div>';
 }
@@ -5326,7 +5131,8 @@ document.getElementById('hdKpis').addEventListener('click', e => {
   const b = e.target.closest('[data-hd-go]');
   if(!b) return;
   const go = b.dataset.hdGo;
-  if(go === 'cost') openCost(); else if(go === 'monthly') openMonthly(); else enterCategory(go);
+  if(go === 'replace'){ enterCategory('preventive'); document.getElementById('searchBox').value = 'استبدال'; render(); }
+  else if(go === 'monthly') openMonthly(); else enterCategory(go);
 });
 ['hdRates', 'hdStations', 'hdUpcoming'].forEach(id => document.getElementById(id).addEventListener('click', e => {
   const el = e.target.closest('[data-hd-cat]');
