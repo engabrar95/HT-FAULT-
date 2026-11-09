@@ -1856,7 +1856,10 @@
   .home-hero .home-gov{color:#ffd76a;font-size:15px;font-weight:800;margin:0;}
   .home-date{font-size:12.5px;color:#c9d9ea;margin-top:4px;}
 
-  .hd-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:12px;margin-bottom:18px;direction:rtl;}
+  /* 7 cards: one row on wide screens, 4 + 3 on tablets, pairs on phones — never one card left alone. */
+  .hd-kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:18px;direction:rtl;}
+  @media (max-width:1300px){ .hd-kpis{grid-template-columns:repeat(4,1fr);} }
+  @media (max-width:560px){ .hd-kpis{grid-template-columns:repeat(2,1fr);} }
   .hd-kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;position:relative;overflow:hidden;
     transition:transform .12s ease, box-shadow .12s ease;text-align:right;font-family:'Cairo',sans-serif;color:var(--text);}
   .hd-kpi:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(8,38,74,0.14);}
