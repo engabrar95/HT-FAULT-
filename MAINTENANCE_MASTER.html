@@ -2083,7 +2083,7 @@
       </div>
       <div class="cat-stats">
         <div class="cat-stat"><div class="v" id="oItems">0</div><div class="l">أنواع الزيت</div></div>
-        <div class="cat-stat good"><div class="v" id="oLiters">0</div><div class="l">الرصيد (لتر)</div></div>
+        <div class="cat-stat good"><div class="v" id="oLiters">0</div><div class="l">الرصيد (برميل)</div></div>
         <div class="cat-stat bad"><div class="v" id="oLow">0</div><div class="l">⚠️ تحت الحد</div></div>
         <div class="cat-stat"><div class="v" id="oLastCheck" style="font-size:15px;">—</div><div class="l">آخر فحص</div></div>
       </div>
@@ -2496,7 +2496,7 @@
     <div class="page-title"><h2>أرصدة الزيت بالمخزن</h2><span class="page-sec"></span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
     <div class="kpis oil-kpis">
       <div class="kpi"><div class="val" id="okItems">0</div><div class="lbl">أنواع الزيت</div></div>
-      <div class="kpi ok"><div class="val" id="okLiters">0</div><div class="lbl">الرصيد الحالي (لتر)</div></div>
+      <div class="kpi ok"><div class="val" id="okLiters">0</div><div class="lbl">الرصيد الحالي (برميل)</div></div>
       <div class="kpi danger"><div class="val" id="okLow">0</div><div class="lbl">تحت الحد الأدنى</div></div>
       <div class="kpi"><div class="val" id="okLastCheck" style="font-size:20px;">—</div><div class="lbl">آخر فحص كمية</div></div>
     </div>
@@ -2640,7 +2640,7 @@
     <div class="modal-body">
       <div class="form-grid">
         <div class="field span2"><label>اسم / نوع الزيت</label><input id="oi_name" placeholder="مثال: زيت محولات — Transformer Oil"></div>
-        <div class="field"><label>الوحدة</label><select id="oi_unit"><option>لتر</option><option>برميل</option><option>جالون</option></select></div>
+        <div class="field"><label>الوحدة</label><input id="oi_unit" value="برميل" readonly></div>
         <div class="field"><label>الحد الأدنى للتنبيه</label><input id="oi_minQty" type="number" step="0.1" placeholder="مثال: 400"></div>
         <div class="field span2"><label>الموقع بالمخزن</label><input id="oi_location" placeholder="مثال: مخزن طوارئ عبدالله المبارك — رف 3"></div>
         <div class="field span2" id="oi_openingWrap"><label>الرصيد الافتتاحي (اختياري)</label><input id="oi_opening" type="number" step="0.1" placeholder="الكمية الموجودة الحين"></div>
@@ -2661,7 +2661,7 @@
         <div class="field span2"><label>نوع الزيت</label><select id="om_item"></select>
           <div class="oil-sys-qty" id="om_sysQty"></div></div>
         <div class="field"><label>التاريخ</label><input id="om_date" type="date"></div>
-        <div class="field"><label id="om_qtyLabel">الكمية</label><input id="om_qty" type="number" step="0.1" min="0"></div>
+        <div class="field"><label id="om_qtyLabel">الكمية</label><input id="om_qty" type="number" step="0.5" min="0" placeholder="عدد البراميل"></div>
         <div class="field span2" id="om_diffWrap"><div class="oil-sys-qty" id="om_diff"></div></div>
         <div class="field" id="om_stationWrap"><label>المحطة (المصروف لها)</label><input id="om_station" list="stationList" placeholder="مثال: KHIT C"></div>
         <div class="field"><label id="om_refLabel">المرجع</label><input id="om_ref" placeholder="رقم أمر الصيانة / رقم الفاتورة"></div>
@@ -3228,7 +3228,7 @@ function updateCategoryCards(){
   set('bTotal', b.total); set('bPending', b.planned + b.inprogress + b.postponed); set('bOverdue', b.overdue);
   set('bReplace', bRecs.filter(r => r.batResult === 'replace' && !r.nextScheduledId).length);
   const o = oilSummary();
-  set('oItems', o.items); set('oLiters', o.liters); set('oLow', o.low); set('oLastCheck', o.lastCheck ? fmtShort(o.lastCheck) : '—');
+  set('oItems', o.items); set('oLiters', o.barrels); set('oLow', o.low); set('oLastCheck', o.lastCheck ? fmtShort(o.lastCheck) : '—');
 }
 
 function updateStats(){
@@ -4452,12 +4452,12 @@ function buildDemoOil(firstItemId, firstMoveId){
   const pick = a => a[Math.floor(rnd() * a.length)];
   // [name, unit, minQty, location, price, opening stock, received per delivery, typical issue, final balance target]
   const SPEC = [
-    ['زيت محولات — Transformer Oil', 'لتر', 400, 'مخزن الطوارئ — رف 1', 0.9, 900, 1000, [60, 220]],
-    ['زيت قواطع — Switchgear Oil', 'لتر', 100, 'مخزن الطوارئ — رف 2', 1.2, 260, 200, [20, 70], 'low'],
-    ['زيت مغير الجهد — Tap Changer Oil', 'برميل', 2, 'الساحة الخارجية', 180, 5, 4, [1, 1]],
-    ['زيت هيدروليك — Hydraulic Oil', 'لتر', 60, 'مخزن الطوارئ — رف 3', 1.6, 150, 120, [8, 30]],
-    ['زيت عزل الكابلات — Cable Oil', 'لتر', 80, 'مخزن الكابلات', 2.1, 180, 150, [15, 45]],
-    ['زيت مولدات الديزل — Generator Oil', 'لتر', 50, 'مخزن الطوارئ — رف 4', 1.1, 120, 100, [10, 35], 'low']
+    ['زيت محولات — Transformer Oil', 'برميل', 4, 'مخزن الطوارئ — رف 1', 0, 10, 8, [1, 3]],
+    ['زيت قواطع — Switchgear Oil', 'برميل', 2, 'مخزن الطوارئ — رف 2', 0, 6, 4, [1, 2], 'low'],
+    ['زيت مغير الجهد — Tap Changer Oil', 'برميل', 2, 'الساحة الخارجية', 0, 5, 4, [1, 1]],
+    ['زيت هيدروليك — Hydraulic Oil', 'برميل', 1, 'مخزن الطوارئ — رف 3', 0, 4, 3, [1, 1]],
+    ['زيت عزل الكابلات — Cable Oil', 'برميل', 2, 'مخزن الكابلات', 0, 5, 4, [1, 2]],
+    ['زيت مولدات الديزل — Generator Oil', 'برميل', 1, 'مخزن الطوارئ — رف 4', 0, 4, 3, [1, 1], 'low']
   ];
   const STATIONS = ['KHIT B', 'KHIT C', 'FARW Q', 'FARW D', 'FARW M', 'JALB B', 'ARDY G', 'SULB B', 'YARK A', 'AIRP M', 'JAL A', 'OMAR B'];
   const TEAMS = ['فريق الصيانة A', 'فريق الصيانة B', 'فريق الطوارئ 1', 'فريق الطوارئ 2'];
@@ -4486,7 +4486,7 @@ function buildDemoOil(firstItemId, firstMoveId){
       }
     }
     if(low && bal >= minQty){
-      const qty = Math.round(bal - minQty * 0.7);
+      const qty = bal - Math.max(0, minQty - 1);
       add(-3, 'out', qty, {station: pick(STATIONS), by: pick(TEAMS), ref: 'إصلاح طارئ'}); bal -= qty;
     }
   });
@@ -4495,12 +4495,29 @@ function buildDemoOil(firstItemId, firstMoveId){
   return {items, moves};
 }
 
+// The store counts oil in barrels. Items kept in litres or gallons are
+// converted once: a barrel (drum) is 208 litres, or 55 gallons.
+const PER_BARREL = {'لتر': 208, 'جالون': 55};
+function toBarrels(st){
+  const conv = st.items.filter(i => PER_BARREL[i.unit]);
+  if(!conv.length) return st;
+  const r2 = n => Math.round(n * 100) / 100;
+  conv.forEach(i => {
+    const k = PER_BARREL[i.unit];
+    i.minQty = r2((parseFloat(i.minQty) || 0) / k);
+    st.moves.filter(m => m.itemId === i.id).forEach(m => { m.qty = r2((parseFloat(m.qty) || 0) / k); });
+    i.notes = ((i.notes || '') + ' (حُوّلت الكميات من ' + i.unit + ' إلى برميل)').trim();
+    i.unit = 'برميل';
+  });
+  try{ localStorage.setItem(oilKeyFor(currentGov), JSON.stringify(st)); }catch(e){}
+  return st;
+}
 function loadOil(){
   try{
     const raw = localStorage.getItem(oilKeyFor(currentGov));
     const parsed = JSON.parse(raw);
     if(parsed && Array.isArray(parsed.items) && Array.isArray(parsed.moves)){
-      const v2 = 'mtOilDemoV2_' + currentGov;
+      const v2 = 'mtOilDemoV3_' + currentGov;
       if(!localStorage.getItem(v2)){
         localStorage.setItem(v2, '1');
         if(parsed.items.some(i => i.demo)){
@@ -4509,10 +4526,10 @@ function loadOil(){
           const demo = buildDemoOil(nextOilId(items), nextOilId(moves));
           const fresh = {items: items.concat(demo.items), moves: moves.concat(demo.moves)};
           localStorage.setItem(oilKeyFor(currentGov), JSON.stringify(fresh));
-          return fresh;
+          return toBarrels(fresh);
         }
       }
-      return parsed;
+      return toBarrels(parsed);
     }
     // First visit to the oil store in this governorate: start with demo data.
     const flag = 'mtOilDemoSeeded_' + currentGov;
@@ -4520,7 +4537,7 @@ function loadOil(){
       const demo = buildDemoOil(1, 1);
       localStorage.setItem(oilKeyFor(currentGov), JSON.stringify(demo));
       localStorage.setItem(flag, '1');
-      localStorage.setItem('mtOilDemoV2_' + currentGov, '1');
+      localStorage.setItem('mtOilDemoV3_' + currentGov, '1');
       return demo;
     }
   }catch(e){}
@@ -4562,7 +4579,7 @@ function oilSummary(){
   const checks = oil.moves.filter(m => m.type === 'check').map(m => m.date).sort();
   return {
     items: oil.items.length,
-    liters: fmtQty(oil.items.filter(i => i.unit === 'لتر').reduce((s, i) => s + c.bal[i.id], 0)),
+    barrels: fmtQty(oil.items.filter(i => i.unit === 'برميل').reduce((s, i) => s + c.bal[i.id], 0)),
     low: oilLowItems().length,
     lastCheck: checks.length ? checks[checks.length - 1] : ''
   };
@@ -4618,7 +4635,7 @@ function renderOil(){
   document.getElementById('oilMovesCount').textContent = moves.length + ' حركة';
   const o = oilSummary();
   document.getElementById('okItems').textContent = o.items;
-  document.getElementById('okLiters').textContent = o.liters;
+  document.getElementById('okLiters').textContent = o.barrels;
   document.getElementById('okLow').textContent = o.low;
   document.getElementById('okLastCheck').textContent = o.lastCheck ? fmtShort(o.lastCheck) : '—';
 }
@@ -4629,7 +4646,7 @@ function openOilItem(id){
   editingOilItemId = id || null;
   const it = id ? oil.items.find(x => x.id === id) : null;
   document.getElementById('oilItemTitle').textContent = it ? '✏️ تعديل نوع الزيت' : '🛢️ نوع زيت جديد';
-  ['name','unit','minQty','location','notes'].forEach(f => { document.getElementById('oi_' + f).value = it ? (it[f] ?? '') : (f === 'unit' ? 'لتر' : ''); });
+  ['name','unit','minQty','location','notes'].forEach(f => { document.getElementById('oi_' + f).value = it ? (it[f] ?? '') : (f === 'unit' ? 'برميل' : ''); });
   document.getElementById('oi_opening').value = '';
   document.getElementById('oi_openingWrap').style.display = it ? 'none' : '';
   showPage('oilItem');
@@ -5015,8 +5032,8 @@ function buildMonthlyReport(offset){
   em.rows.filter(r => r.status !== 'cancelled').forEach(r => { const k = (r.sstn || '—').trim(); stCount[k] = (stCount[k] || 0) + 1; });
   const topSt = Object.entries(stCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const oilRows = oilMonth(m), prevOil = oilMonth(pm);
-  const issued = oilRows.filter(x => x.item.unit === 'لتر').reduce((a, x) => a + x.issued, 0);
-  const prevIssued = prevOil.filter(x => x.item.unit === 'لتر').reduce((a, x) => a + x.issued, 0);
+  const issued = oilRows.filter(x => x.item.unit === 'برميل').reduce((a, x) => a + x.issued, 0);
+  const prevIssued = prevOil.filter(x => x.item.unit === 'برميل').reduce((a, x) => a + x.issued, 0);
   const preds = computePredictions().filter(x => x.level === 'high').slice(0, 5);
   const batDone = bt.rows.filter(r => r.status === 'completed');
   const batRes = k => batDone.filter(r => r.batResult === k).length;
@@ -5032,7 +5049,7 @@ function buildMonthlyReport(offset){
     (topSt.length ? `، وأكثر محطة أعطالًا <bdi>${esc(topSt[0][0])}</bdi> (${topSt[0][1]})` : '') + (em.st.avgDur ? `، ومتوسط مدة الإصلاح ${em.st.avgDur} ساعة.` : '.'));
   lines.push(`الدورية الوقائية: <b>${pv.st.completed}</b> منجزة من ${pv.st.total}، والمتأخرة حاليًا <b>${overduePv.length}</b>، والمجدولة لشهر ${nextM.label} <b>${upcoming.length}</b>.`);
   lines.push(`البطاريات: <b>${batDone.length}</b> فحص منجز — ${batRes('ok')} سليمة، ${batRes('weak')} ضعيفة، ${batRes('replace')} تحتاج تبديل.`);
-  lines.push(`الزيت: صُرف <b>${fmtQty(issued)}</b> لتر ${changeTag(Math.round(issued), Math.round(prevIssued), true)} مقارنة بالشهر السابق (${fmtQty(prevIssued)} لتر)` + (lowOil.length ? `، و<b>${lowOil.length}</b> نوع تحت الحد الأدنى.` : '.'));
+  lines.push(`الزيت: صُرف <b>${fmtQty(issued)}</b> برميل ${changeTag(Math.round(issued), Math.round(prevIssued), true)} مقارنة بالشهر السابق (${fmtQty(prevIssued)} برميل)` + (lowOil.length ? `، و<b>${lowOil.length}</b> نوع تحت الحد الأدنى.` : '.'));
   if(preds.length) lines.push(`الصيانة التنبؤية: <b>${preds.length}</b> معدات بخطورة عالية حاليًا، أعلاها <bdi>${esc(preds[0].title)}</bdi>.`);
 
   // ---- recommendations ----
@@ -5091,7 +5108,7 @@ function buildMonthlyReport(offset){
     '🚨 طارئة: ' + em.st.total + (topSt.length ? ' — أكثر محطة: ' + topSt[0][0] + ' (' + topSt[0][1] + ')' : ''),
     '🛡️ دورية: ' + pv.st.completed + ' منجزة — ' + overduePv.length + ' متأخرة — ' + upcoming.length + ' مجدولة للشهر القادم',
     '🔋 بطاريات: ' + batDone.length + ' فحص — ' + batRes('replace') + ' تحتاج تبديل',
-    '🛢️ زيت مصروف: ' + fmtQty(issued) + ' لتر' + (lowOil.length ? ' — ' + lowOil.length + ' نوع تحت الحد' : ''),
+    '🛢️ زيت مصروف: ' + fmtQty(issued) + ' برميل' + (lowOil.length ? ' — ' + lowOil.length + ' نوع تحت الحد' : ''),
     preds.length ? '🔮 توقعات عالية الخطورة: ' + preds.length : ''].filter(x => x !== '').join('\n');
   return {title: 'التقرير الشهري للصيانة — ' + m.label, subtitle: govName(currentGov) + ' · ' + fmtShort(m.from) + ' — ' + fmtShort(m.to), html: `<div class="pr-rtl">${html}</div>`, whats, label: m.label + (partial ? ' (حتى اليوم)' : '')};
 }
@@ -5202,7 +5219,7 @@ function buildPrintReport(){
     html += '<div class="pr-sec"><h2>صيانة الزيت — مخزن الزيت</h2>';
     if(parts.has('summary')){
       const o = oilSummary();
-      html += '<div class="pr-kpis">' + kpi(o.items, 'أنواع الزيت') + kpi(o.liters, 'الرصيد الحالي (لتر)') + kpi(o.low, 'تحت الحد الأدنى') + kpi(o.lastCheck ? fmtShort(o.lastCheck) : '—', 'آخر فحص كمية') + '</div>';
+      html += '<div class="pr-kpis">' + kpi(o.items, 'أنواع الزيت') + kpi(o.barrels, 'الرصيد الحالي (برميل)') + kpi(o.low, 'تحت الحد الأدنى') + kpi(o.lastCheck ? fmtShort(o.lastCheck) : '—', 'آخر فحص كمية') + '</div>';
     }
     if(parts.has('oilBal')){
       html += '<h3>أرصدة الزيت الحالية</h3>';
@@ -6153,7 +6170,7 @@ function renderHomeDash(){
     kpi('preventive', '#1f5fa8', 'preventive', pv.rate + '%', 'الالتزام بالدوريات الوقائية', pv.completed + ' منجزة من ' + (pv.total - pv.cancelled)) +
     kpi('preventive', '#c77700', 'clock', overdue, 'أعمال متأخرة عن موعدها', overdue ? 'تحتاج جدولة' : 'كل الأعمال بموعدها') +
     kpi('battery', '#b8930f', 'battery', batPct + '%', 'بطاريات سليمة', batOk + ' من ' + bats.length + ' فحص') +
-    kpi('oil', '#a86b2d', 'oil', o.liters, 'لتر زيت بالمخزن', o.low ? o.low + ' صنف تحت الحد الأدنى' : 'كل الأصناف فوق الحد') +
+    kpi('oil', '#a86b2d', 'oil', o.barrels, 'برميل زيت بالمخزن', o.low ? o.low + ' صنف تحت الحد الأدنى' : 'كل الأصناف فوق الحد') +
     kpi('replace', '#a07c10', 'list', reps.length, 'طلبات الاستبدال', reps.length ? repBy('construction') + ' الإنشاءات · ' + repBy('jabriya') + ' طوارئ الجابرية' : 'لا توجد طلبات');
 
   // ---- orders per month, stacked by section ----
