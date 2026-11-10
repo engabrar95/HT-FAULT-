@@ -2346,7 +2346,7 @@
   <section data-page="roster">
     <div class="page-title"><h2>جدول الخفارات</h2><span class="page-sec">المهندس المناوب يستلم البلاغات المرسلة "لفريقي"</span><button class="pg-back" data-go-back type="button">→ رجوع</button></div>
     <div class="st-bar">
-      <label class="btn st-dark">📥 استيراد جدول الخفارات<input type="file" id="roFile" accept=".csv,.xlsx,.xls,.json" hidden></label>
+      <label class="btn st-dark">📥 استيراد جدول الخفارات (PDF أو Excel)<input type="file" id="roFile" accept=".pdf,.csv,.xlsx,.xls,.json,application/pdf" hidden></label>
       <button class="btn ghost" type="button" id="roTemplate">⤓ نموذج فارغ (Excel / CSV)</button>
       <div class="grow"></div>
       <button class="btn ghost" type="button" id="roClear" style="color:var(--red)">مسح الجدول</button>
@@ -5403,7 +5403,8 @@ document.getElementById('sideNav').addEventListener('click', e => {
    it on site; until then it is estimated from the station's area code. */
 const LIBS = {
   leaflet: ['https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css', 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'],
-  qr: [null, 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js']
+  qr: [null, 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'],
+  pdf: [null, 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js']
 };
 const libLoads = {};
 function loadLib(name){
@@ -5790,9 +5791,80 @@ function parseRosterRows(rows){
   out.duties.sort((a, b) => (a.date + a.shift).localeCompare(b.date + b.shift));
   return out;
 }
+// The section's roster PDF: each row has the date, the shift (morning /
+// afternoon), the engineer's name and phone; the footer lists the
+// escalation contacts as "name (phone)". The file stores the لا ligature
+// as "ال", so names that contain it are put right where they're known.
+const PDF_FIX = {'هللا': 'الله', 'طالل': 'طلال', 'بالل': 'بلال', 'جالل': 'جلال', 'هالل': 'هلال', 'فالح': 'فلاح', 'عالء': 'علاء'};
+const fixArabic = t => t.replace(/[‎‏‪-‮]/g, '').split(/(\s+)/).map(w => {
+  for(const [bad, good] of Object.entries(PDF_FIX)) w = w.replace(bad, good);
+  return w.replace(/^اال/, 'الا');
+}).join('').trim();
+async function parseRosterPdf(buf){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+  const doc = await pdfjsLib.getDocument({data: buf}).promise;
+  const out = {duties: [], contacts: []};
+  const isAr = t => /[؀-ۿ]/.test(t), isPhone = t => /^\d{8}$/.test(t);
+  for(let n = 1; n <= doc.numPages; n++){
+    const items = (await (await doc.getPage(n)).getTextContent()).items
+      .map(i => ({t: i.str.trim(), x: i.transform[4], y: i.transform[5]})).filter(i => i.t);
+    const dates = items.filter(i => /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(i.t));
+    const near = (y, d) => items.filter(i => Math.abs(i.y - y) <= d);
+    dates.forEach(dt => {
+      const row = near(dt.y, 16);
+      const phone = row.find(i => isPhone(i.t));
+      if(!phone) return;
+      const [dd, mm, yy] = dt.t.split('/').map(Number);
+      const date = toISO(new Date(yy, mm - 1, dd)); // "31/11" rolls over to 1 December
+      const pm = near(dt.y, 10).some(i => /afternoon|بعد الظهر/i.test(i.t)) || row.some(i => i.t === '11:00 PM');
+      // The name sits between the ID column and the date column.
+      // (a lower-case single word there is a signature, not a name)
+      const names = row.filter(i => i.x > phone.x + 40 && i.x < dt.x - 5 && !/^\d+$/.test(i.t) && !/^[a-z]+$/.test(i.t));
+      const ar = names.filter(i => isAr(i.t)).sort((a, b) => b.y - a.y).map(i => fixArabic(i.t)).join(' ');
+      const en = names.filter(i => !isAr(i.t)).sort((a, b) => b.y - a.y).map(i => i.t).join(' ');
+      out.duties.push({date, shift: pm ? 'pm' : 'am', ar: ar || en, en: ar ? en : '', phone: phone.t});
+    });
+    // Footer lines: every phone that isn't on a duty row.
+    const lines = {};
+    const phoneItem = t => /^[\s()\-+]*\d{8}[\s()\-+]*$/.test(t);
+    items.filter(i => phoneItem(i.t) && !dates.some(d => Math.abs(d.y - i.y) <= 16)).forEach(i => { lines[Math.round(i.y)] = true; });
+    Object.keys(lines).forEach(y => {
+      const line = near(+y, 2).sort((a, b) => b.x - a.x);
+      const text = line.map(i => i.t).join(' ');
+      const role = /محافظة/.test(text) ? 'مسؤول المحافظات (العاصمة وحولي والفروانية)' : /عدم الرد/.test(text) ? 'رئيس قسم الصيانة والوقاية — عند عدم الرد'
+        : /الميكانيك/.test(text) ? 'أعطال الميكانيك' : 'رقم تصعيد';
+      line.forEach((it, k) => {
+        if(!phoneItem(it.t)) return;
+        const ph = it.t.replace(/\D/g, '');
+        const prev = line.slice(0, k).reverse().find(i => isAr(i.t) && i.t.replace(/[^؀-ۿ]/g, '').length > 3 && !/محافظة|الاتصال|االتصال|يرجى/.test(i.t));
+        const grp = line.slice(k + 1, k + 4).map(i => i.t).join(' ').match(/قروب\s*\(?\s*([A-D])/);
+        if(!prev) return;
+        const name = 'م. ' + fixArabic(prev.t.replace(/^(المهندس|مهندس)\s*\/?\s*|^م\s*\/\s*/, '').replace(/^\/\s*/, ''));
+        const ex = out.contacts.find(c => c.phone === ph);
+        if(ex){ if(grp && !ex.role.includes('قروب')) ex.role += ' — قروب ' + grp[1]; return; }
+        out.contacts.push({role: grp ? (role === 'رقم تصعيد' ? '' : role + ' — ') + 'قروب ' + grp[1] : role, ar: name, phone: ph});
+      });
+    });
+  }
+  out.duties.sort((a, b) => (a.date + a.shift).localeCompare(b.date + b.shift));
+  return out;
+}
 document.getElementById('roFile').addEventListener('change', e => {
   const f = e.target.files[0];
   if(!f) return;
+  if(/\.pdf$/i.test(f.name) || f.type === 'application/pdf'){
+    showToast('جاري قراءة ملف الـ PDF...', 'info');
+    Promise.all([loadLib('pdf'), f.arrayBuffer()]).then(([, buf]) => parseRosterPdf(buf)).then(parsed => {
+      if(!parsed.duties.length) throw new Error('empty');
+      if(!parsed.contacts.length) parsed.contacts = roster.contacts || [];
+      roster = Object.assign(parsed, {importedAt: new Date().toISOString(), source: f.name});
+      localStorage.setItem(ROSTER_KEY, JSON.stringify(roster));
+      showToast('تم استيراد ' + roster.duties.length + ' خفارة و' + roster.contacts.length + ' رقم تصعيد من الـ PDF', 'success');
+      renderRoster();
+    }).catch(() => showToast('ما قدرت أقرأ الجدول من الـ PDF — تأكد إنه ملف الخفارات الأصلي (مو صورة)', 'error'));
+    e.target.value = '';
+    return;
+  }
   const reader = new FileReader();
   reader.onload = () => {
     try{
