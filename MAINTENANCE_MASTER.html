@@ -1197,8 +1197,14 @@
   .bat-result.ok{background:var(--green-dim);color:var(--green);}
   .bat-result.weak{background:var(--amber-dim);color:var(--amber);}
   .bat-result.replace{background:var(--red-dim);color:var(--red);}
-  #batteryFields{display:none;border:1px dashed rgba(242,201,76,0.45);border-radius:8px;padding:14px;margin:4px 0 16px;}
-  #batteryFields .ttl{font-size:12px;font-weight:800;color:#f2c94c;margin-bottom:10px;}
+  /* battery orders: only the station, the battery, checked or not, and the engineer */
+  #modalOverlay.bat-simple .modal-body > .form-grid > .field:not([data-bat-keep]), #modalOverlay.bat-simple .entry-mode-toggle, #modalOverlay.bat-simple #scanPanel{display:none !important;}
+  #modalOverlay.bat-simple .modal-body > .form-grid{grid-template-columns:1fr 1fr;}
+  .bat-only{display:none;} #modalOverlay.bat-simple .bat-only{display:block;}
+  #batCheckYN button[data-bat="yes"].active{background:#1f8a52;border-color:#1f8a52;color:#fff;}
+  #batCheckYN button[data-bat="no"].active{background:#d03b3b;border-color:#d03b3b;color:#fff;}
+  .bat-pill{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:999px;}
+  .bat-pill.yes{background:rgba(31,138,82,0.14);color:#1f8a52;} .bat-pill.no{background:rgba(208,59,59,0.12);color:#d03b3b;}
   .oil-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
   .oil-state{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;}
   .oil-state.ok{background:var(--green-dim);color:var(--green);}
@@ -2072,7 +2078,7 @@
         <div class="cat-stat"><div class="v" id="bTotal">0</div><div class="l">الإجمالي</div></div>
         <div class="cat-stat warn"><div class="v" id="bPending">0</div><div class="l">مجدولة / جارية</div></div>
         <div class="cat-stat bad"><div class="v" id="bOverdue">0</div><div class="l">⏰ متأخرة</div></div>
-        <div class="cat-stat bad"><div class="v" id="bReplace">0</div><div class="l">⛔ تحتاج تبديل</div></div>
+        <div class="cat-stat good"><div class="v" id="bReplace">0</div><div class="l">✓ تم الفحص</div></div>
       </div>
     </div>
     <div class="cat-card oil" data-cat="oil">
@@ -2568,25 +2574,12 @@
       </div>
       <input type="hidden" id="m_mtType">
 
-      <div id="batteryFields">
-        <div class="ttl">🔋 بيانات البطارية</div>
-        <div class="form-grid">
-          <div class="field"><label>نوع البطارية</label>
-            <select id="m_batType"><option value="">—</option><option>Ni-Cd</option><option>Lead-Acid (VLA)</option><option>VRLA / Sealed</option><option>Other</option></select>
-          </div>
-          <div class="field"><label>السعة (Ah)</label><input id="m_batAh" type="number" step="1" placeholder="مثال: 100"></div>
-          <div class="field"><label>عدد الخلايا</label><input id="m_batCells" type="number" step="1" placeholder="مثال: 92"></div>
-          <div class="field"><label>جهد البطارية المقاس (V)</label><input id="m_batVoltage" type="number" step="0.1" placeholder="مثال: 110.4"></div>
-          <div class="field"><label>جهد الشاحن (V)</label><input id="m_chargerVolt" type="number" step="0.1" placeholder="مثال: 121.0"></div>
-          <div class="field"><label>تاريخ تركيب البطارية</label><input id="m_batInstall" type="date"></div>
-          <div class="field span2"><label>نتيجة الفحص</label>
-            <select id="m_batResult"><option value="">— لم تُفحص بعد —</option><option value="ok">✅ سليمة</option><option value="weak">⚠️ ضعيفة — تحتاج متابعة</option><option value="replace">⛔ تحتاج تبديل</option></select>
-          </div>
-        </div>
-      </div>
-
       <div class="form-grid">
-        <div class="field"><label>المحطة</label><input id="m_sstn" list="stationList" placeholder="مثال: KHIT F"></div>
+        <div class="field" data-bat-keep><label>المحطة</label><input id="m_sstn" list="stationList" placeholder="مثال: KHIT F"></div>
+        <div class="field bat-only" data-bat-keep><label>البطارية</label><input id="m_batName" placeholder="مثال: بطارية 110V — لوحة التحكم"></div>
+        <div class="field bat-only" data-bat-keep><label>تم الفحص؟</label>
+          <div class="yn" id="batCheckYN"><button type="button" data-bat="yes">✓ نعم</button><button type="button" data-bat="no">✗ لا</button></div>
+          <input type="hidden" id="m_batChecked"></div>
         <div class="field"><label>نوع المعدة</label><select id="m_equipType"></select></div>
         <div class="field"><label>الأولوية</label>
           <select id="m_priority">
@@ -2601,7 +2594,7 @@
         <div class="field"><label>وقت البدء</label><input id="m_startTime" type="time"></div>
         <div class="field"><label>تاريخ الانتهاء</label><input id="m_endDate" type="date"></div>
         <div class="field"><label>وقت الانتهاء</label><input id="m_endTime" type="time"></div>
-        <div class="field"><label>المهندس / فريق العمل</label><input id="m_engineer" placeholder="مثال: م. أحمد الفضلي، فريق الصيانة B"></div>
+        <div class="field" data-bat-keep><label>المهندس / فريق العمل</label><input id="m_engineer" placeholder="مثال: م. أحمد الفضلي، فريق الصيانة B"></div>
         <div class="field"><label>المدة (ساعة)</label><input id="m_duration" type="number" step="0.1" placeholder="تلقائي من البدء والانتهاء"></div>
         <div class="field span2"><label>المغذيات / المستهلكون المتأثرون بالفصل</label><input id="m_affected" placeholder="مثال: KHIT 69، جزء من بلوك 7 خيطان"></div>
         <div class="field span2"><label>وصف العمل المطلوب</label><textarea id="m_description" placeholder="مثال: Annual preventive maintenance for TR-2 — oil test, tap changer inspection, terminal tightening."></textarea></div>
@@ -2736,7 +2729,8 @@ const MT_TYPES = {
 };
 // Work orders come in the three kinds above; the fourth section of the
 // system, صيانة الزيت, is the oil store (see OIL STORE below).
-const BATTERY_FIELDS = ['batType','batAh','batCells','batVoltage','chargerVolt','batInstall','batResult'];
+// A battery order records only which battery, whether it was checked and by whom.
+const BATTERY_FIELDS = ['batName','batChecked'];
 const BAT_RESULTS = {ok:'✅ سليمة', weak:'⚠️ ضعيفة', replace:'⛔ تحتاج تبديل'};
 // Older records may carry the earlier five types — fold them into the two.
 function normalizeMtType(t){
@@ -3043,7 +3037,7 @@ function fmtDateLong(d){ return d.toLocaleDateString('en-GB', {day:'2-digit', mo
 
 // The date a work order "belongs to" for filtering and reports.
 // What an order is about: its equipment type (older orders may still carry a name).
-function eqName(r){ return r.equipType || r.equipment || ''; }
+function eqName(r){ return (r.mtType === 'battery' && r.batName) || r.equipType || r.equipment || ''; }
 function refDate(r){ return r.plannedDate || r.startDate || ''; }
 
 // Only scheduled (preventive) work can fall behind its planned date;
@@ -3149,7 +3143,7 @@ function render(){
     tr.innerHTML = `
       <td class="fid">${fmtWid(r.id)}${r.demo ? '<span class="demo-badge" title="بيانات تجريبية">🧪</span>' : ''}${r.source ? `<span class="src-badge" title="من نظام التقارير">${esc(r.source.label)}</span>` : ''}</td>
       <td class="sstn-cell">${r.sstn ? `<span class="st-link" data-st="${esc(stKey(r))}" title="سجل المحطة">${esc(r.sstn)}</span>` : '—'}</td>
-      <td>${esc(r.equipType) || '—'}</td>
+      <td>${esc(r.mtType === 'battery' ? eqName(r) : r.equipType) || '—'}</td>
       <td>${typeBadge(r.mtType)}${(r.recurrence && r.recurrence !== 'none') ? `<span class="recur-badge" title="تكرار">🔁 ${esc(RECURRENCES[r.recurrence] ? RECURRENCES[r.recurrence].ar : r.recurrence)}</span>` : ''}${r.replaceReq === 'yes' && REPLACE_TO[r.replaceTo] ? `<span class="rep-badge" title="طلب استبدال — كتاب ${esc(r.replaceLetterNo || '')}">📄 استبدال — ${REPLACE_TO[r.replaceTo].short}</span>` : ''}</td>
       <td class="desc-cell" title="${esc(r.description)}">${esc(r.description) || '—'}</td>
       <td>${esc(r.engineer) || '—'}</td>
@@ -3158,7 +3152,7 @@ function render(){
       <td>${r.endDate ? esc(r.endDate + ' ' + (r.endTime || '')) : '—'}</td>
       <td>${(r.duration || r.duration === 0) ? r.duration : '—'}</td>
       <td>${priorityBadge(r.priority)}</td>
-      <td>${statusPill(r)}${r.shutdown === 'yes' ? '<span class="shutdown-badge" title="يتطلب فصل">🔌 فصل</span>' : ''}${(r.mtType === 'battery' && BAT_RESULTS[r.batResult]) ? `<span class="bat-result ${r.batResult}">${BAT_RESULTS[r.batResult]}</span>` : ''}</td>
+      <td>${r.mtType === 'battery' ? (batChecked(r) ? '<span class="bat-pill yes">✓ تم الفحص</span>' : '<span class="bat-pill no">✗ لم يتم الفحص</span>') : statusPill(r)}${r.shutdown === 'yes' ? '<span class="shutdown-badge" title="يتطلب فصل">🔌 فصل</span>' : ''}</td>
       <td>
         <div class="row-actions">
           ${(r.status === 'planned' || r.status === 'postponed') ? `<button class="icon-btn start" data-id="${r.id}" title="بدء التنفيذ">▶️</button>` : ''}
@@ -3226,7 +3220,7 @@ function updateCategoryCards(){
   const bRecs = data.filter(r => r.mtType === 'battery');
   const b = computeStats(bRecs);
   set('bTotal', b.total); set('bPending', b.planned + b.inprogress + b.postponed); set('bOverdue', b.overdue);
-  set('bReplace', bRecs.filter(r => r.batResult === 'replace' && !r.nextScheduledId).length);
+  set('bReplace', bRecs.filter(batChecked).length);
   const o = oilSummary();
   set('oItems', o.items); set('oLiters', o.barrels); set('oLow', o.low); set('oLastCheck', o.lastCheck ? fmtShort(o.lastCheck) : '—');
 }
@@ -3367,6 +3361,7 @@ function completeWork(id){
   openModal(id);
   const el = f => document.getElementById('m_' + f);
   el('status').value = 'completed';
+  document.getElementById('m_batChecked').value = 'yes'; syncBatCheck();
   if(!el('startDate').value) el('startDate').value = rec.plannedDate || todayISO();
   if(!el('endDate').value){ el('endDate').value = todayISO(); el('endTime').value = nowHHMM(); }
   autoDuration();
@@ -3381,7 +3376,7 @@ function scheduleNextRecurrence(rec){
   if(!rc || !rc.months || rec.nextScheduledId) return null;
   const base = rec.plannedDate || rec.endDate || todayISO();
   const next = {
-    id: nextId(), sstn: rec.sstn, equipment: rec.equipment, equipType: rec.equipType, mtType: rec.mtType,
+    id: nextId(), sstn: rec.sstn, equipment: rec.equipment, equipType: rec.equipType, mtType: rec.mtType, batName: rec.batName || '',
     priority: rec.priority, status: 'planned', plannedDate: addMonthsISO(base, rc.months),
     startDate: '', startTime: '', endDate: '', endTime: '', duration: null,
     engineer: rec.engineer, shutdown: rec.shutdown, affected: rec.affected,
@@ -3415,6 +3410,8 @@ function openModal(id, category){
     if(el.tagName === 'SELECT' && !el.value && el.options.length) el.selectedIndex = 0;
   });
   applyModalCategory(cat);
+  document.getElementById('m_batChecked').value = rec && rec.mtType === 'battery' && rec.status === 'completed' ? 'yes' : 'no';
+  syncBatCheck();
   if(!rec || !rec.replaceReq) document.getElementById('m_replaceReq').value = 'no';
   syncReplaceUI();
   setEntryMode('manual');
@@ -3439,7 +3436,7 @@ function applyModalCategory(cat){
   document.getElementById('modalHead').className = 'modal-head ' + cat;
   document.getElementById('modalTitle').textContent = (editingId ? 'تعديل ' + fmtWid(editingId) + ' — ' : 'إضافة ') + MT_TYPES[cat].icon + ' ' + MT_TYPES[cat].ar;
   document.getElementById('plannedDateLabel').textContent = c.date;
-  document.getElementById('batteryFields').style.display = cat === 'battery' ? 'block' : 'none';
+  document.getElementById('modalOverlay').classList.toggle('bat-simple', cat === 'battery');
   document.getElementById('replaceBlock').style.display = cat === 'preventive' ? '' : 'none';
   document.getElementById('m_description').placeholder = c.desc;
   if(cat === 'emergency') document.getElementById('m_recurrence').value = 'none';
@@ -3473,6 +3470,12 @@ function saveModal(){
   rec.sstn = rec.sstn.toUpperCase();
   rec.duration = rec.duration === '' ? null : parseFloat(rec.duration);
   if(rec.mtType !== 'battery') BATTERY_FIELDS.forEach(f => { rec[f] = ''; });
+  else {
+    if(!rec.batName){ showToast('اكتب اسم البطارية', 'error'); return; }
+    rec.status = rec.batChecked === 'yes' ? 'completed' : (rec.status === 'completed' ? 'planned' : rec.status || 'planned');
+    if(rec.status !== 'completed'){ rec.endDate = ''; rec.endTime = ''; }
+    if(!rec.plannedDate) rec.plannedDate = todayISO();
+  }
   // A replacement request belongs to periodic orders only, and needs a recipient.
   if(rec.mtType !== 'preventive' || rec.replaceReq !== 'yes'){ rec.replaceReq = 'no'; rec.replaceTo = ''; rec.replaceNote = ''; }
   else if(!REPLACE_TO[rec.replaceTo]){ showToast('اختر الجهة المرسل لها طلب الاستبدال: الإنشاءات أو طوارئ الجابرية', 'error'); return; }
@@ -3643,6 +3646,16 @@ document.getElementById('scanRunBtn').addEventListener('click', () => {
   setScanStatus('✅ تمت تعبئة: ' + keys.map(k => FIELD_LABELS_AR[k] || k).join('، ') + ' — راجع الحقول قبل الحفظ.', 'success');
 });
 
+function syncBatCheck(){
+  const v = document.getElementById('m_batChecked').value;
+  document.querySelectorAll('#batCheckYN button').forEach(b => b.classList.toggle('active', b.dataset.bat === v));
+}
+document.getElementById('batCheckYN').addEventListener('click', e => {
+  const b = e.target.closest('[data-bat]');
+  if(b){ document.getElementById('m_batChecked').value = b.dataset.bat; syncBatCheck(); }
+});
+const batChecked = r => r.status === 'completed';
+
 /* ===== REPLACEMENT REQUEST — طلب استبدال =====
    A periodic order can raise a replacement request (yes / no). With yes,
    the user picks who it goes to — الإنشاءات or طوارئ الجابرية — and the
@@ -3719,9 +3732,7 @@ function printWorkOrder(id){
         ${row('Maintenance Type / نوع الصيانة', MT_TYPES[r.mtType] ? MT_TYPES[r.mtType].en + ' / ' + MT_TYPES[r.mtType].ar : '')}
         ${row('Priority / الأولوية', r.priority === 'low' ? 'Low / منخفضة' : 'Medium / متوسطة')}
         ${row('Status / الحالة', STATUSES[r.status] ? STATUSES[r.status].en + ' / ' + STATUSES[r.status].ar : '')}
-        ${r.mtType === 'battery' ? row('Battery / البطارية', [r.batType, r.batAh ? r.batAh + ' Ah' : '', r.batCells ? r.batCells + ' cells' : '', r.batInstall ? 'installed ' + r.batInstall : ''].filter(Boolean).join(' · '))
-          + row('Measured / القراءات', [r.batVoltage ? 'Battery ' + r.batVoltage + ' V' : '', r.chargerVolt ? 'Charger ' + r.chargerVolt + ' V' : ''].filter(Boolean).join(' · '))
-          + row('Result / النتيجة', BAT_RESULTS[r.batResult] || '') : ''}
+        ${r.mtType === 'battery' ? row('Battery / البطارية', r.batName || eqName(r)) + row('Checked / تم الفحص', batChecked(r) ? 'نعم ✓' : 'لا ✗') : ''}
         ${row('Planned Date / التاريخ المخطط', r.plannedDate)}
         ${row('Start / البدء', ((r.startDate || '') + ' ' + (r.startTime || '')).trim())}
         ${row('End / الانتهاء', ((r.endDate || '') + ' ' + (r.endTime || '')).trim())}
@@ -4004,8 +4015,7 @@ function recordToExcelRow(r){
     'Duration (hr)': r.duration, 'Shutdown': r.shutdown === 'yes' ? 'Yes' : 'No', 'Affected': r.affected,
     'Priority': r.priority, 'Status': (STATUSES[r.status] || {}).en + (isOverdue(r) ? ' (Overdue)' : ''),
     'Work Done': r.workDone, 'Spares / Materials': r.spares, 'Notes': r.notes,
-    'Battery Type': r.batType || '', 'Battery Ah': r.batAh || '', 'Cells': r.batCells || '', 'Battery V': r.batVoltage || '',
-    'Charger V': r.chargerVolt || '', 'Battery Installed': r.batInstall || '', 'Battery Result': BAT_RESULTS[r.batResult] || ''
+    'Battery': r.mtType === 'battery' ? (r.batName || eqName(r)) : '', 'Battery Checked': r.mtType === 'battery' ? (batChecked(r) ? 'Yes' : 'No') : ''
   };
 }
 
@@ -5036,7 +5046,6 @@ function buildMonthlyReport(offset){
   const prevIssued = prevOil.filter(x => x.item.unit === 'برميل').reduce((a, x) => a + x.issued, 0);
   const preds = computePredictions().filter(x => x.level === 'high').slice(0, 5);
   const batDone = bt.rows.filter(r => r.status === 'completed');
-  const batRes = k => batDone.filter(r => r.batResult === k).length;
   const overduePv = data.filter(r => r.mtType === 'preventive' && isOverdue(r));
   const nextM = monthBounds(offset + 1);
   const upcoming = data.filter(r => r.mtType === 'preventive' && PENDING.includes(r.status) && r.plannedDate >= nextM.from && r.plannedDate <= nextM.to);
@@ -5048,7 +5057,7 @@ function buildMonthlyReport(offset){
   lines.push(`الأعطال الطارئة: <b>${em.st.total}</b> ${changeTag(em.st.total, prev.per.emergency.st.total, true)}` +
     (topSt.length ? `، وأكثر محطة أعطالًا <bdi>${esc(topSt[0][0])}</bdi> (${topSt[0][1]})` : '') + (em.st.avgDur ? `، ومتوسط مدة الإصلاح ${em.st.avgDur} ساعة.` : '.'));
   lines.push(`الدورية الوقائية: <b>${pv.st.completed}</b> منجزة من ${pv.st.total}، والمتأخرة حاليًا <b>${overduePv.length}</b>، والمجدولة لشهر ${nextM.label} <b>${upcoming.length}</b>.`);
-  lines.push(`البطاريات: <b>${batDone.length}</b> فحص منجز — ${batRes('ok')} سليمة، ${batRes('weak')} ضعيفة، ${batRes('replace')} تحتاج تبديل.`);
+  lines.push(`البطاريات: تم فحص <b>${batDone.length}</b> من ${bt.rows.length}، ولم يتم فحص ${bt.rows.length - batDone.length}.`);
   lines.push(`الزيت: صُرف <b>${fmtQty(issued)}</b> برميل ${changeTag(Math.round(issued), Math.round(prevIssued), true)} مقارنة بالشهر السابق (${fmtQty(prevIssued)} برميل)` + (lowOil.length ? `، و<b>${lowOil.length}</b> نوع تحت الحد الأدنى.` : '.'));
   if(preds.length) lines.push(`الصيانة التنبؤية: <b>${preds.length}</b> معدات بخطورة عالية حاليًا، أعلاها <bdi>${esc(preds[0].title)}</bdi>.`);
 
@@ -5090,8 +5099,8 @@ function buildMonthlyReport(offset){
     tbl(['رقم الأمر','المحطة','نوع المعدة','الموعد','الفريق'], upcoming.map(r =>
       `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(eqName(r))}</td><td class="nw">${esc(r.plannedDate)}</td><td>${esc(r.engineer)}</td></tr>`)) + '</div>';
   html += `<div class="pr-sec"><h2>صيانة البطاريات</h2>` +
-    tbl(['رقم الأمر','المحطة','البطارية','التاريخ','جهد البطارية','جهد الشاحن','النتيجة'], batDone.map(r =>
-      `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(eqName(r))}</td><td class="nw">${esc(r.endDate)}</td><td>${r.batVoltage ? esc(r.batVoltage) + ' V' : '—'}</td><td>${r.chargerVolt ? esc(r.chargerVolt) + ' V' : '—'}</td><td>${esc(BAT_RESULTS[r.batResult] || '—')}</td></tr>`)) + '</div>';
+    tbl(['رقم الأمر','المحطة','البطارية','التاريخ','المهندس','تم الفحص'], bt.rows.map(r =>
+      `<tr><td class="nw">${fmtWid(r.id)}</td><td>${esc(r.sstn)}</td><td>${esc(eqName(r))}</td><td class="nw">${esc(r.endDate || r.plannedDate)}</td><td>${esc(r.engineer)}</td><td>${batChecked(r) ? '✓ نعم' : '✗ لا'}</td></tr>`)) + '</div>';
   html += `<div class="pr-sec"><h2>مخزن الزيت</h2>` +
     tbl(['نوع الزيت','رصيد أول الشهر','الوارد','المصروف','فحوصات الكمية','فروقات الجرد','رصيد آخر الشهر'], oilRows.map(x => {
       const u = esc(x.item.unit);
@@ -5107,7 +5116,7 @@ function buildMonthlyReport(offset){
     'إجمالي الأوامر: ' + cur.st.total + ' — المنجزة: ' + cur.st.completed + ' (' + cur.st.rate + '%)',
     '🚨 طارئة: ' + em.st.total + (topSt.length ? ' — أكثر محطة: ' + topSt[0][0] + ' (' + topSt[0][1] + ')' : ''),
     '🛡️ دورية: ' + pv.st.completed + ' منجزة — ' + overduePv.length + ' متأخرة — ' + upcoming.length + ' مجدولة للشهر القادم',
-    '🔋 بطاريات: ' + batDone.length + ' فحص — ' + batRes('replace') + ' تحتاج تبديل',
+    '🔋 بطاريات: تم فحص ' + batDone.length + ' من ' + bt.rows.length,
     '🛢️ زيت مصروف: ' + fmtQty(issued) + ' برميل' + (lowOil.length ? ' — ' + lowOil.length + ' نوع تحت الحد' : ''),
     preds.length ? '🔮 توقعات عالية الخطورة: ' + preds.length : ''].filter(x => x !== '').join('\n');
   return {title: 'التقرير الشهري للصيانة — ' + m.label, subtitle: govName(currentGov) + ' · ' + fmtShort(m.from) + ' — ' + fmtShort(m.to), html: `<div class="pr-rtl">${html}</div>`, whats, label: m.label + (partial ? ' (حتى اليوم)' : '')};
@@ -5190,16 +5199,15 @@ function buildPrintReport(){
     if(parts.has('summary')){
       html += '<div class="pr-kpis">' + kpi(st.total, 'إجمالي الأوامر') + kpi(st.completed, 'منجزة') + kpi(st.inprogress, 'قيد التنفيذ') +
         kpi(st.planned + st.postponed, 'مجدولة / مؤجلة') + (cat === 'emergency' ? '' : kpi(st.overdue, 'متأخرة')) + kpi(st.rate + '%', 'نسبة الإنجاز') + kpi(st.avgDur + ' ساعة', 'متوسط المدة') +
-        (bat ? kpi(rows.filter(x => x.batResult === 'replace').length, 'بطاريات تحتاج تبديل') : '') + '</div>';
+        (bat ? kpi(rows.filter(batChecked).length, 'تم الفحص') : '') + '</div>';
     }
     if(parts.has('table')){
       html += '<h3>جدول الأوامر</h3>';
       html += rows.length ? `<table><thead><tr><th>رقم الأمر</th><th>المحطة</th><th>نوع المعدة</th><th>الوصف</th><th>الفريق</th><th>${cat === 'emergency' ? 'تاريخ البلاغ' : 'التاريخ المخطط'}</th><th>الانتهاء</th>
-          ${bat ? '<th>جهد البطارية / الشاحن</th><th>النتيجة</th>' : ''}<th>الحالة</th></tr></thead><tbody>` +
+          <th>${bat ? 'تم الفحص' : 'الحالة'}</th></tr></thead><tbody>` +
         rows.map(x => `<tr><td class="nw">${fmtWid(x.id)}</td><td>${esc(x.sstn)}</td><td>${esc(eqName(x))}</td><td>${esc(x.description)}</td><td>${esc(x.engineer)}</td>
           <td class="nw">${esc(x.plannedDate)}</td><td class="nw">${esc(x.endDate)}</td>
-          ${bat ? `<td>${esc([x.batVoltage ? x.batVoltage + ' V' : '', x.chargerVolt ? x.chargerVolt + ' V' : ''].filter(Boolean).join(' / '))}</td><td>${esc(BAT_RESULTS[x.batResult] || '')}</td>` : ''}
-          <td>${esc((STATUSES[x.status] || {}).ar || '')}${isOverdue(x) ? ' — متأخرة' : ''}</td></tr>`).join('') + '</tbody></table>'
+          <td>${bat ? (batChecked(x) ? '✓ نعم' : '✗ لا') : esc((STATUSES[x.status] || {}).ar || '') + (isOverdue(x) ? ' — متأخرة' : '')}</td></tr>`).join('') + '</tbody></table>'
         : '<div class="pr-empty">لا توجد أوامر في هذه الفترة.</div>';
     }
     if(parts.has('overdue')){
@@ -5465,11 +5473,10 @@ function stationSummary(name){
   const open = rows.filter(r => PENDING.includes(r.status)).sort((a, b) => (a.plannedDate || '').localeCompare(b.plannedDate || ''));
   const upcoming = open.filter(r => r.mtType !== 'emergency' && r.plannedDate >= today);
   const em12 = rows.filter(r => r.mtType === 'emergency' && r.status !== 'cancelled' && eventDate(r) >= yearAgo).length;
-  const batLast = rows.filter(r => r.mtType === 'battery' && r.batResult).sort(byDate)[0];
+  const batLast = rows.filter(r => r.mtType === 'battery' && batChecked(r)).sort(byDate)[0];
   const reps = rows.filter(r => r.replaceReq === 'yes');
   // 100 = nothing outstanding; each open problem takes points off.
-  const health = Math.max(0, Math.min(100, 100 - openEm.length * 15 - overdue.length * 10 - Math.max(0, em12 - 1) * 5
-    - (batLast ? {replace: 20, weak: 8}[batLast.batResult] || 0 : 0) - reps.length * 5));
+  const health = Math.max(0, Math.min(100, 100 - openEm.length * 15 - overdue.length * 10 - Math.max(0, em12 - 1) * 5 - reps.length * 5));
   const live = rows.filter(r => r.status !== 'cancelled');
   return {name, rows, openEm, overdue, done, open, upcoming, em12, batLast, reps, health,
     state: health >= 80 ? 'good' : health >= 55 ? 'warn' : 'crit',
@@ -5534,7 +5541,7 @@ function renderStation(){
       <div><b>${s.health >= 80 ? 'أداء ممتاز' : s.health >= 55 ? 'يحتاج متابعة' : 'يحتاج تدخل'}</b><span>${st.ar} · من 100</span></div></div>
     <div class="st-reads">
       <div><span>🚨 أعطال طارئة (آخر 12 شهر)</span><b>${s.em12}</b></div>
-      <div><span>🔋 آخر فحص بطارية</span><b>${s.batLast ? (BAT_RESULTS[s.batLast.batResult] || '—') + (s.batLast.batVoltage ? ' · ' + s.batLast.batVoltage + ' V' : '') : '—'}</b></div>
+      <div><span>🔋 آخر فحص بطارية</span><b>${s.batLast ? '✓ ' + fmtAr(eventDate(s.batLast)) : '—'}</b></div>
       <div><span>⏳ أعمال متأخرة</span><b>${s.overdue.length}</b></div>
       <div><span>📄 طلبات استبدال</span><b>${s.reps.length}</b></div>
     </div>`;
@@ -5579,7 +5586,7 @@ function renderStationList(s){
       <div class="body">
         ${r.workDone ? `<p>${esc(r.workDone)}</p>` : ''}
         <p>${statusPill(r)} ${r.status === 'completed' ? '<span class="ok">✓ تم إغلاق أمر العمل</span>' : ''}</p>
-        ${r.mtType === 'battery' && r.batResult ? `<p>🔋 ${esc(BAT_RESULTS[r.batResult] || '')}${r.batVoltage ? ' · ' + esc(r.batVoltage) + ' V' : ''}</p>` : ''}
+        ${r.mtType === 'battery' ? `<p>🔋 ${esc(r.batName || eqName(r))} — ${batChecked(r) ? '✓ تم الفحص' : '✗ لم يتم الفحص'}</p>` : ''}
         ${r.replaceReq === 'yes' && REPLACE_TO[r.replaceTo] ? `<p>📄 طلب استبدال إلى ${REPLACE_TO[r.replaceTo].short} — كتاب ${esc(r.replaceLetterNo || '')}${r.replaceNote ? ': ' + esc(r.replaceNote) : ''}</p>` : ''}
         ${r.checklist ? `<div class="ck-res">${r.checklist.map(c => `<span class="${c.ok ? '' : 'bad'}">${c.ok ? '✓' : '⚠️'} ${esc(INSPECT_LABEL[c.k] || c.k)}${c.note ? ' — ' + esc(c.note) : ''}</span>`).join('')}</div>` : ''}
         ${r.photos && r.photos.length ? `<div class="ck-photos">${r.photos.map(src => `<img src="${src}" alt="صورة الفحص" data-st-photo>`).join('')}</div>` : ''}
@@ -6151,8 +6158,8 @@ function renderHomeDash(){
   const secs = ['emergency', 'preventive', 'battery'];
   const st = cat => computeStats(data.filter(r => r.mtType === cat));
   const pv = st('preventive');
-  const bats = data.filter(r => r.mtType === 'battery' && r.batResult);
-  const batOk = bats.filter(r => r.batResult === 'ok').length;
+  const bats = data.filter(r => r.mtType === 'battery' && refDate(r) >= monthBounds(0).from && refDate(r) <= monthBounds(0).to);
+  const batOk = bats.filter(batChecked).length;
   const batPct = bats.length ? Math.round(batOk / bats.length * 100) : 0;
   const o = oilSummary();
   const cm = monthBounds(0);
@@ -6169,7 +6176,7 @@ function renderHomeDash(){
     kpi('monthly', '#1f8a52', 'check', month.rate + '%', 'نسبة الإنجاز هذا الشهر', month.completed + ' من ' + month.total + ' أمر') +
     kpi('preventive', '#1f5fa8', 'preventive', pv.rate + '%', 'الالتزام بالدوريات الوقائية', pv.completed + ' منجزة من ' + (pv.total - pv.cancelled)) +
     kpi('preventive', '#c77700', 'clock', overdue, 'أعمال متأخرة عن موعدها', overdue ? 'تحتاج جدولة' : 'كل الأعمال بموعدها') +
-    kpi('battery', '#b8930f', 'battery', batPct + '%', 'بطاريات سليمة', batOk + ' من ' + bats.length + ' فحص') +
+    kpi('battery', '#b8930f', 'battery', batPct + '%', 'بطاريات تم فحصها هذا الشهر', batOk + ' من ' + bats.length + ' بطارية') +
     kpi('oil', '#a86b2d', 'oil', o.barrels, 'برميل زيت بالمخزن', o.low ? o.low + ' صنف تحت الحد الأدنى' : 'كل الأصناف فوق الحد') +
     kpi('replace', '#a07c10', 'list', reps.length, 'طلبات الاستبدال', reps.length ? repBy('construction') + ' الإنشاءات · ' + repBy('jabriya') + ' طوارئ الجابرية' : 'لا توجد طلبات');
 
