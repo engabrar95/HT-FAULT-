@@ -5594,12 +5594,34 @@ function setFeederMarkersForStation(sstn, markers){
   saveFeederMarkersMap(map);
   if(typeof teamSyncId !== 'undefined' && teamSyncId && typeof pushToCloud === 'function') pushToCloud();
 }
+// The feeder name printed on the official SLD scan (e.g. "FRW 22") rarely
+// matches the free-text description typed into a fault record verbatim
+// (e.g. "One 11 kV feeder (FARW 22)") — same feeder, different spelling of
+// the prefix. So instead of an exact-string match, pull out the feeder's
+// own number (ignoring any "11 kV"/"33 kV"/"132 kV" voltage mentions,
+// which are not feeder numbers) and match on that, scoped to the same
+// station so a bare number can't cross-match a different feeder elsewhere.
+function extractFeederNumberTokens(text){
+  if(!text) return [];
+  const stripped = String(text).replace(/\b\d{1,3}\s*k\.?v\.?\b/gi, ' ');
+  const matches = stripped.match(/\d{1,4}[A-Za-z]?\b/g) || [];
+  return matches.map(m => m.toUpperCase());
+}
 // A feeder is "out of service" right now if it has an open fault recorded
-// against it at that same station.
+// against it at that same station — matched either by exact text or by
+// shared feeder number (see extractFeederNumberTokens above).
 function isFeederOutOfService(sstn, feederName){
   const key = (feederName || '').trim().toLowerCase();
   if(!key) return false;
-  return data.some(d => d.status === 'open' && d.sstn === sstn && (d.feeder || '').trim().toLowerCase() === key);
+  const markerNums = extractFeederNumberTokens(feederName);
+  return data.some(d => {
+    if(d.status !== 'open' || d.sstn !== sstn) return false;
+    const faultFeeder = (d.feeder || '').trim();
+    if(faultFeeder.toLowerCase() === key) return true;
+    if(!markerNums.length) return false;
+    const faultNums = extractFeederNumberTokens(faultFeeder);
+    return markerNums.some(n => faultNums.includes(n));
+  });
 }
 // Fully automatic, same pattern as getOutOfServiceTRs — reads every
 // currently-open fault's feeder and returns the out-of-service feeders,
