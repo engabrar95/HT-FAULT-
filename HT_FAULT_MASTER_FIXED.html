@@ -447,6 +447,22 @@
   .tr-status-banner.danger b{color:#ff5c5c;}
   .tr-status-banner.ok{background:rgba(55,214,122,0.1);color:var(--text);border:1px solid rgba(55,214,122,0.3);}
 
+  /* ===== Feeder markers overlaid on the original SLD image — same idea as
+     TR markers, but square instead of round so the two kinds of pins stay
+     visually distinct when both sit on the same diagram. ===== */
+  .feeder-marker-dot{
+    position:absolute;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:3px;
+    background:var(--amber);border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.35);cursor:default;
+    display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1;
+  }
+  .feeder-marker-dot.out-of-service{
+    background:#ff5c5c;width:22px;height:22px;font-size:13px;
+    animation:trMarkerPulse 1.4s ease-in-out infinite;
+  }
+  #trMarkerImageWrap .feeder-marker-dot, #feederMarkerImageWrap .feeder-marker-dot{width:18px;height:18px;}
+  #feederMarkerImageWrap{position:relative;display:inline-block;max-width:100%;cursor:crosshair;}
+  #feederMarkerImageWrap img{max-width:100%;display:block;border-radius:8px;}
+
   /* ===== ORIGINAL SLD SCAN MODAL ===== */
   .sld-modal-overlay{
     display:none;position:fixed;inset:0;background:rgba(3,10,22,0.86);z-index:100;
@@ -1791,6 +1807,32 @@
     </div>
   </div>
 
+  <div class="sld-modal-overlay" id="feederMarkerModal" style="display:none;">
+    <div class="sld-modal-box" style="max-width:920px;">
+      <div class="sld-modal-head">
+        <div>
+          <div class="sld-modal-title">📍 تحديد مواقع الفيدرات — <span id="feederMarkerStationName"></span></div>
+          <div class="sld-modal-sub">اكتبي اسم الفيدر بالحقل تحت (كما هو بالمخطط)، وبعدها اضغطي على مكانه بالمخطط لتثبيته</div>
+        </div>
+        <button class="sld-modal-close" id="feederMarkerCloseBtn" aria-label="Close">✕</button>
+      </div>
+      <div class="sld-modal-body" style="flex-direction:column;align-items:stretch;padding:18px;gap:14px;overflow:auto;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <input id="feederMarkerNameInput" placeholder="اسم الفيدر (مثال: FRW 22)" style="flex:1;min-width:180px;padding:9px 12px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:12.5px;">
+          <div id="feederMarkerSheetSelectorWrap"></div>
+        </div>
+        <div id="feederMarkerImageWrap"></div>
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;">الفيدرات المحددة</div>
+          <div id="feederMarkerList" class="tr-marker-list"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" id="feederMarkerCloseBtn2">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
   <div class="panel" style="margin-bottom:22px;">
     <div class="panel-head">
       <h2>🔥 نقاط الأعطال المتكررة</h2>
@@ -1972,6 +2014,7 @@ function storageKeyFor(gov){ return 'htFaultRecords_v2_' + gov; }
 function activityKeyFor(gov){ return 'htFaultActivityLog_v1_' + gov; }
 function syncIdKeyFor(gov){ return 'htFaultTeamSyncId_' + gov; }
 function trMarkersKeyFor(gov){ return 'htFaultTRMarkers_v2_' + gov; }
+function feederMarkersKeyFor(gov){ return 'htFaultFeederMarkers_v1_' + gov; }
 function stationLocationsKeyFor(gov){ return 'htFaultStationLocations_v2_' + gov; }
 
 let isFreshStorage = false;
@@ -5523,6 +5566,60 @@ function getOutOfServiceTRs(sstn){
   return out;
 }
 
+/* =====================================================================
+   FEEDER MARKERS — same idea as TR markers above, but for feeders: a
+   one-time pinned position for each feeder on a station's original SLD
+   scan, so a feeder that currently has an open fault lights up right
+   where it sits on the real diagram. Unlike TRs (which need a sub-list
+   per fault because one fault can knock out several TRs), every fault
+   record already carries exactly one feeder name, so the "is this feeder
+   out of service" check reads straight off data with no sub-list needed.
+   ===================================================================== */
+function loadFeederMarkersMap(){
+  try{ return JSON.parse(localStorage.getItem(feederMarkersKeyFor(currentGov))) || {}; }catch(e){ return {}; }
+}
+function saveFeederMarkersMap(map){
+  try{ localStorage.setItem(feederMarkersKeyFor(currentGov), JSON.stringify(map)); }catch(e){}
+}
+function getFeederMarkersForStation(sstn){
+  if(!sstn) return [];
+  const map = loadFeederMarkersMap();
+  const key = Object.keys(map).find(k => k.trim().toLowerCase() === sstn.trim().toLowerCase());
+  return key ? map[key] : [];
+}
+function setFeederMarkersForStation(sstn, markers){
+  const map = loadFeederMarkersMap();
+  Object.keys(map).forEach(k => { if(k.trim().toLowerCase() === sstn.trim().toLowerCase()) delete map[k]; });
+  map[sstn] = markers;
+  saveFeederMarkersMap(map);
+  if(typeof teamSyncId !== 'undefined' && teamSyncId && typeof pushToCloud === 'function') pushToCloud();
+}
+// A feeder is "out of service" right now if it has an open fault recorded
+// against it at that same station.
+function isFeederOutOfService(sstn, feederName){
+  const key = (feederName || '').trim().toLowerCase();
+  if(!key) return false;
+  return data.some(d => d.status === 'open' && d.sstn === sstn && (d.feeder || '').trim().toLowerCase() === key);
+}
+// Fully automatic, same pattern as getOutOfServiceTRs — reads every
+// currently-open fault's feeder and returns the out-of-service feeders,
+// scoped to one station (pass a name) or the whole network (pass null).
+function getOutOfServiceFeeders(sstn){
+  const seen = new Set();
+  const out = [];
+  data.forEach(d => {
+    if(d.status !== 'open') return;
+    if(sstn && d.sstn !== sstn) return;
+    const name = (d.feeder || '').trim();
+    if(!name) return;
+    const key = (d.sstn || '') + '::' + name.toLowerCase();
+    if(seen.has(key)) return;
+    seen.add(key);
+    out.push({sstn: d.sstn, name, mw: parseFloat(d.mw) || 0});
+  });
+  return out;
+}
+
 function buildOriginalSldPreviewHTML(sstnName){
   const sheets = findOriginalSheetsForStation(sstnName);
   if(!sheets.length){
@@ -5533,16 +5630,22 @@ function buildOriginalSldPreviewHTML(sstnName){
       </div>`;
   }
   const markers = getTRMarkersForStation(sstnName);
+  const feederMarkers = getFeederMarkersForStation(sstnName);
   const thumbs = sheets.map((s, i) => {
     const dotsHtml = markers.filter(m => m.sheetIndex === i).map(m => {
       const out = isTROutOfService(sstnName, m.name);
       return `<div class="tr-marker-dot${out ? ' out-of-service' : ''}" style="left:${m.xPct}%;top:${m.yPct}%;" title="${esc(m.name)}${out ? ' — خارج الخدمة الآن' : ''}">${out ? '⚡' : ''}</div>`;
+    }).join('');
+    const feederDotsHtml = feederMarkers.filter(m => m.sheetIndex === i).map(m => {
+      const out = isFeederOutOfService(sstnName, m.name);
+      return `<div class="feeder-marker-dot${out ? ' out-of-service' : ''}" style="left:${m.xPct}%;top:${m.yPct}%;" title="${esc(m.name)}${out ? ' — يوجد عطل مفتوح حاليًا' : ''}">${out ? '⚠' : ''}</div>`;
     }).join('');
     return `
     <div class="orig-sld-thumb" data-sstn="${esc(sstnName)}" data-index="${i}">
       <div class="orig-sld-thumb-imgwrap">
         <img src="${s.src}" alt="${esc(s.title)}" loading="lazy">
         ${dotsHtml}
+        ${feederDotsHtml}
       </div>
       <div class="cap">${esc(s.title)}</div>
     </div>`;
@@ -5557,16 +5660,26 @@ function buildOriginalSldPreviewHTML(sstnName){
       ? `<div class="tr-status-banner danger">🔴 <b>${outAtStation.length}</b> محول خارج الخدمة بهذه المحطة الآن — ${esc(outAtStation.map(t => t.name).join('، '))}</div>`
       : `<div class="tr-status-banner ok">✅ كل المحولات المسجّلة بهذه المحطة بالخدمة حاليًا</div>`
   );
+  // Same idea for feeders — only claim "all clear" once this station has
+  // at least one pinned feeder marker to actually track.
+  const outFeedersAtStation = getOutOfServiceFeeders(sstnName);
+  const feederBannerHtml = !feederMarkers.length ? '' : (
+    outFeedersAtStation.length
+      ? `<div class="tr-status-banner danger">🔴 <b>${outFeedersAtStation.length}</b> فيدر به عطل مفتوح الآن — ${esc(outFeedersAtStation.map(t => t.name).join('، '))}</div>`
+      : `<div class="tr-status-banner ok">✅ كل الفيدرات المحددة بهذه المحطة بالخدمة حاليًا</div>`
+  );
   return `
     <div class="orig-sld-preview">
       <div class="orig-sld-preview-head">
         <span class="lbl">📐 المخطط الرسمي الأصلي (Single Line Diagram)</span>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="openTRMarkerEditor('${esc(sstnName).replace(/'/g,"\\'")}')">📍 تحديد مواقع المحولات</button>
+          <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="openFeederMarkerEditor('${esc(sstnName).replace(/'/g,"\\'")}')">📍 تحديد مواقع الفيدرات</button>
           <button class="btn ghost" style="padding:5px 11px;font-size:11.5px;" onclick="openSLDImageModalForStation('${esc(sstnName).replace(/'/g,"\\'")}')">🔍 تكبير</button>
         </div>
       </div>
       ${statusBannerHtml}
+      ${feederBannerHtml}
       <div class="orig-sld-thumb-row">${thumbs}</div>
     </div>`;
 }
@@ -5674,6 +5787,103 @@ document.getElementById('trMarkerCloseBtn2').addEventListener('click', () => {
 });
 document.getElementById('trMarkerModal').addEventListener('click', (e) => {
   if(e.target.id === 'trMarkerModal') document.getElementById('trMarkerModal').style.display = 'none';
+});
+
+/* ---- Feeder marker editor: click the original SLD to pin a feeder's location ---- */
+let feederMarkerEditState = { sstn: null, sheetIndex: 0, markers: [] };
+
+function openFeederMarkerEditor(sstn){
+  if(!findOriginalSheetsForStation(sstn).length){
+    showToast('لا يوجد مخطط أصلي لهذه المحطة بعد', 'error');
+    return;
+  }
+  feederMarkerEditState.sstn = sstn;
+  feederMarkerEditState.sheetIndex = 0;
+  feederMarkerEditState.markers = getFeederMarkersForStation(sstn).slice();
+  document.getElementById('feederMarkerStationName').textContent = sstn;
+  document.getElementById('feederMarkerNameInput').value = '';
+  renderFeederMarkerSheetSelector();
+  renderFeederMarkerEditorImage();
+  renderFeederMarkerListUI();
+  document.getElementById('feederMarkerModal').style.display = 'flex';
+}
+
+function renderFeederMarkerSheetSelector(){
+  const sheets = findOriginalSheetsForStation(feederMarkerEditState.sstn);
+  const wrap = document.getElementById('feederMarkerSheetSelectorWrap');
+  if(sheets.length <= 1){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = `<select id="feederMarkerSheetSelect">${sheets.map((s,i) => `<option value="${i}">${esc(s.title)}</option>`).join('')}</select>`;
+  document.getElementById('feederMarkerSheetSelect').addEventListener('change', (e) => {
+    feederMarkerEditState.sheetIndex = parseInt(e.target.value, 10) || 0;
+    renderFeederMarkerEditorImage();
+  });
+}
+
+function renderFeederMarkerEditorImage(){
+  const sheets = findOriginalSheetsForStation(feederMarkerEditState.sstn);
+  const sheet = sheets[feederMarkerEditState.sheetIndex];
+  const wrap = document.getElementById('feederMarkerImageWrap');
+  if(!sheet){ wrap.innerHTML = '<div class="activity-empty">لا يوجد مخطط لهذه المحطة.</div>'; return; }
+  wrap.innerHTML = `<img id="feederMarkerImg" src="${sheet.src}" alt="${esc(sheet.title)}">`;
+  const img = document.getElementById('feederMarkerImg');
+  img.addEventListener('click', (e) => {
+    const nameInput = document.getElementById('feederMarkerNameInput');
+    const name = nameInput.value.trim();
+    if(!name){ showToast('اكتبي اسم الفيدر أولاً', 'error'); return; }
+    const rect = img.getBoundingClientRect();
+    const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+    const yPct = ((e.clientY - rect.top) / rect.height) * 100;
+    feederMarkerEditState.markers.push({name, sheetIndex: feederMarkerEditState.sheetIndex, xPct, yPct});
+    setFeederMarkersForStation(feederMarkerEditState.sstn, feederMarkerEditState.markers);
+    nameInput.value = '';
+    renderFeederMarkerEditorImage();
+    renderFeederMarkerListUI();
+    if(typeof refreshModalSldPreview === 'function') refreshModalSldPreview();
+    showToast('تم تثبيت موقع الفيدر', 'success');
+  });
+  feederMarkerEditState.markers.filter(m => m.sheetIndex === feederMarkerEditState.sheetIndex).forEach(m => {
+    const out = isFeederOutOfService(feederMarkerEditState.sstn, m.name);
+    const dot = document.createElement('div');
+    dot.className = 'feeder-marker-dot' + (out ? ' out-of-service' : '');
+    dot.style.left = m.xPct + '%';
+    dot.style.top = m.yPct + '%';
+    dot.title = m.name;
+    if(out) dot.textContent = '⚠';
+    wrap.appendChild(dot);
+  });
+}
+
+function renderFeederMarkerListUI(){
+  const list = document.getElementById('feederMarkerList');
+  if(!feederMarkerEditState.markers.length){
+    list.innerHTML = '<div class="tr-empty-hint">لا توجد مواقع محددة بعد — اكتبي اسم الفيدر واضغطي على مكانه بالمخطط.</div>';
+    return;
+  }
+  list.innerHTML = feederMarkerEditState.markers.map((m, i) => `
+    <div class="tr-marker-list-row">
+      <span>📍 ${esc(m.name)}</span>
+      <button type="button" class="tr-remove" data-idx="${i}" title="حذف">✕</button>
+    </div>`).join('');
+  list.querySelectorAll('.tr-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      feederMarkerEditState.markers.splice(idx, 1);
+      setFeederMarkersForStation(feederMarkerEditState.sstn, feederMarkerEditState.markers);
+      renderFeederMarkerEditorImage();
+      renderFeederMarkerListUI();
+      if(typeof refreshModalSldPreview === 'function') refreshModalSldPreview();
+    });
+  });
+}
+
+document.getElementById('feederMarkerCloseBtn').addEventListener('click', () => {
+  document.getElementById('feederMarkerModal').style.display = 'none';
+});
+document.getElementById('feederMarkerCloseBtn2').addEventListener('click', () => {
+  document.getElementById('feederMarkerModal').style.display = 'none';
+});
+document.getElementById('feederMarkerModal').addEventListener('click', (e) => {
+  if(e.target.id === 'feederMarkerModal') document.getElementById('feederMarkerModal').style.display = 'none';
 });
 
 function renderStationDetail(name, containerId, idPrefix){
@@ -5806,7 +6016,7 @@ function renderSLDModalFrame(){
   // someone reopened the diagram from here to check it. Same dots, same
   // out-of-service styling, now shown here too.
   const wrap = document.getElementById('sldModalImgWrap');
-  wrap.querySelectorAll('.tr-marker-dot').forEach(d => d.remove());
+  wrap.querySelectorAll('.tr-marker-dot, .feeder-marker-dot').forEach(d => d.remove());
   let sheetIndex = 0;
   for(let i = 0; i < sldModalIndex; i++){
     if(sldModalImages[i].sstn === item.sstn) sheetIndex++;
@@ -5819,6 +6029,16 @@ function renderSLDModalFrame(){
     dot.style.top = m.yPct + '%';
     dot.title = m.name + (out ? ' — خارج الخدمة الآن' : '');
     if(out) dot.textContent = '⚡';
+    wrap.appendChild(dot);
+  });
+  getFeederMarkersForStation(item.sstn).filter(m => m.sheetIndex === sheetIndex).forEach(m => {
+    const out = isFeederOutOfService(item.sstn, m.name);
+    const dot = document.createElement('div');
+    dot.className = 'feeder-marker-dot' + (out ? ' out-of-service' : '');
+    dot.style.left = m.xPct + '%';
+    dot.style.top = m.yPct + '%';
+    dot.title = m.name + (out ? ' — يوجد عطل مفتوح حاليًا' : '');
+    if(out) dot.textContent = '⚠';
     wrap.appendChild(dot);
   });
 }
