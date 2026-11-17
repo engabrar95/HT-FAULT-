@@ -1341,7 +1341,26 @@
   .letter .lt-cc{margin-top:40px;font-size:12.5px;color:#444;}
   .recur-badge{display:inline-block;font-size:10px;font-weight:700;background:rgba(0,174,239,0.12);color:var(--e-blue);border-radius:10px;padding:1px 7px;margin-left:4px;}
   .icon-btn.start:hover{border-color:var(--amber);color:var(--amber);}
-  .desc-cell{max-width:260px;overflow:hidden;text-overflow:ellipsis;}
+  .desc-cell{max-width:320px;overflow:hidden;text-overflow:ellipsis;}
+  [data-page="records"] table{min-width:0;}
+  [data-page="records"] td.desc-cell{white-space:normal;min-width:180px;}
+  [data-page="records"] td.desc-cell .dtext{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  [data-page="records"] tbody td, [data-page="records"] thead th{padding:10px 8px;}
+  [data-page="records"] .row-actions{flex-wrap:wrap;width:108px;gap:4px;}
+  [data-page="records"] tbody td:last-child{width:108px;}
+  .sub-eq{display:none;font-size:11px;color:var(--mute);font-weight:400;margin-top:2px;white-space:normal;}
+  [data-page="records"] .icon-btn{width:30px;height:30px;font-size:13px;}
+  @media (max-width:1440px){ [data-page="records"] .col-eng{display:none;} }
+  @media (max-width:1200px){
+    [data-page="records"] .col-eq{display:none;}
+    [data-page="records"] .sub-eq{display:block;}
+    [data-page="records"] td.desc-cell{min-width:140px;}
+  }
+  .row-tags{margin-top:3px;display:flex;gap:4px;flex-wrap:wrap;} .row-tags:empty{display:none;}
+  .row-tags span{margin:0 !important;}
+  table.in-section .col-type{display:none;}
+  .rec-more{display:block;margin:12px auto;}
+  @media (max-width:1200px){ [data-page="dashboard"] .overview-grid{grid-template-columns:1fr 1fr !important;} [data-page="dashboard"] .overview-grid > .panel:first-child{grid-column:1 / -1;} }
   a.btn{
     font-family:'Inter',sans-serif;font-size:13px;font-weight:600;border-radius:6px;padding:9px 15px;
     display:flex;align-items:center;gap:7px;white-space:nowrap;text-decoration:none;
@@ -1434,6 +1453,7 @@
   .nav-sub.open{display:flex;}
   .nav-sub .nav-item{font-size:13.5px;padding:9px 12px;}
   .nav-sep{height:1px;background:rgba(255,255,255,0.14);margin:10px 4px;}
+  .nav-cap{font-size:11px;font-weight:800;color:rgba(255,255,255,0.45);letter-spacing:.02em;padding:14px 14px 4px;border-top:1px solid rgba(255,255,255,0.1);margin-top:8px;}
   .nav-label{font-size:11px;color:#8fb0cc;padding:4px 12px 2px;font-weight:700;}
 
   /* ---- windows shown as full pages inside the main area ---- */
@@ -1523,8 +1543,8 @@
   #appMain .status-pill.overdue, #appMain .shutdown-badge, #appMain .recur-badge, #appMain .bat-result, #appMain .demo-badge, #appMain .src-badge{margin-left:0;margin-right:5px;}
   #appMain .rbar-val{text-align:left;}
   .gov-bar-inner{direction:rtl;}
-  body.light .gov-select{color:var(--text);background:var(--panel2);border-color:var(--line);}
-  body.light .gov-select option{color:var(--text);}
+  .topbar .gov-select{color:#fff;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.28);}
+  .gov-select option{color:#0b2036;}
   .toast-container{right:auto;left:22px;}
 
   /* ---- print reports page ---- */
@@ -1840,6 +1860,8 @@
   .hd-month .cell:hover{background:rgba(255,255,255,0.05);}
   .hd-month .cell span{font-size:12.5px;color:#c9d9ea;} .hd-month .cell b{display:block;font-size:24px;margin:2px 0;}
   .hd-month .cell small{font-size:11.5px;color:#9fb8d3;}
+  /* tablets: the station record and the map take the full width, side panels below */
+  @media (max-width:1200px){ .st-grid, .mp-grid{grid-template-columns:1fr;} .st-tiles{grid-template-columns:repeat(2,1fr);} .st-side{display:grid;grid-template-columns:1fr 1fr;} }
   @media (max-width:1000px){
     .st-card{grid-template-columns:1fr;} .st-qr{border-right:none;border-top:1px solid var(--line);}
     .st-tiles{grid-template-columns:repeat(2,1fr);} .st-grid, .mp-grid{grid-template-columns:1fr;}
@@ -1850,14 +1872,15 @@
   /* ===== HOME DASHBOARD ===== */
   :root{--hd-em:#c0392b;--hd-pv:#1f5fa8;--hd-bt:#b8930f;--st-crit:#d03b3b;--st-warn:#fab219;--st-good:#0ca30c;}
   body:not(.light){--hd-em:#e0574b;--hd-pv:#5a93d6;--hd-bt:#a8860d;}
-  .home-hero{display:flex;align-items:center;gap:20px;direction:rtl;background:linear-gradient(120deg,#08264a,#0d3868);color:#fff;
-    border-radius:16px;padding:22px 26px;margin-bottom:18px;border-bottom:4px solid #c9a227;box-shadow:0 10px 28px rgba(8,38,74,0.22);position:relative;overflow:hidden;}
+  .home-hero{display:flex;align-items:center;gap:16px;direction:rtl;background:linear-gradient(120deg,#08264a,#0d3868);color:#fff;
+    border-radius:16px;padding:14px 22px;margin-bottom:18px;border-bottom:4px solid #c9a227;box-shadow:0 10px 28px rgba(8,38,74,0.22);position:relative;overflow:hidden;}
   .home-hero::after{content:"";position:absolute;left:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle, rgba(201,162,39,0.22), transparent 70%);}
-  .home-hero .home-emblem{height:84px;margin:0;background:#fff;border-radius:50%;padding:5px;flex-shrink:0;}
+  .home-hero .home-emblem{height:56px;margin:0;background:#fff;border-radius:50%;padding:5px;flex-shrink:0;}
   .home-hero-txt{flex:1;}
   .home-hero .home-ministry{color:#fff;font-size:18px;}
   .home-hero .home-ministry-en{color:#a9c3de;}
-  .home-hero .home-title{color:#fff;font-size:28px;margin:6px 0 0;}
+  .home-hero .home-title{color:#fff;font-size:22px;margin:2px 0 0;}
+  .home-hero .home-ministry-en{display:none;}
   .home-hero-side{text-align:left;z-index:1;}
   .home-hero .home-gov{color:#ffd76a;font-size:15px;font-weight:800;margin:0;}
   .home-date{font-size:12.5px;color:#c9d9ea;margin-top:4px;}
@@ -1968,23 +1991,11 @@
       </div>
     </div>
     <div class="hdr-clock" id="hdrClock">—</div>
-    <div class="ministry-badge">
-      <div class="ministry-text">
-        <span class="m1">وزارة الكهرباء والماء والطاقة المتجددة</span>
-        <span class="m2">دولة الكويت</span>
-      </div>
-    </div>
+    <select id="govSelect" class="gov-select" title="اختر المحافظة"></select>
     <button class="theme-toggle" id="themeToggle">🌙 داكن</button>
   </div>
 </div>
 
-<div class="gov-bar">
-  <div class="gov-bar-inner">
-    <span class="gov-bar-label">المحافظة:</span>
-    <select id="govSelect" class="gov-select" title="اختر المحافظة"></select>
-    <div class="grow"></div>
-  </div>
-</div>
 
 <div class="app-shell">
   <main class="app-main" id="appMain">
@@ -2024,21 +2035,14 @@
 
       <div class="hd-two">
         <div class="panel hd-panel">
+          <div class="panel-head"><h2>الصيانة المجدولة — الـ 30 يوم القادمة</h2></div>
+          <div class="panel-body-inner"><div class="hd-up" id="hdUpcoming"></div></div>
+        </div>
+        <div class="panel hd-panel">
           <div class="panel-head"><h2>ملخص المحطات</h2><span class="more" data-hd-map>خريطة المحطات ‹</span></div>
           <div class="panel-body-inner"><div class="hd-stn" id="hdStations"></div></div>
         </div>
-        <div class="panel hd-panel">
-          <div class="panel-head"><h2>نسبة الإنجاز لكل قسم</h2></div>
-          <div class="panel-body-inner"><div class="hd-bars" id="hdRates"></div></div>
-        </div>
       </div>
-
-      <div class="panel hd-panel">
-        <div class="panel-head"><h2>الصيانة المجدولة — الـ 30 يوم القادمة</h2></div>
-        <div class="panel-body-inner"><div class="hd-up" id="hdUpcoming"></div></div>
-      </div>
-
-      <div class="hd-month" id="hdMonth"></div>
     </section>
 
   <div class="cat-cards">
@@ -2103,17 +2107,12 @@
   <div class="kpis">
     <div class="kpi"><div class="val" id="kTotal"><span class="num-part">0</span></div><div class="lbl">إجمالي أوامر الصيانة</div></div>
     <div class="kpi"><div class="val" id="kPlanned"><span class="num-part">0</span></div><div class="lbl">📅 مجدولة</div></div>
-    <div class="kpi warn"><div class="val" id="kProgress"><span class="num-part">0</span></div><div class="lbl">🔧 قيد التنفيذ</div></div>
-    <div class="kpi ok"><div class="val" id="kDone"><span class="num-part">0</span></div><div class="lbl">✅ منجزة</div></div>
     <div class="kpi danger"><div class="val" id="kOverdue"><span class="num-part">0</span></div><div class="lbl">⏰ متأخرة</div></div>
     <div class="kpi ok"><div class="val pct" id="kRate"><span class="num-part">0</span><small> %</small></div><div class="lbl">نسبة الإنجاز</div></div>
-    <div class="kpi"><div class="val" id="kDur"><span class="num-part">0</span><small> hr</small></div><div class="lbl">متوسط مدة التنفيذ</div></div>
-    <div class="kpi danger"><div class="val" id="kShutdown"><span class="num-part">0</span></div><div class="lbl">🔌 أعمال بفصل (غير منجزة)</div></div>
   </div>
 
   <div class="toolbar">
-    <button class="btn refresh" id="refreshBtn">🔄 تحديث</button>
-    <div class="search-wrap"><span class="icn">🔍</span><input id="searchBox" placeholder="بحث بالمحطة، المعدة، الفريق، رقم التصريح..."></div>
+    <div class="search-wrap"><span class="icn">🔍</span><input id="searchBox" placeholder="بحث بالمحطة، الوصف، المهندس أو رقم الأمر..."></div>
     <input type="date" id="dateFilter" title="تصفية حسب التاريخ المخطط">
     <select id="statusFilter" class="filter-sel">
       <option value="all">كل الحالات</option>
@@ -2146,15 +2145,11 @@
           <tr>
             <th>رقم الأمر</th>
             <th>المحطة</th>
-            <th>نوع المعدة</th>
-            <th>نوع الصيانة</th>
+            <th class="col-eq">نوع المعدة</th>
+            <th class="col-type">نوع الصيانة</th>
             <th>وصف العمل</th>
-            <th>المهندس / الفريق</th>
-            <th>التاريخ المخطط</th>
-            <th>البدء</th>
-            <th>الانتهاء</th>
-            <th>المدة (ساعة)</th>
-            <th>الأولوية</th>
+            <th class="col-eng">المهندس / الفريق</th>
+            <th>الموعد</th>
             <th>الحالة</th>
             <th>الإجراءات</th>
           </tr>
@@ -2162,6 +2157,7 @@
         <tbody id="tbody"></tbody>
       </table>
     </div>
+    <button class="btn ghost rec-more" id="recMore" type="button">عرض المزيد</button>
     <div class="table-footer">
       <span id="footCount">0 records</span>
       <span>يتم حفظ البيانات تلقائيًا في هذا المتصفح</span>
@@ -3135,23 +3131,20 @@ function render(){
 
   tbody.innerHTML = '';
   if(rows.length === 0){
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="13">${data.length ? 'لا توجد أوامر صيانة مطابقة للفلاتر.' : 'لا توجد أوامر صيانة بعد — اضغط "➕ إضافة أمر صيانة" للبدء.'}</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">${data.length ? 'لا توجد أوامر صيانة مطابقة للفلاتر.' : 'لا توجد أوامر صيانة بعد — اضغط "➕ إضافة أمر صيانة" للبدء.'}</td></tr>`;
   }
-  rows.forEach(r => {
+  const shown = rows.slice(0, recLimit);
+  shown.forEach(r => {
     const tr = document.createElement('tr');
     tr.className = 'cat-' + r.mtType;
     tr.innerHTML = `
       <td class="fid">${fmtWid(r.id)}${r.demo ? '<span class="demo-badge" title="بيانات تجريبية">🧪</span>' : ''}${r.source ? `<span class="src-badge" title="من نظام التقارير">${esc(r.source.label)}</span>` : ''}</td>
-      <td class="sstn-cell">${r.sstn ? `<span class="st-link" data-st="${esc(stKey(r))}" title="سجل المحطة">${esc(r.sstn)}</span>` : '—'}</td>
-      <td>${esc(r.mtType === 'battery' ? eqName(r) : r.equipType) || '—'}</td>
-      <td>${typeBadge(r.mtType)}${(r.recurrence && r.recurrence !== 'none') ? `<span class="recur-badge" title="تكرار">🔁 ${esc(RECURRENCES[r.recurrence] ? RECURRENCES[r.recurrence].ar : r.recurrence)}</span>` : ''}${r.replaceReq === 'yes' && REPLACE_TO[r.replaceTo] ? `<span class="rep-badge" title="طلب استبدال — كتاب ${esc(r.replaceLetterNo || '')}">📄 استبدال — ${REPLACE_TO[r.replaceTo].short}</span>` : ''}</td>
-      <td class="desc-cell" title="${esc(r.description)}">${esc(r.description) || '—'}</td>
-      <td>${esc(r.engineer) || '—'}</td>
-      <td>${esc(r.plannedDate) || '—'}</td>
-      <td>${r.startDate ? esc(r.startDate + ' ' + (r.startTime || '')) : '—'}</td>
-      <td>${r.endDate ? esc(r.endDate + ' ' + (r.endTime || '')) : '—'}</td>
-      <td>${(r.duration || r.duration === 0) ? r.duration : '—'}</td>
-      <td>${priorityBadge(r.priority)}</td>
+      <td class="sstn-cell">${r.sstn ? `<span class="st-link" data-st="${esc(stKey(r))}" title="سجل المحطة">${esc(r.sstn)}</span>` : '—'}<small class="sub-eq">${esc(r.mtType === 'battery' ? eqName(r) : r.equipType)}</small></td>
+      <td class="col-eq">${esc(r.mtType === 'battery' ? eqName(r) : r.equipType) || '—'}</td>
+      <td class="col-type">${typeBadge(r.mtType)}</td>
+      <td class="desc-cell" title="${esc(r.description)}"><span class="dtext">${esc(r.description) || '—'}</span><div class="row-tags">${(r.recurrence && r.recurrence !== 'none') ? `<span class="recur-badge" title="تكرار">🔁 ${esc(RECURRENCES[r.recurrence] ? RECURRENCES[r.recurrence].ar : r.recurrence)}</span>` : ''}${r.replaceReq === 'yes' && REPLACE_TO[r.replaceTo] ? `<span class="rep-badge" title="طلب استبدال — كتاب ${esc(r.replaceLetterNo || '')}">📄 استبدال — ${REPLACE_TO[r.replaceTo].short}</span>` : ''}</div></td>
+      <td class="col-eng">${esc(r.engineer) || '—'}</td>
+      <td class="nw">${esc(r.status === 'completed' && r.endDate ? r.endDate : r.plannedDate) || '—'}</td>
       <td>${r.mtType === 'battery' ? (batChecked(r) ? '<span class="bat-pill yes">✓ تم الفحص</span>' : '<span class="bat-pill no">✗ لم يتم الفحص</span>') : statusPill(r)}${r.shutdown === 'yes' ? '<span class="shutdown-badge" title="يتطلب فصل">🔌 فصل</span>' : ''}</td>
       <td>
         <div class="row-actions">
@@ -3177,11 +3170,20 @@ function render(){
   document.getElementById('demoClearBtn').style.display = (data.some(r => r.demo) || oil.items.some(i => i.demo) || oil.moves.some(m => m.demo)) ? '' : 'none';
   renderOil();
   renderPredict();
-  document.getElementById('recCount').textContent = rows.length + ' معروض';
+  document.getElementById('recCount').textContent = rows.length + ' أمر';
+  const more = document.getElementById('recMore');
+  more.style.display = rows.length > shown.length ? '' : 'none';
+  more.textContent = 'عرض المزيد (' + (rows.length - shown.length) + ' متبقي)';
+  document.querySelector('[data-page="records"] table').classList.toggle('in-section', !!categoryFilter);
   document.getElementById('footCount').textContent = data.length + ' إجمالي السجلات';
   updateStats();
   refreshActiveReport();
 }
+
+// The orders table shows 25 rows at a time.
+const REC_PAGE = 25;
+let recLimit = REC_PAGE;
+document.getElementById('recMore').addEventListener('click', () => { recLimit += REC_PAGE; render(); });
 
 function animateNumber(el, endValue, decimals){
   const startVal = parseFloat(el.dataset.val || '0');
@@ -3230,12 +3232,8 @@ function updateStats(){
   const s = computeStats(scoped());
   animateNumber(document.querySelector('#kTotal .num-part'), s.total, 0);
   animateNumber(document.querySelector('#kPlanned .num-part'), s.planned, 0);
-  animateNumber(document.querySelector('#kProgress .num-part'), s.inprogress, 0);
-  animateNumber(document.querySelector('#kDone .num-part'), s.completed, 0);
   animateNumber(document.querySelector('#kOverdue .num-part'), s.overdue, 0);
   animateNumber(document.querySelector('#kRate .num-part'), s.rate, 0);
-  animateNumber(document.querySelector('#kDur .num-part'), s.avgDur, 1);
-  animateNumber(document.querySelector('#kShutdown .num-part'), s.shutdownPending, 0);
 
   renderUpcoming();
   renderRanking();
@@ -3798,6 +3796,7 @@ const SECTION_LABEL = {emergency:'🚨 صيانة طارئة', preventive:'🛡�
 // from its own orders. "🏠 الرئيسية" goes back to choose another.
 function setCategoryFilter(cat){
   categoryFilter = cat || '';
+  recLimit = REC_PAGE;
   const inSection = !!categoryFilter;
   // صيانة الزيت is the oil store, not work orders: it has its own screen.
   document.getElementById('ordersView').style.display = (categoryFilter === 'oil' || categoryFilter === 'predictive') ? 'none' : '';
@@ -3836,13 +3835,8 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape' && SUB_PAGES.includes(currentPage)) goBack();
 });
 
-['searchBox'].forEach(id => document.getElementById(id).addEventListener('input', render));
-['dateFilter','statusFilter'].forEach(id => document.getElementById(id).addEventListener('change', render));
-document.getElementById('refreshBtn').addEventListener('click', () => {
-  data = loadData();
-  render();
-  showToast('تم التحديث', 'info');
-});
+['searchBox'].forEach(id => document.getElementById(id).addEventListener('input', () => { recLimit = REC_PAGE; render(); }));
+['dateFilter','statusFilter'].forEach(id => document.getElementById(id).addEventListener('change', () => { recLimit = REC_PAGE; render(); }));
 
 /* ===== TOASTS & ACTIVITY ===== */
 /* ===== MAINTENANCE ALARM =====
@@ -4417,7 +4411,7 @@ document.getElementById('logoFileInput').addEventListener('change', e => {
 /* ===== GOVERNORATE SWITCHER ===== */
 function updateGovBrand(){
   const sec = (typeof categoryFilter !== 'undefined' && SECTION_LABEL[categoryFilter]) ? SECTION_LABEL[categoryFilter] + ' — ' : '';
-  document.querySelector('.brand .tagline').textContent = 'نظام إدارة الصيانة — ' + sec + govName(currentGov);
+  document.querySelector('.brand .tagline').textContent = sec + govName(currentGov);
 }
 function switchGovernorate(gov){
   if(gov === currentGov) return;
@@ -5360,26 +5354,27 @@ let navMaintOpen = true;
 function renderNav(){
   const item = (act, icon, label, page) =>
     `<button class="nav-item${page && currentPage === page ? ' active' : ''}" data-nav="${act}">${navSvg(icon)}<span>${label}</span></button>`;
+  const cap = t => `<div class="nav-cap">${t}</div>`;
   let h = '';
   if(!categoryFilter){
     h += `<div class="nav-head"><div class="ic">${navSvg('home')}</div><div><div class="t">الصفحة الرئيسية</div><div class="s">${esc(govName(currentGov))}</div></div></div>`;
     h += `<button class="nav-item${navMaintOpen ? ' expanded' : ''}" data-nav="toggle">${navSvg('wrench')}<span>الصيانة</span><span class="caret">▾</span></button>`;
     h += `<div class="nav-sub${navMaintOpen ? ' open' : ''}">` +
       ['emergency', 'preventive', 'battery', 'oil', 'predictive'].map(c => item('cat:' + c, c, SECTION_NAME[c])).join('') + '</div>';
-    h += '<div class="nav-sep"></div>';
+    h += cap('المحطات والفريق');
     h += item('stations', 'qr', 'سجل المحطات (QR)', 'station');
     h += item('map', 'map', 'خريطة المحطات', 'map');
     h += item('roster', 'history', 'جدول الخفارات', 'roster');
   } else {
     h += `<div class="nav-head ${categoryFilter}"><div class="ic">${navSvg(categoryFilter)}</div><div><div class="t">${SECTION_NAME[categoryFilter]}</div><div class="s">${esc(govName(currentGov))}</div></div></div>`;
     h += item('home', 'home', 'الرئيسية', '');
-    h += '<div class="nav-sep"></div>';
+    h += cap('القسم');
     if(categoryFilter === 'predictive'){
       h += item('page:predict', 'predictive', 'التحليل التنبؤي', 'predict');
     } else if(categoryFilter === 'oil'){
       h += item('page:oilBalances', 'oil', 'أرصدة المخزن', 'oilBalances');
       h += item('page:oilMoves', 'history', 'سجل الحركات', 'oilMoves');
-      h += '<div class="nav-sep"></div>';
+      h += cap('حركة المخزن');
       h += item('oil:in', 'inbox', 'إدخال للمخزن', currentPage === 'oilMove' && document.getElementById('om_type').value === 'in' ? 'oilMove' : '');
       h += item('oil:out', 'outbox', 'صرف من المخزن', currentPage === 'oilMove' && document.getElementById('om_type').value === 'out' ? 'oilMove' : '');
       h += item('oil:check', 'search', 'فحص الكمية', currentPage === 'oilMove' && document.getElementById('om_type').value === 'check' ? 'oilMove' : '');
@@ -5390,10 +5385,11 @@ function renderNav(){
       h += item('page:dashboard', 'dashboard', 'لوحة المتابعة', 'dashboard');
       h += item('page:reports', 'report', 'التقارير', 'reports');
     }
-    h += '<div class="nav-sep"></div>';
+    h += cap('المحطات والفريق');
     h += item('stations', 'qr', 'سجل المحطات (QR)', 'station');
     h += item('map', 'map', 'خريطة المحطات', 'map');
     h += item('roster', 'history', 'جدول الخفارات', 'roster');
+    h += cap('التقارير');
     h += item('monthly', 'calendar', 'التقرير الشهري', 'monthly');
     h += item('print', 'print', 'طباعة التقارير', 'print');
     h += item('govstats', 'globe', 'إحصائية المحافظات', 'govstats');
@@ -6220,15 +6216,6 @@ function renderHomeDash(){
     <div class="hd-dl">${parts.map(x => `<div><i style="background:${x.c}"></i>${x.l}<b>${x.n}</b><small>${Math.round(x.n / tot * 100)}%</small></div>`).join('')}</div>`
     : '<div class="hd-empty">ما في أوامر صيانة مسجلة بعد.</div>';
 
-  // ---- completion rate per section ----
-  const bar = (attrs, name, pct, color, note) => `<div class="hd-bar" ${attrs}><div class="top"><b class="nm">${name}</b><span>${note}</span></div>
-    <div class="track"><div class="fill" style="width:${pct}%;background:${color}"></div></div></div>`;
-  document.getElementById('hdRates').innerHTML = secs.map(k => {
-    const s = st(k);
-    return bar(`data-hd-cat="${k}"`, MT_TYPES[k].ar, s.rate, HD_SEC[k], `${s.rate}% · ${s.completed} من ${s.total - s.cancelled}`);
-  }).join('') + bar('data-hd-cat="oil"', 'مخزون الزيت (أصناف فوق الحد)', o.items ? Math.round((o.items - o.low) / o.items * 100) : 0, '#a86b2d',
-    `${o.items - o.low} من ${o.items} صنف`);
-
   // ---- station summary: completion and health ----
   const stns = stationNames().map(stationSummary).sort((a, b) => b.total - a.total).slice(0, 6);
   document.getElementById('hdStations').innerHTML = stns.length ? stns.map(x => `<div class="hd-stn-row" data-hd-station="${esc(x.name)}" title="سجل المحطة">
@@ -6236,16 +6223,6 @@ function renderHomeDash(){
       <div><b>${esc(x.name)}</b><small>إنجاز ${x.rate}% · ${ST_STATE[x.state].ar}</small></div>
       <span class="n">${x.completed}/${x.total}</span>
       <span class="track"><i style="width:${x.rate}%"></i></span></div>`).join('') : '<div class="hd-empty">ما في محطات مسجلة بعد.</div>';
-
-  // ---- this month at a glance ----
-  const inMonth = data.filter(r => { const d = refDate(r); return d >= cm.from && d <= cm.to; });
-  const cell = (go, label, rows, sub) => `<div class="cell" data-hd-cell="${go}"><span>${label}</span><b>${rows.length}</b><small>${sub}</small></div>`;
-  const doneOf = rows => rows.filter(r => r.status === 'completed').length + ' منجزة';
-  document.getElementById('hdMonth').innerHTML = `<div class="top"><small>ملخص شهر ${esc(cm.label)}</small><b>${inMonth.length} أمر صيانة</b></div><div class="cells">` +
-    cell('emergency', '🚨 طارئة', inMonth.filter(r => r.mtType === 'emergency'), doneOf(inMonth.filter(r => r.mtType === 'emergency'))) +
-    cell('preventive', '🛡️ وقائية', inMonth.filter(r => r.mtType === 'preventive'), doneOf(inMonth.filter(r => r.mtType === 'preventive'))) +
-    cell('battery', '🔋 بطاريات', inMonth.filter(r => r.mtType === 'battery'), doneOf(inMonth.filter(r => r.mtType === 'battery'))) +
-    cell('replace', '📄 طلبات استبدال', inMonth.filter(r => r.replaceReq === 'yes'), 'خلال الشهر') + '</div>';
 
   // ---- scheduled for the next 30 days ----
   const today = todayISO(), until = toISO(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30));
@@ -6270,13 +6247,7 @@ document.getElementById('hdKpis').addEventListener('click', e => {
 });
 document.getElementById('hdStations').addEventListener('click', e => { const el = e.target.closest('[data-hd-station]'); if(el) openStation(el.dataset.hdStation); });
 document.querySelector('[data-hd-map]').addEventListener('click', () => openMap());
-document.getElementById('hdMonth').addEventListener('click', e => {
-  const c = e.target.closest('[data-hd-cell]');
-  if(!c) return;
-  if(c.dataset.hdCell === 'replace'){ enterCategory('preventive'); document.getElementById('searchBox').value = 'استبدال'; render(); }
-  else enterCategory(c.dataset.hdCell);
-});
-['hdRates', 'hdUpcoming'].forEach(id => document.getElementById(id).addEventListener('click', e => {
+['hdUpcoming'].forEach(id => document.getElementById(id).addEventListener('click', e => {
   const el = e.target.closest('[data-hd-cat]');
   if(!el) return;
   enterCategory(el.dataset.hdCat);
