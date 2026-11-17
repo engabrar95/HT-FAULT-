@@ -1456,6 +1456,10 @@
   .nav-item.active .bdg.n{background:rgba(8,38,74,0.1);color:#08264a;}
   .nav-back{color:#ffd76a;font-size:13px;}
   .nav-sep{height:1px;background:rgba(255,255,255,0.14);margin:8px 4px;}
+  body.tool-page .side-nav{display:none;}
+  body.tool-page .mp-grid{grid-template-columns:1fr 330px;}
+  .mp-below{margin-top:16px;}
+  @media (max-width:900px){ body.tool-page .mp-grid{grid-template-columns:1fr;} }
 
   /* ---- windows shown as full pages inside the main area ---- */
   #appMain .modal-overlay, #appMain .sld-modal-overlay{
@@ -1721,7 +1725,7 @@
   /* map */
   .mp-grid{display:grid;grid-template-columns:1fr 360px;gap:16px;direction:rtl;align-items:start;}
   .mp-box{margin:0;overflow:hidden;}
-  .mp-map{height:560px;background:var(--panel2);direction:ltr;position:relative;z-index:0;}
+  .mp-map{height:calc(100vh - 290px);min-height:420px;background:var(--panel2);direction:ltr;position:relative;z-index:0;}
   .mp-legend{display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--mute);padding:10px 16px;direction:rtl;}
   .mp-legend span{display:flex;align-items:center;gap:6px;} .mp-legend i{width:10px;height:10px;border-radius:50%;}
   .mp-side{display:flex;flex-direction:column;gap:16px;} .mp-side .panel{margin:0;}
@@ -2322,9 +2326,6 @@
       <button class="btn ghost" type="button" id="mpMe2">📍 موقعي</button>
       <button class="btn st-dark" type="button" id="qiOpen">＋ تسجيل فحص</button>
     </div>
-    <div class="mp-device" id="mpDevice"></div>
-    <div class="mp-duty" id="mpDuty"></div>
-    <div class="mp-head" id="mpHead"></div>
     <div class="mp-grid">
       <div class="panel mp-box">
         <div class="panel-head"><h2>الموقع الجغرافي للمحطات</h2>
@@ -2347,6 +2348,11 @@
         <div class="panel"><div class="panel-head"><h2>المحطات</h2><span class="st-count" id="mpCount"></span></div><div class="panel-body-inner"><input id="mpSearch" type="search" class="mp-search" placeholder="🔍 ابحث عن محطة..."><div class="mp-list" id="mpList"></div>
           <div class="mp-note">≈ موقع تقريبي من منطقة المحطة — افتح سجل المحطة واضغط "تسجيل موقعي الحالي" وأنت في الموقع لحفظ موقعها الدقيق.</div></div></div>
       </div>
+    </div>
+    <div class="mp-below">
+      <div class="mp-head" id="mpHead"></div>
+      <div class="mp-duty" id="mpDuty"></div>
+      <div class="mp-device" id="mpDevice"></div>
     </div>
   </section>
 
@@ -5398,9 +5404,11 @@ function renderNav(){
       h += item('page:reports', 'report', 'تقارير القسم', 'reports');
     }
   }
-  // the shared tools at the top show which one is open
-  document.querySelectorAll('#toolBar [data-tool]').forEach(b => b.classList.toggle('active',
-    ({map: 'map', roster: 'roster', stations: 'station', govstats: 'govstats'})[b.dataset.tool] === currentPage));
+  // The shared tools at the top show which one is open; their pages use the
+  // whole width, so the menu steps aside while one is shown.
+  const TOOL_PAGE = {map: 'map', roster: 'roster', stations: 'station', govstats: 'govstats'};
+  document.querySelectorAll('#toolBar [data-tool]').forEach(b => b.classList.toggle('active', TOOL_PAGE[b.dataset.tool] === currentPage));
+  document.body.classList.toggle('tool-page', Object.values(TOOL_PAGE).includes(currentPage));
 document.getElementById('sideNav').innerHTML = h;
 }
 document.getElementById('toolBar').addEventListener('click', e => {
